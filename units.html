@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Unit &amp; Tenant Management — Saraza's Apartment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/base.css" />
+<link rel="stylesheet" href="assets/css/components.css" />
+<link rel="stylesheet" href="assets/css/views.css" />
+</head>
+<body data-page="units">
+
+<div class="app">
+  <aside class="sidebar" data-shell="sidebar"></aside>
+  <div class="sidebar-scrim" id="sidebarScrim"></div>
+
+  <div class="main">
+    <header class="topbar" data-shell="topbar"></header>
+
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1>Unit &amp; Tenant Management</h1>
+          <div class="crumbs">
+            <span data-bind="unitCount"></span><span class="sep">&middot;</span>
+            <span data-bind="occupiedCount"></span><span class="sep">&middot;</span>
+            <span data-bind="vacantCount"></span><span class="sep">&middot;</span>
+            <span data-bind="repairCount"></span>
+          </div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-outline" data-act="export"><span data-icon="download"></span>Export list</button>
+          <button class="btn btn-primary" data-shell-act="add-unit"><span data-icon="plus"></span>Add unit</button>
+        </div>
+      </div>
+
+      <!-- Per-building summary -->
+      <div class="bld-strip" id="buildingStrip"></div>
+
+      <!-- Filters -->
+      <div class="toolbar">
+        <label class="field">
+          <span data-icon="search"></span>
+          <input class="input" id="uq" style="width:280px" placeholder="Search unit or tenant..." />
+        </label>
+        <select class="select" id="ub"><option value="all">All buildings</option></select>
+        <select class="select" id="us">
+          <option value="all">All statuses</option>
+          <option value="occupied">Occupied</option>
+          <option value="vacant">Vacant</option>
+          <option value="repair">Under repair</option>
+        </select>
+        <select class="select" id="ut"><option value="all">All types</option></select>
+        <div class="spacer"></div>
+        <div class="segment" id="viewMode">
+          <button data-val="grid" class="on">Cards</button>
+          <button data-val="table">Table</button>
+        </div>
+      </div>
+
+      <!-- Results: cards or table, filled by units.js -->
+      <div id="unitList"></div>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/js/icons.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/charts.js"></script>
+<script src="assets/js/shell.js"></script>
+<script src="assets/js/pages/units.js"></script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Maintenance Requests — Saraza's Apartment Tenant Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/base.css" />
+<link rel="stylesheet" href="assets/css/components.css" />
+<link rel="stylesheet" href="assets/css/views.css" />
+</head>
+<body data-page="maintenance" data-title="Maintenance Requests" data-sub="Report a problem and follow the repair">
+
+<div class="app">
+  <aside class="sidebar" data-shell="sidebar"></aside>
+  <div class="sidebar-scrim" id="sidebarScrim"></div>
+
+  <div class="main">
+    <header class="topbar" data-shell="topbar"></header>
+
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1>Maintenance Requests</h1>
+          <div class="crumbs">
+            <span data-bind="openCount"></span><span class="sep">&middot;</span>
+            <span data-bind="doneCount"></span><span class="sep">&middot;</span>
+            <span data-bind="avgTime"></span>
+          </div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary btn-lg" data-shell-act="new-request">
+            <span data-icon="plus"></span>Submit new request</button>
+        </div>
+      </div>
+
+      <!-- ============ REPORT A PROBLEM ============ -->
+      <section class="card u-mb" style="margin-bottom:24px">
+        <header class="card-head">
+          <div>
+            <h3>What needs fixing?</h3>
+            <p class="sub">Pick a category to start — you can attach a photo or a short video</p>
+          </div>
+        </header>
+        <div class="card-body">
+          <div class="quick-grid" id="categoryPicker"></div>
+        </div>
+      </section>
+
+      <!-- ============ TABS ============ -->
+      <div class="tabs">
+        <button data-tab="open" class="on">Open<span class="tab-count" data-bind="tabOpen"></span></button>
+        <button data-tab="done">Resolved<span class="tab-count" data-bind="tabDone"></span></button>
+        <button data-tab="all">All<span class="tab-count" data-bind="tabAll"></span></button>
+      </div>
+
+      <!-- ============ REQUEST LIST ============ -->
+      <div id="requestList"></div>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/js/icons.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/charts.js"></script>
+<script src="assets/js/shell.js"></script>
+<script src="assets/js/pages/maintenance.js"></script>
+</body>
+</html>

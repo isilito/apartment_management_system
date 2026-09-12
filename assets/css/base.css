@@ -1,0 +1,252 @@
+/* ============================================================
+   Saraza Apartment — design tokens & app frame
+   Palette sampled directly from "Admin Dashboard — v2.png"
+   ============================================================ */
+:root{
+  /* Brand */
+  --deep:        #08475C;   /* sidebar / deepest teal      */
+  --deep-2:      #0A5670;   /* sidebar hover               */
+  --teal:        #0B6E8C;   /* primary action / active nav */
+  --teal-600:    #096079;
+  --teal-400:    #2E90AE;   /* chart series                */
+  --teal-100:    #E6F1F6;   /* tinted chips                */
+  --teal-050:    #F2F8FB;
+
+  /* Surfaces */
+  --canvas:      #F5F7F9;
+  --surface:     #FFFFFF;
+  --surface-2:   #F1F4F6;
+  --line:        #E4EAEE;
+  --line-soft:   #EEF2F5;
+
+  /* Ink */
+  --ink:         #10202A;
+  --ink-2:       #3E5058;
+  --muted:       #6B7C86;
+  --muted-2:     #93A3AC;
+
+  /* Status */
+  --green:       #0E7A55;  --green-bg: #E4F4EC;  --green-line:#C6E6D6;
+  --amber:       #A15C07;  --amber-bg: #FCF0DE;  --amber-line:#F3DCB8;
+  --red:         #B23225;  --red-bg:   #FBE9E7;  --red-line: #F3CFCA;
+  --slate:       #52646E;  --slate-bg: #EDF1F4;
+
+  /* Chart neutrals */
+  --bar-ghost:   #D7E0E5;
+  --ring-ghost:  #DDE5EA;
+
+  /* Shape */
+  --r-sm: 8px; --r: 12px; --r-lg: 16px; --r-pill: 999px;
+  --sidebar-w: 264px;
+  --topbar-h: 76px;
+
+  /* Elevation */
+  --sh-1: 0 1px 2px rgba(16,32,42,.05);
+  --sh-2: 0 2px 8px rgba(16,32,42,.06), 0 1px 2px rgba(16,32,42,.04);
+  --sh-3: 0 12px 32px rgba(16,32,42,.12), 0 2px 8px rgba(16,32,42,.06);
+  --sh-pop: 0 16px 44px rgba(8,71,92,.16);
+
+  --ease: cubic-bezier(.4,0,.2,1);
+}
+
+*,*::before,*::after{ box-sizing:border-box; }
+
+html,body{ height:100%; }
+
+body{
+  margin:0;
+  font-family:Lexend, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size:14px;
+  line-height:1.5;
+  color:var(--ink);
+  background:var(--canvas);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+h1,h2,h3,h4,p,figure{ margin:0; }
+button{ font:inherit; color:inherit; cursor:pointer; }
+input,select,textarea{ font:inherit; color:inherit; }
+a{ color:var(--teal); text-decoration:none; }
+svg{ display:block; }
+[hidden]{ display:none !important; }
+
+::selection{ background:var(--teal-100); color:var(--deep); }
+
+:focus-visible{
+  outline:2px solid var(--teal);
+  outline-offset:2px;
+  border-radius:6px;
+}
+
+/* Scrollbars */
+*::-webkit-scrollbar{ width:10px; height:10px; }
+*::-webkit-scrollbar-track{ background:transparent; }
+*::-webkit-scrollbar-thumb{
+  background:#D3DBE1; border-radius:99px;
+  border:3px solid transparent; background-clip:content-box;
+}
+*::-webkit-scrollbar-thumb:hover{ background:#B9C5CD; background-clip:content-box; }
+
+/* ============================================================
+   App frame
+   ============================================================ */
+.app{ display:flex; min-height:100vh; }
+
+.main{
+  flex:1;
+  min-width:0;
+  margin-left:var(--sidebar-w);
+  display:flex;
+  flex-direction:column;
+}
+
+/* No max-width — the console is a working tool, so it uses the full
+   width of whatever monitor it is opened on. */
+.content{
+  flex:1;
+  padding:28px 32px 40px;
+  width:100%;
+  min-width:0;
+}
+
+/* ============================================================
+   Sidebar
+   ============================================================ */
+.sidebar{
+  position:fixed; inset:0 auto 0 0;
+  width:var(--sidebar-w);
+  background:var(--deep);
+  display:flex; flex-direction:column;
+  z-index:60;
+  transition:transform .28s var(--ease);
+}
+
+.brand{
+  display:flex; align-items:center; gap:12px;
+  padding:0 20px;
+  height:var(--topbar-h);
+  flex:0 0 var(--topbar-h);
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+.brand-mark{
+  width:38px; height:38px; flex:none;
+  border-radius:10px;
+  background:var(--surface);
+  color:var(--deep);
+  display:grid; place-items:center;
+  font-weight:800; font-size:18px;
+  letter-spacing:-.02em;
+}
+.brand-text{ display:flex; flex-direction:column; min-width:0; }
+.brand-text strong{ color:#fff; font-size:14.5px; font-weight:700; letter-spacing:-.01em; white-space:nowrap; }
+.brand-text span{ color:#7FA8B8; font-size:11.5px; }
+
+.nav{ flex:1; overflow-y:auto; padding:18px 12px 12px; }
+.nav::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.14); background-clip:content-box; }
+
+.nav-group{ margin-bottom:18px; }
+.nav-label{
+  font-size:10.5px; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; color:#3C7284;
+  padding:0 12px; margin-bottom:8px;
+}
+
+.nav-item{
+  display:flex; align-items:center; gap:12px;
+  padding:10px 12px; margin-bottom:2px;
+  border-radius:var(--r-sm);
+  color:#B9D2DC; font-size:13.5px; font-weight:500;
+  border:0; background:none; width:100%; text-align:left;
+  transition:background .15s var(--ease), color .15s var(--ease);
+}
+.nav-item svg{ width:18px; height:18px; flex:none; stroke-width:1.8; }
+.nav-item:hover{ background:var(--deep-2); color:#fff; }
+.nav-item.active{ background:var(--teal); color:#fff; font-weight:600; }
+.nav-item .count{
+  margin-left:auto;
+  min-width:20px; height:20px; padding:0 6px;
+  border-radius:var(--r-pill);
+  background:rgba(255,255,255,.14); color:#fff;
+  font-size:11px; font-weight:700;
+  display:grid; place-items:center;
+}
+.nav-item.active .count{ background:rgba(255,255,255,.22); }
+
+.nav-footer{ padding:12px; border-top:1px solid rgba(255,255,255,.07); }
+
+.sidebar-scrim{
+  position:fixed; inset:0; background:rgba(8,32,42,.5);
+  z-index:55; opacity:0; pointer-events:none;
+  transition:opacity .25s var(--ease);
+}
+
+/* ============================================================
+   Topbar
+   ============================================================ */
+.topbar{
+  position:sticky; top:0; z-index:40;
+  height:var(--topbar-h); flex:0 0 var(--topbar-h);
+  background:var(--surface);
+  border-bottom:1px solid var(--line);
+  display:flex; align-items:center; gap:16px;
+  padding:0 24px;
+}
+
+.menu-btn{ display:none; }
+
+.search{ position:relative; flex:0 1 376px; }
+.search input{
+  width:100%; height:44px;
+  padding:0 14px 0 42px;
+  border:1px solid transparent;
+  border-radius:10px;
+  background:var(--surface-2);
+  color:var(--ink);
+  transition:background .15s var(--ease), border-color .15s var(--ease), box-shadow .15s var(--ease);
+}
+.search input::placeholder{ color:var(--muted-2); }
+.search input:focus{
+  outline:none; background:var(--surface);
+  border-color:var(--teal); box-shadow:0 0 0 3px var(--teal-100);
+}
+.search-icon{
+  position:absolute; left:14px; top:50%; transform:translateY(-50%);
+  color:var(--muted-2); pointer-events:none; display:flex;
+}
+.search-icon svg{ width:17px; height:17px; }
+
+.topbar-right{ margin-left:auto; display:flex; align-items:center; gap:12px; }
+
+.user-chip{
+  display:flex; align-items:center; gap:10px;
+  padding:5px 10px 5px 5px; border-radius:var(--r-pill);
+  transition:background .15s var(--ease);
+}
+.user-chip:hover{ background:var(--surface-2); }
+.user-meta{ display:flex; flex-direction:column; line-height:1.25; }
+.user-meta strong{ font-size:13.5px; font-weight:600; }
+.user-meta span{ font-size:11.5px; color:var(--muted); }
+.caret{ color:var(--muted); display:flex; }
+.caret svg{ width:15px; height:15px; }
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width:1240px){ .content{ padding:24px; } }
+
+@media (max-width:1024px){
+  .sidebar{ transform:translateX(-100%); }
+  body.nav-open .sidebar{ transform:none; }
+  body.nav-open .sidebar-scrim{ opacity:1; pointer-events:auto; }
+  .main{ margin-left:0; }
+  .menu-btn{ display:grid; }
+  .user-meta{ display:none; }
+}
+
+@media (max-width:680px){
+  .content{ padding:18px 16px 32px; }
+  .topbar{ padding:0 14px; gap:10px; }
+  .search{ flex:1; }
+  #logoutBtn{ display:none; }
+}

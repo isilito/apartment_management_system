@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Renter Information — Saraza's Apartment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/base.css" />
+<link rel="stylesheet" href="assets/css/components.css" />
+<link rel="stylesheet" href="assets/css/views.css" />
+</head>
+<body data-page="renters">
+
+<div class="app">
+  <aside class="sidebar" data-shell="sidebar"></aside>
+  <div class="sidebar-scrim" id="sidebarScrim"></div>
+
+  <div class="main">
+    <header class="topbar" data-shell="topbar"></header>
+
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1>Renter Information</h1>
+          <div class="crumbs">
+            <span data-bind="total"></span><span class="sep">&middot;</span>
+            <span data-bind="withBalance"></span><span class="sep">&middot;</span>
+            <span data-bind="onNotice"></span>
+          </div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-outline" data-act="export"><span data-icon="download"></span>Export</button>
+          <button class="btn btn-primary" data-shell-act="add-tenant"><span data-icon="plus"></span>Add tenant</button>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <button data-tab="all" class="on">All renters<span class="tab-count" data-bind="countAll"></span></button>
+        <button data-tab="current">Paid up<span class="tab-count" data-bind="countCurrent"></span></button>
+        <button data-tab="overdue">With balance<span class="tab-count" data-bind="countOverdue"></span></button>
+        <button data-tab="notice">On notice<span class="tab-count" data-bind="countNotice"></span></button>
+      </div>
+
+      <div class="toolbar">
+        <label class="field">
+          <span data-icon="search"></span>
+          <input class="input" id="rq" style="width:300px" placeholder="Search name, unit, or number..." />
+        </label>
+      </div>
+
+      <div class="renter-layout">
+        <div id="renterList"></div>
+        <div id="renterProfile" style="position:sticky;top:calc(var(--topbar-h) + 20px)"></div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/js/icons.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/charts.js"></script>
+<script src="assets/js/shell.js"></script>
+<script src="assets/js/pages/renters.js"></script>
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Help &amp; Guide — Saraza's Apartment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/base.css" />
+<link rel="stylesheet" href="assets/css/components.css" />
+<link rel="stylesheet" href="assets/css/views.css" />
+</head>
+<body data-page="help">
+
+<div class="app">
+  <aside class="sidebar" data-shell="sidebar"></aside>
+  <div class="sidebar-scrim" id="sidebarScrim"></div>
+
+  <div class="main">
+    <header class="topbar" data-shell="topbar"></header>
+
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1>Help &amp; Guide</h1>
+          <div class="crumbs">
+            <span>Saraza Apartment Management</span><span class="sep">&middot;</span><span>Version 1.0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ HERO ============ -->
+      <div class="help-hero">
+        <h2>How can we help, Aling Nena?</h2>
+        <p>Short, task-shaped guides for the things you do every week — collecting rent,
+           moving tenants in and out, and keeping repairs moving.</p>
+        <label class="field">
+          <span data-icon="search"></span>
+          <input class="input" id="hq" placeholder="Search the guides and FAQ..." />
+        </label>
+      </div>
+
+      <!-- ============ GUIDES ============ -->
+      <h3 class="u-b u-mb" style="font-size:16px;letter-spacing:-.015em">Guides</h3>
+      <div class="help-grid" id="guideGrid">
+
+        <article class="card help-card" data-guide="first-week" tabindex="0">
+          <span class="h-ico" data-icon="play"></span>
+          <b>Getting started</b>
+          <p>Set up your buildings, add units, and move your first tenants in.</p>
+          <template>
+            <li>Add your buildings in Settings &rarr; Property profile.</li>
+            <li>Create units under Unit &amp; Tenant Management — set the type, size, and monthly rent.</li>
+            <li>Assign a tenant to each occupied unit, with their move-in date and deposit.</li>
+            <li>Record any rent already paid this month so your dashboard starts accurate.</li>
+          </template>
+        </article>
+
+        <article class="card help-card" data-guide="collect" tabindex="0">
+          <span class="h-ico" data-icon="peso"></span>
+          <b>Collecting rent</b>
+          <p>Record payments, handle partial rent, and chase balances.</p>
+          <template>
+            <li>Click Record a payment from the dashboard or the Payments tab.</li>
+            <li>Pick the tenant — their unit and expected rent fill in automatically.</li>
+            <li>Enter the amount received and the channel they used.</li>
+            <li>Set what the payment covers, then save. A receipt number is generated for you.</li>
+          </template>
+        </article>
+
+        <article class="card help-card" data-guide="tenants" tabindex="0">
+          <span class="h-ico" data-icon="users"></span>
+          <b>Managing tenants</b>
+          <p>Move-ins, move-outs, deposits, and lease renewals.</p>
+          <template>
+            <li>Add a tenant from Renter Information or straight from a vacant unit.</li>
+            <li>Record the deposit amount so it shows in the deposit register.</li>
+            <li>When a lease nears its end, use Apartment Analytics &rarr; Leases ending soon to send notices.</li>
+            <li>On move-out, end the lease and the unit becomes available again.</li>
+          </template>
+        </article>
+
+        <article class="card help-card" data-guide="repairs" tabindex="0">
+          <span class="h-ico" data-icon="wrench"></span>
+          <b>Handling repairs</b>
+          <p>Log a request, assign crew, and close it out with a cost.</p>
+          <template>
+            <li>Log a request from Maintenance Requests &rarr; Log a request.</li>
+            <li>Set the priority — urgent items surface on the dashboard immediately.</li>
+            <li>Assign a crew member; the request moves to Scheduled.</li>
+            <li>Mark it Resolved and enter the cost so it lands in your maintenance spend.</li>
+          </template>
+        </article>
+
+        <article class="card help-card" data-guide="reports" tabindex="0">
+          <span class="h-ico" data-icon="file"></span>
+          <b>Reports &amp; exports</b>
+          <p>Produce a rent roll, aging report, or monthly statement.</p>
+          <template>
+            <li>Open Reports &amp; Analytics and pick a template from the library.</li>
+            <li>Choose the period, the building, and the output format.</li>
+            <li>Generate — the report fills itself from your live records.</li>
+            <li>Recently generated reports stay listed so you can download them again.</li>
+          </template>
+        </article>
+
+        <article class="card help-card" data-guide="accounts" tabindex="0">
+          <span class="h-ico" data-icon="shield"></span>
+          <b>Users &amp; access</b>
+          <p>Invite staff and decide what each role is allowed to see.</p>
+          <template>
+            <li>Go to Settings &rarr; Users &amp; roles and click Invite user.</li>
+            <li>Choose their role — it decides what they can open.</li>
+            <li>They receive an email invitation to set their own password.</li>
+            <li>Review who has access periodically and remove anyone who has left.</li>
+          </template>
+        </article>
+
+      </div>
+
+      <div style="height:26px"></div>
+
+      <div class="grid g-3">
+
+        <!-- ============ FAQ ============ -->
+        <section class="card span-2">
+          <header class="card-head">
+            <div><h3>Frequently asked</h3><p class="sub" data-bind="faqCount"></p></div>
+          </header>
+          <div class="card-body" style="padding-top:4px" id="faqList">
+
+            <div class="acc-item">
+              <button class="acc-head"><span>How do I record a payment that covers two months?</span>
+                <span class="chev" data-icon="chevDown"></span></button>
+              <div class="acc-body">Open <b>Payment &amp; Balances</b> and click <b>Record a payment</b>.
+                Enter the full amount the tenant handed over, then set <b>Covers</b> to the months it settles —
+                for example "Aug balance + Sep". The system applies the oldest balance first and carries the
+                remainder forward.</div>
+            </div>
+
+            <div class="acc-item">
+              <button class="acc-head"><span>A tenant paid partially. What happens to the rest?</span>
+                <span class="chev" data-icon="chevDown"></span></button>
+              <div class="acc-body">Record exactly what was received. The unpaid remainder stays on the tenant
+                as an outstanding balance and appears in the <b>Outstanding</b> tab and on the dashboard, with
+                the day count ticking from the original due date.</div>
+            </div>
+
+            <div class="acc-item">
+              <button class="acc-head"><span>How do I mark a unit as vacant?</span>
+                <span class="chev" data-icon="chevDown"></span></button>
+              <div class="acc-body">Open the unit from <b>Unit &amp; Tenant Management</b>, then end the current
+                lease in the tenant panel. The unit flips to <b>Vacant</b>, stops counting toward occupancy, and
+                its rent moves into vacancy loss on the analytics tab.</div>
+            </div>
+
+            <div class="acc-item">
+              <button class="acc-head"><span>Can I send reminders to everyone who owes rent at once?</span>
+                <span class="chev" data-icon="chevDown"></span></button>
+              <div class="acc-body">Yes. The dashboard has <b>Send reminder to all tenants</b> under Rent
+                collection, and the <b>Outstanding</b> tab has <b>Remind everyone</b>. Both use the message
+                template set in Settings &rarr; Notifications.</div>
+            </div>
+
+            <div class="acc-item">
+              <button class="acc-head"><span>What is the difference between the two analytics tabs?</span>
+                <span class="chev" data-icon="chevDown"></span></button>
+              <div class="acc-body"><b>Reports &amp; Analytics</b> is about money on paper — rent rolls, income
+                statements, and exports you can hand to the owner or an accountant.
+                <b>Apartment Analytics</b> is about how the property is running — occupancy, tenure, turnover,
+                and where repair effort goes.</div>
+            </div>
+
+            <div class="acc-item">
+              <button class="acc-head"><span>Who can see financial information?</span>
+                <span class="chev" data-icon="chevDown"></span></button>
+              <div class="acc-body">Owners and Administrators see everything. Caretakers can work with units,
+                tenants, and maintenance but cannot open financial reports. Maintenance accounts see only the
+                repair queue. Change this in Settings &rarr; Users &amp; roles.</div>
+            </div>
+
+            <div class="acc-item">
+              <button class="acc-head"><span>How do I back up my records?</span>
+                <span class="chev" data-icon="chevDown"></span></button>
+              <div class="acc-body">Automatic nightly backups are on by default and kept for 30 days. For a copy
+                you control, go to Settings &rarr; Data &amp; backup and choose <b>Export</b> — it produces one
+                archive with units, tenants, payments, and repairs.</div>
+            </div>
+
+          </div>
+          <div id="faqEmpty" hidden></div>
+        </section>
+
+        <!-- ============ SIDE ============ -->
+        <div>
+          <section class="card">
+            <header class="card-head">
+              <div><h3>Keyboard shortcuts</h3><p class="sub">Move around without reaching for the mouse</p></div>
+            </header>
+            <div class="card-body">
+              <div class="rows">
+                <div class="row"><div class="row-main"><b>Jump to search</b></div>
+                  <div class="row-end"><span class="badge badge-outline kbd">/</span></div></div>
+                <div class="row"><div class="row-main"><b>Go to Dashboard</b></div>
+                  <div class="row-end"><span class="badge badge-outline kbd">G then D</span></div></div>
+                <div class="row"><div class="row-main"><b>Go to Payments</b></div>
+                  <div class="row-end"><span class="badge badge-outline kbd">G then P</span></div></div>
+                <div class="row"><div class="row-main"><b>Go to Maintenance</b></div>
+                  <div class="row-end"><span class="badge badge-outline kbd">G then M</span></div></div>
+                <div class="row"><div class="row-main"><b>Record a new payment</b></div>
+                  <div class="row-end"><span class="badge badge-outline kbd">N</span></div></div>
+                <div class="row"><div class="row-main"><b>Close any panel or dialog</b></div>
+                  <div class="row-end"><span class="badge badge-outline kbd">Esc</span></div></div>
+              </div>
+            </div>
+          </section>
+
+          <div style="height:20px"></div>
+
+          <section class="card">
+            <div class="card-pad">
+              <span class="stat-icon i-teal" style="width:42px;height:42px;margin-bottom:12px" data-icon="message"></span>
+              <b style="font-size:15px;display:block">Still stuck?</b>
+              <p class="u-sm u-muted" style="line-height:1.6;margin-top:5px">
+                Ask the assistant for a quick answer, or send us a message and we will get back within a day.
+              </p>
+              <div class="u-col u-mt" style="gap:8px">
+                <button class="btn btn-primary btn-block" data-shell-act="ask"
+                        data-ask="How do I record a partial payment?">
+                  <span data-icon="bot"></span>Ask the assistant</button>
+                <button class="btn btn-outline btn-block" data-act="contact">
+                  <span data-icon="mail"></span>Contact support</button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/js/icons.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/charts.js"></script>
+<script src="assets/js/shell.js"></script>
+<script src="assets/js/pages/help.js"></script>
+</body>
+</html>

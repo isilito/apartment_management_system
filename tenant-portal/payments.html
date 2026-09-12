@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Payment &amp; Balance — Saraza's Apartment Tenant Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/base.css" />
+<link rel="stylesheet" href="assets/css/components.css" />
+<link rel="stylesheet" href="assets/css/views.css" />
+</head>
+<body data-page="payments" data-title="Payment &amp; Balance" data-sub="What you owe, and everything you have paid">
+
+<div class="app">
+  <aside class="sidebar" data-shell="sidebar"></aside>
+  <div class="sidebar-scrim" id="sidebarScrim"></div>
+
+  <div class="main">
+    <header class="topbar" data-shell="topbar"></header>
+
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1>Payment &amp; Balance</h1>
+          <div class="crumbs">
+            <span data-bind="unitLine"></span><span class="sep">&middot;</span>
+            <span data-bind="rentLine"></span><span class="sep">&middot;</span>
+            <span data-bind="dueLine"></span>
+          </div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary btn-lg" data-shell-act="pay">
+            <span data-icon="peso"></span>Pay now</button>
+        </div>
+      </div>
+
+      <!-- ============ TABS ============ -->
+      <div class="tabs">
+        <button data-tab="balance" class="on">Balance &amp; due dates</button>
+        <button data-tab="history">Payment history<span class="tab-count" data-bind="tabHistory"></span></button>
+      </div>
+
+      <!-- ============ PANE: BALANCE & DUE DATES ============ -->
+      <section data-pane="balance">
+
+        <div class="tenant-hero">
+
+          <section class="balance-card">
+            <span class="bc-label" data-bind="balanceLabel"></span>
+            <div class="bc-amount" data-bind="balanceAmount"></div>
+            <span class="bc-note" data-bind="balanceNote"></span>
+            <div class="bc-split">
+              <div><b data-bind="nextDue"></b><span>Next due date</span></div>
+              <div><b data-bind="monthlyRent"></b><span>Monthly rent</span></div>
+              <div><b data-bind="graceInfo"></b><span>Grace period</span></div>
+            </div>
+            <div class="bc-actions">
+              <button class="btn btn-onbrand" data-shell-act="pay">
+                <span data-icon="peso"></span>Pay now</button>
+            </div>
+          </section>
+
+          <section class="card">
+            <header class="card-head">
+              <div>
+                <h3>How to pay</h3>
+                <p class="sub">Send it any of these ways, then upload your proof</p>
+              </div>
+            </header>
+            <div class="card-body">
+              <div class="u-col" style="gap:10px" id="methodList"></div>
+              <p class="u-xs u-muted u-mt" style="line-height:1.6">
+                Always keep your reference number. Payments are confirmed by the admin
+                within one business day.
+              </p>
+            </div>
+          </section>
+
+        </div>
+
+        <section class="card">
+          <header class="card-head">
+            <div>
+              <h3>Your charges</h3>
+              <p class="sub">Rent and utilities for this billing period</p>
+            </div>
+            <div class="card-head-actions">
+              <button class="btn btn-outline btn-sm" data-act="statement">
+                <span data-icon="download"></span>Download statement</button>
+            </div>
+          </header>
+          <div class="card-body" id="chargeList"></div>
+        </section>
+
+      </section>
+
+      <!-- ============ PANE: PAYMENT HISTORY ============ -->
+      <section data-pane="history" hidden>
+
+        <div class="kpi-strip">
+          <section class="card"><div class="stat">
+            <div class="stat-top"><span class="stat-label">Paid this year</span>
+              <span class="stat-icon i-green" data-icon="peso"></span></div>
+            <div class="stat-value"><b data-bind="paidYear"></b></div>
+            <p class="stat-note" style="margin-top:0" data-bind="paidYearNote"></p>
+          </div></section>
+
+          <section class="card"><div class="stat">
+            <div class="stat-top"><span class="stat-label">Receipts on file</span>
+              <span class="stat-icon i-teal" data-icon="receipt"></span></div>
+            <div class="stat-value"><b data-bind="receiptCount"></b></div>
+            <p class="stat-note" style="margin-top:0">Every payment you have made</p>
+          </div></section>
+
+          <section class="card"><div class="stat">
+            <div class="stat-top"><span class="stat-label">On-time streak</span>
+              <span class="stat-icon i-teal" data-icon="check"></span></div>
+            <div class="stat-value"><b data-bind="streak"></b></div>
+            <p class="stat-note" style="margin-top:0">Consecutive payments on time</p>
+          </div></section>
+
+          <section class="card"><div class="stat">
+            <div class="stat-top"><span class="stat-label">Deposit held</span>
+              <span class="stat-icon i-teal" data-icon="shield"></span></div>
+            <div class="stat-value"><b data-bind="depositHeld"></b></div>
+            <p class="stat-note" style="margin-top:0">Refundable when you move out</p>
+          </div></section>
+        </div>
+
+        <section class="card">
+          <header class="card-head">
+            <div>
+              <h3>All payments</h3>
+              <p class="sub">Tap any row to open the receipt</p>
+            </div>
+            <div class="card-head-actions">
+              <select class="select" id="yearFilter"></select>
+            </div>
+          </header>
+          <div class="table-wrap">
+            <table class="tbl" style="min-width:820px">
+              <thead>
+                <tr>
+                  <th>Receipt</th><th>Date paid</th><th>Covers</th>
+                  <th>Method</th><th>Reference</th><th class="num">Amount</th><th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="paymentRows"></tbody>
+            </table>
+          </div>
+        </section>
+
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/js/icons.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/charts.js"></script>
+<script src="assets/js/shell.js"></script>
+<script src="assets/js/pages/payments.js"></script>
+</body>
+</html>

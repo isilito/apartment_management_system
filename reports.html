@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Reports &amp; Analytics — Saraza's Apartment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/base.css" />
+<link rel="stylesheet" href="assets/css/components.css" />
+<link rel="stylesheet" href="assets/css/views.css" />
+</head>
+<body data-page="reports">
+
+<div class="app">
+  <aside class="sidebar" data-shell="sidebar"></aside>
+  <div class="sidebar-scrim" id="sidebarScrim"></div>
+
+  <div class="main">
+    <header class="topbar" data-shell="topbar"></header>
+
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1>Reports &amp; Analytics</h1>
+          <div class="crumbs">
+            <span>Financial reporting</span><span class="sep">&middot;</span>
+            <span data-bind="monthYear"></span>
+          </div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-outline" data-act="schedule"><span data-icon="calendar"></span>Schedule report</button>
+          <button class="btn btn-primary" data-act="build"><span data-icon="plus"></span>Build a report</button>
+        </div>
+      </div>
+
+      <!-- ============ KPI STRIP ============ -->
+      <div class="kpi-strip">
+        <section class="card"><div class="stat">
+          <div class="stat-top"><span class="stat-label">Rent collected (6 mo)</span>
+            <span class="stat-icon i-green" data-icon="peso"></span></div>
+          <div class="stat-value"><b data-bind="ytdIncome"></b></div>
+          <p class="stat-note" style="margin-top:0" data-bind="ytdIncomeNote"></p>
+        </div></section>
+
+        <section class="card"><div class="stat">
+          <div class="stat-top"><span class="stat-label">Operating costs</span>
+            <span class="stat-icon i-amber" data-icon="wrench"></span></div>
+          <div class="stat-value"><b data-bind="ytdExpense"></b></div>
+          <p class="stat-note" style="margin-top:0">Repairs, utilities, and upkeep</p>
+        </div></section>
+
+        <section class="card"><div class="stat">
+          <div class="stat-top"><span class="stat-label">Net income</span>
+            <span class="stat-icon i-teal" data-icon="chart"></span></div>
+          <div class="stat-value"><b data-bind="net"></b></div>
+          <p class="stat-note" style="margin-top:0" data-bind="netNote"></p>
+        </div></section>
+
+        <section class="card"><div class="stat">
+          <div class="stat-top"><span class="stat-label">Average rent</span>
+            <span class="stat-icon i-teal" data-icon="home"></span></div>
+          <div class="stat-value"><b data-bind="avgRent"></b></div>
+          <p class="stat-note" style="margin-top:0">Per occupied unit, per month</p>
+        </div></section>
+      </div>
+
+      <!-- ============ CHARTS ============ -->
+      <div class="grid g-3" style="margin-bottom:20px">
+        <section class="card span-2">
+          <header class="card-head">
+            <div>
+              <h3>Income vs. operating cost</h3>
+              <p class="sub">Collected rent measured against what it costs to run the property</p>
+            </div>
+            <div class="card-head-actions">
+              <div class="segment">
+                <button data-val="6" class="on">6 months</button>
+                <button data-val="12">12 months</button>
+              </div>
+            </div>
+          </header>
+          <div class="card-body">
+            <div class="legend-inline u-mb">
+              <span><i class="dot-mark" style="background:#0B6E8C"></i>Rent collected</span>
+              <span><i class="dot-mark" style="background:#D7E0E5"></i>Expected rent</span>
+            </div>
+            <div id="incomeChart"></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <header class="card-head">
+            <div><h3>Operating cost trend</h3><p class="sub">Monthly repair and upkeep spend</p></div>
+          </header>
+          <div class="card-body" id="costChart"></div>
+        </section>
+      </div>
+
+      <!-- ============ REPORT LIBRARY ============ -->
+      <section class="card">
+        <header class="card-head">
+          <div>
+            <h3>Report library</h3>
+            <p class="sub">Pick a template — it fills itself from your live records</p>
+          </div>
+        </header>
+        <div class="card-body">
+          <div class="report-grid" id="reportGrid"></div>
+        </div>
+      </section>
+
+      <div style="height:20px"></div>
+
+      <!-- ============ RECENTLY GENERATED ============ -->
+      <section class="card">
+        <header class="card-head">
+          <div>
+            <h3>Recently generated</h3>
+            <p class="sub">Reports you or your staff produced lately</p>
+          </div>
+          <div class="card-head-actions">
+            <button class="btn btn-quiet btn-sm" data-act="clear-history">Clear history</button>
+          </div>
+        </header>
+        <div class="table-wrap">
+          <table class="tbl" style="min-width:860px">
+            <thead>
+              <tr>
+                <th>Report</th><th>Generated by</th><th>When</th>
+                <th>Size</th><th>Format</th><th class="num"></th>
+              </tr>
+            </thead>
+            <tbody id="recentReportRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/js/icons.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/charts.js"></script>
+<script src="assets/js/shell.js"></script>
+<script src="assets/js/pages/reports.js"></script>
+</body>
+</html>

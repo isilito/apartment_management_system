@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Maintenance Requests — Saraza's Apartment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/base.css" />
+<link rel="stylesheet" href="assets/css/components.css" />
+<link rel="stylesheet" href="assets/css/views.css" />
+</head>
+<body data-page="maintenance">
+
+<div class="app">
+  <aside class="sidebar" data-shell="sidebar"></aside>
+  <div class="sidebar-scrim" id="sidebarScrim"></div>
+
+  <div class="main">
+    <header class="topbar" data-shell="topbar"></header>
+
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1>Maintenance Requests</h1>
+          <div class="crumbs">
+            <span data-bind="openCount"></span><span class="sep">&middot;</span>
+            <span data-bind="urgentCount"></span><span class="sep">&middot;</span>
+            <span data-bind="oldest"></span>
+          </div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-outline" data-act="crew"><span data-icon="users"></span>Manage crew</button>
+          <button class="btn btn-primary" data-shell-act="new-ticket"><span data-icon="plus"></span>Log a request</button>
+        </div>
+      </div>
+
+      <!-- ============ KPI STRIP ============ -->
+      <div class="kpi-strip">
+        <section class="card"><div class="stat">
+          <div class="stat-top"><span class="stat-label">Open requests</span>
+            <span class="stat-icon i-amber" data-icon="wrench"></span></div>
+          <div class="stat-value"><b data-bind="kpiOpen"></b></div>
+          <p class="stat-note" style="margin-top:0" data-bind="kpiOpenNote"></p>
+        </div></section>
+
+        <section class="card"><div class="stat">
+          <div class="stat-top"><span class="stat-label">Urgent</span>
+            <span class="stat-icon i-red" data-icon="alert"></span></div>
+          <div class="stat-value"><b data-bind="kpiUrgent"></b></div>
+          <p class="stat-note" style="margin-top:0">Needs attention today</p>
+        </div></section>
+
+        <section class="card"><div class="stat">
+          <div class="stat-top"><span class="stat-label">Average age</span>
+            <span class="stat-icon i-teal" data-icon="clock"></span></div>
+          <div class="stat-value"><b data-bind="kpiAge"></b></div>
+          <p class="stat-note" style="margin-top:0">From report to resolution</p>
+        </div></section>
+
+        <section class="card"><div class="stat">
+          <div class="stat-top"><span class="stat-label">Repair spend</span>
+            <span class="stat-icon i-teal" data-icon="peso"></span></div>
+          <div class="stat-value"><b data-bind="kpiSpend"></b></div>
+          <p class="stat-note" style="margin-top:0">Logged against closed tickets</p>
+        </div></section>
+      </div>
+
+      <!-- ============ FILTERS ============ -->
+      <div class="toolbar">
+        <label class="field">
+          <span data-icon="search"></span>
+          <input class="input" id="mq" style="width:280px" placeholder="Search request, unit, or ref..." />
+        </label>
+        <select class="select" id="mp">
+          <option value="all">All priorities</option>
+          <option value="urgent">Urgent</option>
+          <option value="high">High</option>
+          <option value="normal">Normal</option>
+          <option value="low">Low</option>
+        </select>
+        <select class="select" id="mc"><option value="all">All categories</option></select>
+        <div class="spacer"></div>
+        <div class="segment" id="viewMode">
+          <button data-val="board" class="on">Board</button>
+          <button data-val="list">List</button>
+        </div>
+      </div>
+
+      <!-- ============ BOARD ============ -->
+      <div class="board" data-pane="board">
+        <div class="board-col">
+          <div class="board-col-head">
+            <i class="dot-mark" style="background:#B23225"></i><b>New</b>
+            <span class="n" data-bind="colNew"></span>
+          </div>
+          <div id="col-new"></div>
+        </div>
+        <div class="board-col">
+          <div class="board-col-head">
+            <i class="dot-mark" style="background:#A15C07"></i><b>Scheduled</b>
+            <span class="n" data-bind="colScheduled"></span>
+          </div>
+          <div id="col-scheduled"></div>
+        </div>
+        <div class="board-col">
+          <div class="board-col-head">
+            <i class="dot-mark" style="background:#0B6E8C"></i><b>In progress</b>
+            <span class="n" data-bind="colInProgress"></span>
+          </div>
+          <div id="col-in-progress"></div>
+        </div>
+        <div class="board-col">
+          <div class="board-col-head">
+            <i class="dot-mark" style="background:#0E7A55"></i><b>Resolved</b>
+            <span class="n" data-bind="colDone"></span>
+          </div>
+          <div id="col-done"></div>
+        </div>
+      </div>
+
+      <!-- ============ LIST ============ -->
+      <section data-pane="list" hidden>
+        <div class="card">
+          <div class="table-wrap">
+            <table class="tbl" style="min-width:1060px">
+              <thead>
+                <tr>
+                  <th>Ref</th><th>Request</th><th>Unit</th><th>Category</th>
+                  <th>Priority</th><th>Reported</th><th>Assigned to</th><th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="ticketRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/js/icons.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/charts.js"></script>
+<script src="assets/js/shell.js"></script>
+<script src="assets/js/pages/maintenance.js"></script>
+</body>
+</html>

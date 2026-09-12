@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard — Saraza's Apartment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/base.css" />
+<link rel="stylesheet" href="assets/css/components.css" />
+<link rel="stylesheet" href="assets/css/views.css" />
+</head>
+<body data-page="dashboard">
+
+<div class="app">
+  <aside class="sidebar" data-shell="sidebar"></aside>
+  <div class="sidebar-scrim" id="sidebarScrim"></div>
+
+  <div class="main">
+    <header class="topbar" data-shell="topbar"></header>
+
+    <main class="content">
+
+      <!-- ============ PAGE HEADER ============ -->
+      <div class="page-head">
+        <div>
+          <h1>Dashboard</h1>
+          <div class="crumbs">
+            <span data-bind="today"></span><span class="sep">&middot;</span>
+            <span data-bind="unitCount"></span><span class="sep">&middot;</span>
+            <span data-bind="buildingCount"></span>
+          </div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-outline" data-shell-act="add-tenant">
+            <span data-icon="plus"></span>Add tenant</button>
+          <button class="btn btn-primary" data-shell-act="record-payment">
+            <span data-icon="plus"></span>Record a payment</button>
+        </div>
+      </div>
+
+      <div class="dash">
+
+        <!-- ============ STAT CARDS ============ -->
+        <div class="stat-row">
+
+        <section class="card stat-card">
+          <div class="stat">
+            <div class="stat-top">
+              <span class="stat-label">Occupied units</span>
+              <span class="stat-icon i-teal" data-icon="chart"></span>
+            </div>
+            <div class="stat-value">
+              <b data-bind="occupied"></b>
+              <span class="badge badge-teal" data-bind="occupancyPct"></span>
+            </div>
+            <div class="meter"><i class="m-teal" data-bind-width="occupancyBar"></i></div>
+            <p class="stat-note" data-bind="occupancyNote"></p>
+          </div>
+        </section>
+
+        <section class="card stat-card">
+          <div class="stat">
+            <div class="stat-top">
+              <span class="stat-label">Income this month</span>
+              <span class="stat-icon i-green" data-icon="peso"></span>
+            </div>
+            <div class="stat-value">
+              <b data-bind="income"></b>
+              <span class="badge badge-green" data-bind="incomeDelta"></span>
+            </div>
+            <div class="meter"><i class="m-green" data-bind-width="incomeBar"></i></div>
+            <p class="stat-note" data-bind="incomeNote"></p>
+          </div>
+        </section>
+
+        <section class="card stat-card">
+          <div class="stat">
+            <div class="stat-top">
+              <span class="stat-label">Outstanding balance</span>
+              <span class="stat-icon i-amber" data-icon="clock"></span>
+            </div>
+            <div class="stat-value">
+              <b data-bind="outstanding"></b>
+              <span class="badge badge-amber" data-bind="outstandingCount"></span>
+            </div>
+            <div class="meter"><i class="m-amber" data-bind-width="outstandingBar"></i></div>
+            <p class="stat-note" data-bind="outstandingNote"></p>
+          </div>
+        </section>
+
+        <section class="card stat-card">
+          <div class="stat">
+            <div class="stat-top">
+              <span class="stat-label">Open repairs</span>
+              <span class="stat-icon i-red" data-icon="wrench"></span>
+            </div>
+            <div class="stat-value">
+              <b data-bind="repairs"></b>
+              <span class="badge badge-red" data-bind="repairsUrgent"></span>
+            </div>
+            <div class="meter"><i class="m-red" data-bind-width="repairsBar"></i></div>
+            <p class="stat-note" data-bind="repairsNote"></p>
+          </div>
+        </section>
+
+        </div><!-- /.stat-row -->
+
+        <!-- ============ RENT COLLECTED VS EXPECTED ============ -->
+        <section class="card c-rent">
+          <header class="card-head no-rule">
+            <div>
+              <h3>Rent collected vs. expected</h3>
+              <p class="sub">How much of the expected rent actually came in</p>
+            </div>
+            <div class="card-head-actions">
+              <div class="segment" id="rentRange">
+                <button data-val="6" class="on">Last 6 months</button>
+                <button data-val="3">3 months</button>
+              </div>
+            </div>
+          </header>
+          <div class="card-body" style="padding-top:10px">
+            <div class="legend-inline chart-legend">
+              <span><i class="dot-mark" style="background:#0B6E8C"></i>Collected</span>
+              <span><i class="dot-mark" style="background:#D7E0E5"></i>Expected</span>
+            </div>
+            <div class="chart-frame" id="rentChart"></div>
+          </div>
+        </section>
+
+        <!-- ============ UNIT OCCUPANCY ============ -->
+        <section class="card c-occ">
+          <header class="card-head no-rule">
+            <div>
+              <h3>Unit occupancy</h3>
+              <p class="sub" data-bind="occupancySub"></p>
+            </div>
+          </header>
+          <div class="card-body" style="padding-top:6px">
+            <div class="donut-wrap" id="occupancyDonut"></div>
+            <div class="legend" id="occupancyLegend"></div>
+          </div>
+        </section>
+
+        <!-- ============ RIGHT RAIL ============ -->
+        <div class="rail">
+
+          <section class="card">
+            <header class="card-head no-rule">
+              <div>
+                <h3>Rent collection</h3>
+                <p class="sub" data-bind="monthYear"></p>
+              </div>
+            </header>
+            <div class="card-body" style="padding-top:6px">
+              <div class="rc-amount">
+                <b data-bind="collected"></b>
+                <span data-bind="collectedOf"></span>
+              </div>
+              <div class="meter lg"><i class="m-green" data-bind-width="collectedBar"></i></div>
+              <div class="rc-split">
+                <span class="u-green" data-bind="collectedPct"></span>
+                <span class="u-amber" data-bind="outstandingLabel"></span>
+              </div>
+
+              <div class="u-rule"></div>
+
+              <h4 class="u-b" style="font-size:13.5px;margin-bottom:4px">Overdue tenants</h4>
+              <div class="rows" id="overdueRows"></div>
+
+              <button class="btn btn-outline btn-block u-mt" data-act="remind-all">
+                <span data-icon="mail"></span><span data-bind="remindAllLabel"></span>
+              </button>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="card-pad">
+              <div class="u-row" style="margin-bottom:12px">
+                <span class="stat-icon i-teal" data-icon="bot"></span>
+                <div>
+                  <b style="font-size:14.5px">Saraza Assistant</b>
+                  <div class="u-xs u-muted">Ask anything about your property</div>
+                </div>
+              </div>
+              <p class="u-sm u-muted" style="line-height:1.6">
+                Get a quick read on collections, vacancies, or repairs without digging through tabs.
+              </p>
+              <div class="chat-chips" style="padding:14px 0 0;background:none">
+                <button data-shell-act="ask" data-ask="Who is late on rent?">Who is late on rent?</button>
+                <button data-shell-act="ask" data-ask="Which units are vacant?">Vacant units</button>
+                <button data-shell-act="ask" data-ask="What repairs are urgent?">Urgent repairs</button>
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- ============ RECENT PAYMENTS ============ -->
+        <section class="card c-recent">
+          <header class="card-head">
+            <div>
+              <h3>Recent payments</h3>
+              <p class="sub">The last 5 payments recorded across all units</p>
+            </div>
+            <div class="card-head-actions">
+              <select class="select" id="unitFilter">
+                <option value="all">All units</option>
+              </select>
+              <a class="btn btn-quiet" href="payments.html">View ledger<span data-icon="arrowRight"></span></a>
+            </div>
+          </header>
+          <div class="table-wrap">
+            <table class="tbl" style="min-width:860px">
+              <thead>
+                <tr>
+                  <th>Tenant</th><th>Unit</th><th>Date paid</th><th>Method</th>
+                  <th>Covers</th><th class="num">Amount</th><th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="recentPaymentRows"></tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="assets/js/icons.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/charts.js"></script>
+<script src="assets/js/shell.js"></script>
+<script src="assets/js/pages/dashboard.js"></script>
+</body>
+</html>

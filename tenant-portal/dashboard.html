@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard — Saraza's Apartment Tenant Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/base.css" />
+<link rel="stylesheet" href="assets/css/components.css" />
+<link rel="stylesheet" href="assets/css/views.css" />
+</head>
+<body data-page="dashboard" data-title="Dashboard" data-sub="Everything about your unit in one place">
+
+<div class="app">
+  <aside class="sidebar" data-shell="sidebar"></aside>
+  <div class="sidebar-scrim" id="sidebarScrim"></div>
+
+  <div class="main">
+    <header class="topbar" data-shell="topbar"></header>
+
+    <main class="content">
+
+      <!-- ============ GREETING ============ -->
+      <div class="page-head">
+        <div>
+          <h1 data-bind="greeting"></h1>
+          <div class="crumbs">
+            <span data-bind="today"></span><span class="sep">&middot;</span>
+            <span data-bind="unitLine"></span><span class="sep">&middot;</span>
+            <span data-bind="tenure"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ LANDLORD NOTICE ============ -->
+      <div class="notice" id="topNotice" hidden>
+        <span class="n-ico" data-icon="alert"></span>
+        <div>
+          <b data-bind="noticeTitle"></b>
+          <span data-bind="noticeBody"></span>
+        </div>
+      </div>
+
+      <!-- ============ BALANCE + WHAT IS COMING UP ============ -->
+      <div class="tenant-hero">
+
+        <section class="balance-card">
+          <span class="bc-label" data-bind="balanceLabel"></span>
+          <div class="bc-amount" data-bind="balanceAmount"></div>
+          <span class="bc-note" data-bind="balanceNote"></span>
+
+          <div class="bc-split">
+            <div><b data-bind="nextDueDate"></b><span>Next due date</span></div>
+            <div><b data-bind="paidThisYear"></b><span>Paid in 2026</span></div>
+            <div><b data-bind="onTimeStreak"></b><span>On-time payments</span></div>
+          </div>
+
+          <div class="bc-record">
+            <span class="bc-rec-label">Your payment record</span>
+            <div class="bc-dots" id="payRecord"></div>
+          </div>
+
+          <div class="bc-actions">
+            <button class="btn btn-onbrand" data-shell-act="pay">
+              <span data-icon="peso"></span>Pay now</button>
+            <a class="btn btn-ghost-onbrand" href="payments.html">
+              <span data-icon="receipt"></span>View history</a>
+          </div>
+        </section>
+
+        <section class="card due-card">
+          <header class="card-head">
+            <div>
+              <h3>Coming up</h3>
+              <p class="sub">What you owe and when it falls due</p>
+            </div>
+          </header>
+          <div class="card-body" style="display:flex;flex-direction:column;flex:1">
+            <div class="due-ring" id="dueRing"></div>
+            <div class="rows due-list" id="upcomingCharges"></div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- ============ QUICK ACTIONS ============ -->
+      <h3 class="u-b u-mb" style="font-size:15px;letter-spacing:-.015em">Quick actions</h3>
+      <div class="quick-grid u-mb" style="margin-bottom:24px">
+        <button class="quick-card" data-shell-act="new-request">
+          <span class="q-ico stat-icon i-amber" data-icon="wrench"></span>
+          <span><b>Report a problem</b><span>Send a photo or video</span></span>
+        </button>
+        <button class="quick-card" data-shell-act="pay">
+          <span class="q-ico stat-icon i-green" data-icon="peso"></span>
+          <span><b>Pay rent</b><span>GCash, Maya, bank or cash</span></span>
+        </button>
+        <a class="quick-card" href="rental.html">
+          <span class="q-ico stat-icon i-teal" data-icon="idCard"></span>
+          <span><b>My rental info</b><span>Lease, rules and documents</span></span>
+        </a>
+        <a class="quick-card" href="maintenance.html">
+          <span class="q-ico stat-icon i-teal" data-icon="clock"></span>
+          <span><b>Track a request</b><span data-bind="openRequestsNote"></span></span>
+        </a>
+      </div>
+
+      <!-- ============ REQUESTS + PAYMENTS ============ -->
+      <div class="grid g-3">
+
+        <section class="card span-2">
+          <header class="card-head">
+            <div>
+              <h3>Your open requests</h3>
+              <p class="sub">Repairs the caretaker is working on right now</p>
+            </div>
+            <div class="card-head-actions">
+              <a class="btn btn-quiet btn-sm" href="maintenance.html">See all<span data-icon="arrowRight"></span></a>
+            </div>
+          </header>
+          <div class="card-body" id="openRequests"></div>
+        </section>
+
+        <section class="card">
+          <header class="card-head">
+            <div>
+              <h3>Recent payments</h3>
+              <p class="sub">Your last few receipts</p>
+            </div>
+          </header>
+          <div class="card-body">
+            <div class="rows" id="recentPayments"></div>
+            <a class="btn btn-outline btn-block u-mt" href="payments.html">
+              <span data-icon="receipt"></span>All payment history</a>
+          </div>
+        </section>
+
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/js/icons.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/charts.js"></script>
+<script src="assets/js/shell.js"></script>
+<script src="assets/js/pages/dashboard.js"></script>
+</body>
+</html>

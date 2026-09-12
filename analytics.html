@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Apartment Analytics — Saraza's Apartment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/base.css" />
+<link rel="stylesheet" href="assets/css/components.css" />
+<link rel="stylesheet" href="assets/css/views.css" />
+</head>
+<body data-page="analytics">
+
+<div class="app">
+  <aside class="sidebar" data-shell="sidebar"></aside>
+  <div class="sidebar-scrim" id="sidebarScrim"></div>
+
+  <div class="main">
+    <header class="topbar" data-shell="topbar"></header>
+
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1>Apartment Analytics</h1>
+          <div class="crumbs">
+            <span>Operational insight</span><span class="sep">&middot;</span>
+            <span data-bind="unitCount"></span><span class="sep">&middot;</span>
+            <span data-bind="buildingCount"></span>
+          </div>
+        </div>
+        <div class="page-actions">
+          <div class="segment" id="range">
+            <button data-val="6" class="on">6 months</button>
+            <button data-val="12">12 months</button>
+          </div>
+          <button class="btn btn-outline" data-act="export"><span data-icon="download"></span>Export data</button>
+        </div>
+      </div>
+
+      <!-- ============ KPI STRIP ============ -->
+      <div class="kpi-strip">
+        <section class="card"><div class="stat">
+          <div class="stat-top"><span class="stat-label">Occupancy rate</span>
+            <span class="stat-icon i-teal" data-icon="chart"></span></div>
+          <div class="stat-value"><b data-bind="occupancy"></b>
+            <span class="u-end" id="occupancySpark"></span></div>
+          <p class="stat-note" style="margin-top:0">Up 6.2 points since April</p>
+        </div></section>
+
+        <section class="card"><div class="stat">
+          <div class="stat-top"><span class="stat-label">Average tenancy</span>
+            <span class="stat-icon i-green" data-icon="users"></span></div>
+          <div class="stat-value"><b data-bind="tenancy"></b></div>
+          <p class="stat-note" style="margin-top:0" data-bind="tenancyNote"></p>
+        </div></section>
+
+        <section class="card"><div class="stat">
+          <div class="stat-top"><span class="stat-label">Vacancy loss</span>
+            <span class="stat-icon i-amber" data-icon="doorOpen"></span></div>
+          <div class="stat-value"><b data-bind="vacancyLoss"></b></div>
+          <p class="stat-note" style="margin-top:0">Monthly rent not being earned</p>
+        </div></section>
+
+        <section class="card"><div class="stat">
+          <div class="stat-top"><span class="stat-label">Repairs per unit</span>
+            <span class="stat-icon i-red" data-icon="wrench"></span></div>
+          <div class="stat-value"><b data-bind="repairsPerUnit"></b></div>
+          <p class="stat-note" style="margin-top:0">Requests logged in the last 6 months</p>
+        </div></section>
+      </div>
+
+      <!-- ============ OCCUPANCY + TENURE ============ -->
+      <div class="grid g-3" style="margin-bottom:20px">
+        <section class="card span-2">
+          <header class="card-head">
+            <div><h3>Occupancy over time</h3>
+              <p class="sub">Share of units with a paying tenant, month by month</p></div>
+          </header>
+          <div class="card-body" id="occupancyChart"></div>
+        </section>
+
+        <section class="card">
+          <header class="card-head">
+            <div><h3>How long people stay</h3>
+              <p class="sub">Current renters grouped by length of tenancy</p></div>
+          </header>
+          <div class="card-body" id="tenureChart"></div>
+        </section>
+      </div>
+
+      <!-- ============ BUILDINGS + CATEGORIES ============ -->
+      <div class="grid g-3" style="margin-bottom:20px">
+        <section class="card span-2">
+          <header class="card-head">
+            <div><h3>Building performance</h3>
+              <p class="sub">Occupancy and monthly rent potential per building</p></div>
+          </header>
+          <div class="table-wrap">
+            <table class="tbl" style="min-width:820px">
+              <thead>
+                <tr>
+                  <th>Building</th><th class="num">Units</th><th class="num">Occupied</th>
+                  <th>Occupancy</th><th class="num">Monthly potential</th><th class="num">Open repairs</th>
+                </tr>
+              </thead>
+              <tbody id="buildingRows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card">
+          <header class="card-head">
+            <div><h3>Where repairs come from</h3><p class="sub">Requests and spend by category</p></div>
+          </header>
+          <div class="card-body" id="categoryChart"></div>
+        </section>
+      </div>
+
+      <!-- ============ LEASES + UNIT TYPES ============ -->
+      <div class="grid g-3">
+        <section class="card span-2">
+          <header class="card-head">
+            <div><h3>Leases ending soon</h3>
+              <p class="sub">The next four months of renewals and turnovers</p></div>
+            <div class="card-head-actions">
+              <button class="btn btn-outline btn-sm" data-act="renewals">
+                <span data-icon="mail"></span>Send renewal notices</button>
+            </div>
+          </header>
+          <div class="table-wrap">
+            <table class="tbl" style="min-width:860px">
+              <thead>
+                <tr>
+                  <th>Tenant</th><th>Unit</th><th>Lease ends</th>
+                  <th class="num">Days left</th><th class="num">Monthly rent</th><th>Standing</th>
+                </tr>
+              </thead>
+              <tbody id="leaseRows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card">
+          <header class="card-head">
+            <div><h3>Which unit types fill up</h3><p class="sub">Occupancy rate by floor plan</p></div>
+          </header>
+          <div class="card-body" id="typeChart"></div>
+        </section>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/js/icons.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/charts.js"></script>
+<script src="assets/js/shell.js"></script>
+<script src="assets/js/pages/analytics.js"></script>
+</body>
+</html>

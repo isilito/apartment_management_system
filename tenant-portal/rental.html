@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>My Rental Info — Saraza's Apartment Tenant Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/base.css" />
+<link rel="stylesheet" href="assets/css/components.css" />
+<link rel="stylesheet" href="assets/css/views.css" />
+</head>
+<body data-page="rental" data-title="My Rental Info" data-sub="Your unit, lease and house rules">
+
+<div class="app">
+  <aside class="sidebar" data-shell="sidebar"></aside>
+  <div class="sidebar-scrim" id="sidebarScrim"></div>
+
+  <div class="main">
+    <header class="topbar" data-shell="topbar"></header>
+
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1>My Rental Info</h1>
+          <div class="crumbs">
+            <span data-bind="contractNo"></span><span class="sep">&middot;</span>
+            <span data-bind="address"></span>
+          </div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-outline" data-act="print">
+            <span data-icon="print"></span>Print summary</button>
+          <button class="btn btn-primary" data-act="ask">
+            <span data-icon="message"></span>Ask about my lease</button>
+        </div>
+      </div>
+
+      <!-- ============ UNIT HERO ============ -->
+      <div class="rental-hero">
+        <div class="rh-unit" data-bind="unitNo"></div>
+        <div class="rh-meta">
+          <h2 data-bind="unitTitle"></h2>
+          <p data-bind="unitSub"></p>
+        </div>
+        <div class="rh-facts">
+          <div><b data-bind="rent"></b><span>Monthly rent</span></div>
+          <div><b data-bind="dueDay"></b><span>Due each month</span></div>
+          <div><b data-bind="deposit"></b><span>Deposit held</span></div>
+        </div>
+      </div>
+
+      <div class="grid g-3">
+
+        <!-- ============ LEASE ============ -->
+        <section class="card span-2">
+          <header class="card-head">
+            <div>
+              <h3>Lease</h3>
+              <p class="sub">Your contract term and what it covers</p>
+            </div>
+            <div class="card-head-actions" id="leaseBadge"></div>
+          </header>
+          <div class="card-body">
+            <dl class="kv">
+              <dt>Contract number</dt><dd data-bind="kvContract"></dd>
+              <dt>Lease start</dt><dd data-bind="kvStart"></dd>
+              <dt>Lease end</dt><dd data-bind="kvEnd"></dd>
+              <dt>Monthly rent</dt><dd data-bind="kvRent"></dd>
+              <dt>Security deposit</dt><dd data-bind="kvDeposit"></dd>
+              <dt>Advance rent</dt><dd data-bind="kvAdvance"></dd>
+              <dt>Rent due</dt><dd data-bind="kvDue"></dd>
+              <dt>Grace period</dt><dd data-bind="kvGrace"></dd>
+            </dl>
+
+            <div class="lease-bar">
+              <div class="meter lg"><i class="m-teal" data-bind-width="leaseProgress"></i></div>
+              <div class="lb-ends">
+                <span data-bind="leaseFrom"></span>
+                <span data-bind="leaseLeft"></span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ UNIT SPECS ============ -->
+        <section class="card">
+          <header class="card-head">
+            <div>
+              <h3>The unit</h3>
+              <p class="sub">What you are renting</p>
+            </div>
+          </header>
+          <div class="card-body">
+            <div class="spec-grid" id="specGrid"></div>
+            <div class="u-rule"></div>
+            <h4 class="u-b u-mb" style="font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted-2)">Included &amp; not included</h4>
+            <div class="tick-list" id="inclusionList"></div>
+          </div>
+        </section>
+
+      </div>
+
+      <div style="height:20px"></div>
+
+      <div class="grid g-3">
+
+        <!-- ============ HOUSE RULES ============ -->
+        <section class="card">
+          <header class="card-head">
+            <div>
+              <h3>House rules</h3>
+              <p class="sub">Agreed when you signed the lease</p>
+            </div>
+          </header>
+          <div class="card-body">
+            <ol class="rule-list" id="ruleList"></ol>
+          </div>
+        </section>
+
+        <!-- ============ DOCUMENTS ============ -->
+        <section class="card">
+          <header class="card-head">
+            <div>
+              <h3>Documents</h3>
+              <p class="sub">Your copies, ready to download</p>
+            </div>
+          </header>
+          <div class="card-body" id="docList"></div>
+        </section>
+
+        <!-- ============ CONTACTS + OCCUPANTS ============ -->
+        <section class="card">
+          <header class="card-head">
+            <div>
+              <h3>Who to contact</h3>
+              <p class="sub">For rent, repairs or emergencies</p>
+            </div>
+          </header>
+          <div class="card-body">
+            <div id="contactList"></div>
+            <div class="u-rule"></div>
+            <h4 class="u-b u-mb" style="font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted-2)">Registered occupants</h4>
+            <dl class="kv">
+              <dt>People in the unit</dt><dd data-bind="occupants"></dd>
+              <dt>Emergency contact</dt><dd data-bind="emergencyName"></dd>
+              <dt>Their number</dt><dd data-bind="emergencyPhone"></dd>
+            </dl>
+          </div>
+        </section>
+
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/js/icons.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/charts.js"></script>
+<script src="assets/js/shell.js"></script>
+<script src="assets/js/pages/rental.js"></script>
+</body>
+</html>

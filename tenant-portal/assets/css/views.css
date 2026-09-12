@@ -1,0 +1,379 @@
+/* ============================================================
+   Saraza Apartment — Tenant Portal layout
+   Uses the same tokens and UI kit as the admin console.
+   ============================================================ */
+
+/* ---------- Shared grid helpers ---------- */
+.grid{ display:grid; gap:20px; }
+.g-3{ grid-template-columns:repeat(3,minmax(0,1fr)); }
+.g-2{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+.span-2{ grid-column:span 2; }
+
+/* ---------- Topbar: the portal names the page instead of searching ---------- */
+.topbar-title{ display:flex; flex-direction:column; line-height:1.3; min-width:0; }
+.topbar-title strong{ font-size:16px; font-weight:700; letter-spacing:-.015em; }
+.topbar-title span{ font-size:12.5px; color:var(--muted); }
+
+/* ---------- Sidebar unit chip ---------- */
+.unit-chip{
+  display:flex; align-items:center; gap:11px;
+  padding:11px 12px; margin-bottom:8px;
+  background:rgba(255,255,255,.06); border-radius:var(--r-sm);
+}
+.unit-chip .uc-ico{
+  width:32px; height:32px; flex:none; border-radius:9px;
+  background:var(--teal); color:#fff; display:grid; place-items:center;
+}
+.unit-chip .uc-ico svg{ width:16px; height:16px; stroke-width:1.9; }
+.unit-chip b{ display:block; color:#fff; font-size:13px; font-weight:700; }
+.unit-chip span{ display:block; color:#7FA8B8; font-size:11.5px; }
+
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+.tenant-hero{
+  display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);
+  gap:20px; margin-bottom:20px; align-items:stretch;
+}
+
+/* Balance panel — the single most important thing a tenant opens for */
+.balance-card{
+  background:linear-gradient(135deg, var(--deep) 0%, var(--teal) 100%);
+  border-radius:var(--r-lg); padding:26px 28px; color:#fff;
+  display:flex; flex-direction:column;
+}
+.balance-card .bc-label{ font-size:13px; color:#BDD8E2; font-weight:500; }
+.balance-card .bc-amount{
+  font-size:40px; font-weight:800; letter-spacing:-.035em;
+  line-height:1.1; margin:8px 0 4px;
+}
+.balance-card .bc-note{ font-size:13px; color:#BDD8E2; }
+.balance-card .bc-actions{ display:flex; gap:10px; margin-top:18px; flex-wrap:wrap; }
+
+/* Six-month payment record — anchors the card's lower half so the panel
+   does not stretch into an empty void beside a taller neighbour. */
+.balance-card .bc-record{ margin-top:auto; padding-top:24px; }
+.bc-rec-label{ display:block; font-size:11.5px; color:#BDD8E2; margin-bottom:10px; }
+.bc-dots{ display:flex; gap:10px; flex-wrap:wrap; }
+.bc-dot{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+.bc-dot i{
+  width:28px; height:28px; border-radius:50%;
+  display:grid; place-items:center;
+  background:rgba(255,255,255,.14); color:#BDD8E2;
+}
+.bc-dot i svg{ width:13px; height:13px; stroke-width:2.6; }
+.bc-dot.paid i{ background:rgba(255,255,255,.94); color:var(--deep); }
+.bc-dot span{ font-size:10px; color:#BDD8E2; letter-spacing:.02em; }
+.balance-card .btn-onbrand{
+  background:#fff; color:var(--deep); border-color:#fff; font-weight:700;
+}
+.balance-card .btn-onbrand:hover{ background:#EAF3F7; }
+.balance-card .btn-ghost-onbrand{
+  background:rgba(255,255,255,.12); color:#fff; border-color:rgba(255,255,255,.28);
+}
+.balance-card .btn-ghost-onbrand:hover{ background:rgba(255,255,255,.2); }
+
+.bc-split{
+  display:flex; gap:26px; margin-top:20px; padding-top:18px;
+  border-top:1px solid rgba(255,255,255,.16); flex-wrap:wrap;
+}
+.bc-split div b{ display:block; font-size:17px; font-weight:700; letter-spacing:-.02em; }
+.bc-split div span{ display:block; font-size:11.5px; color:#BDD8E2; margin-top:2px; }
+
+/* Next due countdown */
+.due-card{ display:flex; flex-direction:column; }
+.due-ring{ display:grid; place-items:center; padding:6px 0 14px; }
+.due-list{ margin-top:auto; }
+
+/* Quick actions */
+.quick-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:14px; }
+.quick-card{
+  display:flex; align-items:center; gap:13px;
+  padding:16px 18px; width:100%; text-align:left;
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--r); box-shadow:var(--sh-1);
+  transition:border-color .16s var(--ease), box-shadow .16s var(--ease), transform .16s var(--ease);
+}
+.quick-card:hover{ border-color:var(--teal); box-shadow:var(--sh-2); transform:translateY(-2px); }
+.quick-card .q-ico{
+  width:40px; height:40px; flex:none; border-radius:11px;
+  display:grid; place-items:center;
+}
+.quick-card .q-ico svg{ width:19px; height:19px; stroke-width:1.85; }
+.quick-card b{ display:block; font-size:13.5px; font-weight:600; }
+.quick-card span{ display:block; font-size:12px; color:var(--muted); margin-top:1px; }
+
+/* Notice strip */
+.notice{
+  display:flex; align-items:flex-start; gap:13px;
+  padding:14px 16px; border-radius:var(--r);
+  border:1px solid var(--amber-line); background:var(--amber-bg);
+  margin-bottom:20px;
+}
+.notice .n-ico{ color:var(--amber); flex:none; display:flex; }
+.notice .n-ico svg{ width:19px; height:19px; }
+.notice b{ display:block; font-size:13.5px; font-weight:700; color:#7A4405; }
+.notice span{ display:block; font-size:12.5px; color:#8A5A20; margin-top:2px; line-height:1.55; }
+
+/* ============================================================
+   MY RENTAL INFO
+   ============================================================ */
+.rental-hero{
+  display:flex; align-items:center; gap:20px;
+  padding:24px 26px; margin-bottom:20px;
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--r-lg); box-shadow:var(--sh-1); flex-wrap:wrap;
+}
+.rental-hero .rh-unit{
+  width:84px; height:84px; flex:none; border-radius:18px;
+  background:var(--teal-100); color:var(--teal);
+  display:grid; place-items:center;
+  font-size:30px; font-weight:800; letter-spacing:-.03em;
+}
+.rental-hero .rh-meta{ flex:1; min-width:200px; }
+.rental-hero .rh-meta h2{ font-size:22px; font-weight:800; letter-spacing:-.025em; }
+.rental-hero .rh-meta p{ font-size:13.5px; color:var(--muted); margin-top:4px; }
+.rental-hero .rh-facts{ display:flex; gap:28px; flex-wrap:wrap; }
+.rental-hero .rh-facts div b{ display:block; font-size:16px; font-weight:700; letter-spacing:-.02em; }
+.rental-hero .rh-facts div span{ display:block; font-size:11.5px; color:var(--muted); margin-top:2px; }
+
+.lease-bar{ margin-top:16px; }
+.lease-bar .lb-ends{ display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-top:7px; }
+
+.spec-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:2px; }
+.spec{
+  padding:15px 16px; background:var(--surface-2);
+  border-radius:var(--r-sm); margin:0 2px 4px 0;
+}
+.spec b{ display:block; font-size:14.5px; font-weight:700; }
+.spec span{ display:block; font-size:11.5px; color:var(--muted); margin-top:2px; }
+
+.tick-list{ display:flex; flex-direction:column; gap:10px; }
+.tick-list div{ display:flex; align-items:flex-start; gap:10px; font-size:13px; color:var(--ink-2); line-height:1.5; }
+.tick-list svg{ width:15px; height:15px; flex:none; margin-top:2px; stroke-width:2.2; }
+.tick-list .yes svg{ color:var(--green); }
+.tick-list .no svg{ color:var(--muted-2); }
+
+.rule-list{ counter-reset:rule; display:flex; flex-direction:column; gap:12px; }
+.rule-list li{ display:flex; gap:12px; align-items:flex-start; font-size:13px; color:var(--ink-2); line-height:1.55; }
+.rule-list li::before{
+  counter-increment:rule; content:counter(rule);
+  width:22px; height:22px; flex:none; border-radius:50%;
+  background:var(--teal-100); color:var(--teal);
+  font-size:11px; font-weight:700; display:grid; place-items:center;
+}
+
+.doc-row{ display:flex; align-items:center; gap:13px; padding:12px 0; border-bottom:1px solid var(--line-soft); }
+.doc-row:last-child{ border-bottom:0; }
+.doc-row .d-ico{
+  width:36px; height:36px; flex:none; border-radius:9px;
+  background:var(--red-bg); color:var(--red); display:grid; place-items:center;
+}
+.doc-row .d-ico svg{ width:17px; height:17px; }
+.doc-row .d-meta{ flex:1; min-width:0; }
+.doc-row .d-meta b{ display:block; font-size:13.5px; font-weight:600; }
+.doc-row .d-meta span{ display:block; font-size:11.5px; color:var(--muted); margin-top:1px; }
+
+.contact-row{ display:flex; align-items:center; gap:13px; padding:13px 0; border-bottom:1px solid var(--line-soft); }
+.contact-row:last-child{ border-bottom:0; }
+.contact-row .c-ico{
+  width:38px; height:38px; flex:none; border-radius:50%;
+  background:var(--teal-100); color:var(--teal); display:grid; place-items:center;
+}
+.contact-row .c-ico svg{ width:17px; height:17px; }
+.contact-row .c-meta{ flex:1; min-width:0; }
+.contact-row .c-meta b{ display:block; font-size:13.5px; font-weight:600; }
+.contact-row .c-meta span{ display:block; font-size:12px; color:var(--muted); }
+
+/* ============================================================
+   MAINTENANCE
+   ============================================================ */
+.req-list{ display:flex; flex-direction:column; gap:14px; }
+.req-card{
+  display:flex; gap:16px; padding:18px 20px; cursor:pointer;
+  border-left:3px solid var(--line);
+  transition:border-color .16s var(--ease), box-shadow .16s var(--ease), transform .16s var(--ease);
+}
+.req-card:hover{ box-shadow:var(--sh-2); transform:translateY(-1px); }
+.req-card.p-urgent{ border-left-color:var(--red); }
+.req-card.p-high  { border-left-color:#D9822B; }
+.req-card.p-normal{ border-left-color:var(--teal-400); }
+.req-card.p-low   { border-left-color:#9FB1BA; }
+
+.req-card .rq-ico{
+  width:42px; height:42px; flex:none; border-radius:11px;
+  display:grid; place-items:center;
+}
+.req-card .rq-ico svg{ width:19px; height:19px; stroke-width:1.85; }
+.req-card .rq-body{ flex:1; min-width:0; }
+.req-card .rq-top{ display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-bottom:5px; }
+.req-card .rq-id{ font-size:11px; font-weight:700; color:var(--muted-2); letter-spacing:.03em; }
+.req-card h4{ font-size:14.5px; font-weight:700; letter-spacing:-.01em; }
+.req-card p{ font-size:12.5px; color:var(--muted); margin-top:4px; line-height:1.55;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.req-card .rq-foot{ display:flex; align-items:center; gap:14px; margin-top:11px; flex-wrap:wrap;
+  font-size:11.5px; color:var(--muted); }
+.req-card .rq-foot span{ display:flex; align-items:center; gap:5px; }
+.req-card .rq-foot svg{ width:13px; height:13px; }
+.req-card .rq-end{ flex:none; display:flex; flex-direction:column; align-items:flex-end; gap:9px; }
+
+/* Media thumbnails on a request */
+.media-strip{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+.media-chip{
+  display:flex; align-items:center; gap:7px;
+  height:30px; padding:0 11px; border-radius:var(--r-pill);
+  background:var(--surface-2); border:1px solid var(--line);
+  font-size:11.5px; font-weight:500; color:var(--ink-2);
+}
+.media-chip svg{ width:13px; height:13px; color:var(--muted); }
+
+/* Status tracker */
+.track{ position:relative; padding-left:30px; }
+.track::before{
+  content:""; position:absolute; left:9px; top:8px; bottom:8px;
+  width:2px; background:var(--line);
+}
+.track-step{ position:relative; padding-bottom:22px; }
+.track-step:last-child{ padding-bottom:0; }
+.track-step::before{
+  content:""; position:absolute; left:-27px; top:3px;
+  width:12px; height:12px; border-radius:50%;
+  background:var(--surface); border:2.5px solid #C3CED5;
+}
+.track-step.done::before{ border-color:var(--teal); background:var(--teal); }
+.track-step.current::before{
+  border-color:var(--teal); background:var(--surface);
+  box-shadow:0 0 0 4px var(--teal-100);
+}
+.track-step b{ display:block; font-size:13.5px; font-weight:600; }
+.track-step.pending b{ color:var(--muted-2); font-weight:500; }
+.track-step span{ display:block; font-size:12.5px; color:var(--muted); margin-top:2px; line-height:1.5; }
+.track-step i{ display:block; font-style:normal; font-size:11.5px; color:var(--muted-2); margin-top:4px; }
+
+/* ============================================================
+   PAYMENTS
+   ============================================================ */
+.charge-row{
+  display:flex; align-items:center; gap:15px;
+  padding:16px 0; border-bottom:1px solid var(--line-soft);
+}
+.charge-row:last-child{ border-bottom:0; }
+.charge-row .ch-ico{
+  width:42px; height:42px; flex:none; border-radius:11px;
+  display:grid; place-items:center;
+}
+.charge-row .ch-ico svg{ width:19px; height:19px; stroke-width:1.85; }
+.charge-row .ch-meta{ flex:1; min-width:0; }
+.charge-row .ch-meta b{ display:block; font-size:14px; font-weight:600; }
+.charge-row .ch-meta span{ display:block; font-size:12.5px; color:var(--muted); margin-top:2px; }
+.charge-row .ch-end{ text-align:right; flex:none; display:flex; align-items:center; gap:16px; }
+.charge-row .ch-amt{ font-size:16px; font-weight:800; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+
+.method-card{
+  display:flex; align-items:center; gap:13px;
+  padding:15px 16px; border:1px solid var(--line);
+  border-radius:var(--r); background:var(--surface);
+}
+.method-card .m-ico{
+  width:40px; height:40px; flex:none; border-radius:11px;
+  background:var(--teal-100); color:var(--teal); display:grid; place-items:center;
+}
+.method-card .m-ico svg{ width:19px; height:19px; }
+.method-card b{ display:block; font-size:13.5px; font-weight:600; }
+.method-card span{ display:block; font-size:12px; color:var(--muted); margin-top:2px; }
+
+.pay-detail{
+  display:flex; align-items:center; gap:12px;
+  padding:13px 15px; border-radius:var(--r-sm);
+  background:var(--teal-050); border:1px solid var(--teal-100);
+}
+.pay-detail .pd-ico{
+  width:34px; height:34px; flex:none; border-radius:9px;
+  background:var(--surface); color:var(--teal); display:grid; place-items:center;
+}
+.pay-detail .pd-ico svg{ width:16px; height:16px; }
+.pay-detail b{ display:block; font-size:13px; font-weight:600; }
+.pay-detail span{ display:block; font-size:12px; color:var(--muted); margin-top:1px; }
+
+/* ============================================================
+   DROPZONE — photo / video upload
+   ============================================================ */
+.dropzone{
+  border:1.5px dashed #C8D3DA; border-radius:var(--r);
+  background:var(--surface-2); padding:22px 18px;
+  cursor:pointer; text-align:center;
+  transition:border-color .16s var(--ease), background .16s var(--ease);
+}
+.dropzone:hover, .dropzone.over{ border-color:var(--teal); background:var(--teal-050); }
+.dropzone.has-files{ text-align:left; padding:16px; }
+.dz-prompt{ display:flex; flex-direction:column; align-items:center; gap:3px; }
+.dropzone.has-files .dz-prompt{
+  flex-direction:row; gap:10px; justify-content:center;
+  padding-top:14px; margin-top:14px; border-top:1px solid var(--line);
+}
+.dz-ico{
+  width:40px; height:40px; border-radius:11px; margin-bottom:6px;
+  background:var(--surface); color:var(--teal);
+  display:grid; place-items:center; border:1px solid var(--line);
+}
+.dropzone.has-files .dz-ico{ width:28px; height:28px; margin-bottom:0; border-radius:8px; }
+.dz-ico svg{ width:18px; height:18px; }
+.dropzone.has-files .dz-ico svg{ width:14px; height:14px; }
+.dz-prompt b{ font-size:13.5px; font-weight:600; }
+.dz-prompt span{ font-size:12px; color:var(--muted); }
+
+.dz-thumbs{ display:flex; gap:10px; flex-wrap:wrap; }
+.dz-thumbs:empty{ display:none; }
+.dz-thumb{
+  position:relative; margin:0; width:96px;
+  border-radius:10px; overflow:hidden;
+  background:var(--surface); border:1px solid var(--line);
+}
+.dz-thumb img, .dz-thumb video{
+  width:100%; height:72px; object-fit:cover; display:block; background:#0C1D26;
+}
+.dz-thumb figcaption{
+  font-size:10px; color:var(--muted); padding:5px 6px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.dz-badge{
+  position:absolute; left:6px; top:6px;
+  width:20px; height:20px; border-radius:50%;
+  background:rgba(8,32,42,.65); color:#fff;
+  display:grid; place-items:center;
+}
+.dz-badge svg{ width:12px; height:12px; }
+.dz-remove{
+  position:absolute; right:5px; top:5px;
+  width:20px; height:20px; border:0; border-radius:50%;
+  background:rgba(8,32,42,.65); color:#fff;
+  display:grid; place-items:center; padding:0;
+}
+.dz-remove svg{ width:12px; height:12px; stroke-width:2.5; }
+.dz-remove:hover{ background:var(--red); }
+
+/* ============================================================
+   DESKTOP RESPONSIVE LADDER
+   Mirrors the admin console. Mobile comes later.
+   ============================================================ */
+@media (max-width:1400px){
+  .balance-card .bc-amount{ font-size:34px; }
+}
+@media (max-width:1240px){
+  .tenant-hero{ grid-template-columns:1fr; }
+  .g-3{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .g-3 > .span-2{ grid-column:span 2; }
+}
+@media (max-width:1024px){
+  .g-3, .g-2{ grid-template-columns:1fr; }
+  .span-2{ grid-column:span 1; }
+  .rental-hero{ gap:16px; }
+}
+@media (max-width:680px){
+  .content{ padding:18px 16px 32px; }
+  .balance-card{ padding:22px; }
+  .balance-card .bc-amount{ font-size:30px; }
+  .req-card{ flex-direction:column; }
+  .req-card .rq-end{ align-items:flex-start; flex-direction:row; }
+  .topbar-title{ display:none; }
+}

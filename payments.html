@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Payment &amp; Balances — Saraza's Apartment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/base.css" />
+<link rel="stylesheet" href="assets/css/components.css" />
+<link rel="stylesheet" href="assets/css/views.css" />
+</head>
+<body data-page="payments">
+
+<div class="app">
+  <aside class="sidebar" data-shell="sidebar"></aside>
+  <div class="sidebar-scrim" id="sidebarScrim"></div>
+
+  <div class="main">
+    <header class="topbar" data-shell="topbar"></header>
+
+    <main class="content">
+
+      <div class="page-head">
+        <div>
+          <h1>Payment &amp; Balances</h1>
+          <div class="crumbs">
+            <span data-bind="monthYear"></span><span class="sep">&middot;</span>
+            <span data-bind="paymentCount"></span>
+          </div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-outline" data-act="statement"><span data-icon="file"></span>Monthly statement</button>
+          <button class="btn btn-primary" data-shell-act="record-payment"><span data-icon="plus"></span>Record a payment</button>
+        </div>
+      </div>
+
+      <!-- ============ SUMMARY ============ -->
+      <div class="pay-summary">
+        <section class="card"><div class="stat">
+          <div class="stat-top"><span class="stat-label">Collected this month</span>
+            <span class="stat-icon i-green" data-icon="peso"></span></div>
+          <div class="stat-value"><b data-bind="collected"></b></div>
+          <div class="meter"><i class="m-green" data-bind-width="collectedBar"></i></div>
+          <p class="stat-note" data-bind="collectedNote"></p>
+        </div></section>
+
+        <section class="card"><div class="stat">
+          <div class="stat-top"><span class="stat-label">Outstanding</span>
+            <span class="stat-icon i-amber" data-icon="clock"></span></div>
+          <div class="stat-value"><b data-bind="outstanding"></b></div>
+          <div class="meter"><i class="m-amber" data-bind-width="outstandingBar"></i></div>
+          <p class="stat-note" data-bind="outstandingNote"></p>
+        </div></section>
+
+        <section class="card"><div class="stat">
+          <div class="stat-top"><span class="stat-label">Collection rate</span>
+            <span class="stat-icon i-teal" data-icon="chart"></span></div>
+          <div class="stat-value"><b data-bind="rate"></b></div>
+          <div class="meter"><i class="m-teal" data-bind-width="rateBar"></i></div>
+          <p class="stat-note">Up from 79% last month</p>
+        </div></section>
+
+        <section class="card"><div class="stat">
+          <div class="stat-top"><span class="stat-label">Deposits held</span>
+            <span class="stat-icon i-teal" data-icon="shield"></span></div>
+          <div class="stat-value"><b data-bind="deposits"></b></div>
+          <div class="meter"><i class="m-teal" style="width:100%"></i></div>
+          <p class="stat-note" data-bind="depositsNote"></p>
+        </div></section>
+      </div>
+
+      <!-- ============ TABS ============ -->
+      <div class="tabs">
+        <button data-tab="ledger" class="on">Ledger<span class="tab-count" data-bind="countLedger"></span></button>
+        <button data-tab="outstanding">Outstanding<span class="tab-count" data-bind="countOutstanding"></span></button>
+        <button data-tab="methods">Payment methods<span class="tab-count" data-bind="countMethods"></span></button>
+      </div>
+
+      <!-- ============ PANE: LEDGER ============ -->
+      <section data-pane="ledger">
+        <div class="toolbar">
+          <label class="field">
+            <span data-icon="search"></span>
+            <input class="input" id="pq" style="width:280px" placeholder="Search tenant, unit, or receipt..." />
+          </label>
+          <select class="select" id="pm"><option value="all">All methods</option></select>
+          <select class="select" id="ps">
+            <option value="all">All statuses</option>
+            <option value="cleared">Cleared</option>
+            <option value="pending">Pending</option>
+          </select>
+          <div class="spacer"></div>
+          <button class="btn btn-outline btn-sm" data-act="export"><span data-icon="download"></span>Export CSV</button>
+        </div>
+
+        <div class="card">
+          <div class="table-wrap">
+            <table class="tbl" style="min-width:940px">
+              <thead>
+                <tr>
+                  <th>Receipt</th><th>Tenant</th><th>Date paid</th><th>Method</th>
+                  <th>Covers</th><th class="num">Amount</th><th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="ledgerRows"></tbody>
+            </table>
+          </div>
+          <div class="card-foot" id="ledgerFoot" style="justify-content:center"></div>
+        </div>
+      </section>
+
+      <!-- ============ PANE: OUTSTANDING ============ -->
+      <section data-pane="outstanding" hidden>
+        <div class="card">
+          <header class="card-head">
+            <div>
+              <h3>Outstanding balances</h3>
+              <p class="sub" data-bind="outstandingSub"></p>
+            </div>
+            <div class="card-head-actions">
+              <button class="btn btn-outline btn-sm" data-act="remind-all">
+                <span data-icon="mail"></span>Remind everyone</button>
+            </div>
+          </header>
+          <div class="table-wrap">
+            <table class="tbl" style="min-width:880px">
+              <thead>
+                <tr>
+                  <th>Tenant</th><th>Unit</th><th class="num">Monthly rent</th>
+                  <th class="num">Balance</th><th>Overdue</th><th class="num"></th>
+                </tr>
+              </thead>
+              <tbody id="outstandingRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PANE: METHODS ============ -->
+      <section data-pane="methods" hidden>
+        <div class="grid g-2">
+          <div class="card">
+            <header class="card-head">
+              <div><h3>How tenants pay</h3><p class="sub">Share of all recorded payments by channel</p></div>
+            </header>
+            <div class="card-body">
+              <div id="methodBar"></div>
+              <div class="legend u-mt" id="methodLegend"></div>
+            </div>
+          </div>
+          <div class="card">
+            <header class="card-head">
+              <div><h3>Transaction count</h3><p class="sub">Number of payments logged per channel</p></div>
+            </header>
+            <div class="card-body" id="methodCounts"></div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script src="assets/js/icons.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/charts.js"></script>
+<script src="assets/js/shell.js"></script>
+<script src="assets/js/pages/payments.js"></script>
+</body>
+</html>
