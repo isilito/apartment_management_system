@@ -354,7 +354,7 @@
 
 /* ============================================================
    DESKTOP RESPONSIVE LADDER
-   Mirrors the admin console. Mobile comes later.
+   Mirrors the admin console, down to phone width.
    ============================================================ */
 @media (max-width:1400px){
   .balance-card .bc-amount{ font-size:34px; }

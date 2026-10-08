@@ -27,7 +27,7 @@
   ];
 
   var FOOTER_NAV = [
-    { key: 'help', href: 'dashboard.html#help', label: 'Help & Contacts', icon: 'help' }
+    { key: 'help', href: 'rental.html#contacts', label: 'Help & Contacts', icon: 'help' }
   ];
 
   /* ============================================================
@@ -44,7 +44,8 @@
   function sidebarHtml() {
     return '<div class="brand">' +
         '<div class="brand-mark">S</div>' +
-        '<div class="brand-text"><strong>Saraza\'s Apartment</strong><span>Tenant Portal</span></div>' +
+        '<div class="brand-text"><strong>' + UI.esc(DB.settings.propertyName || "Saraza's Apartment") + '</strong><span>Tenant Portal</span></div>' +
+        '<button class="icon-btn sm nav-close" id="navClose" aria-label="Close menu">' + icon('close') + '</button>' +
       '</div>' +
       '<nav class="nav">' + NAV.map(function (g) {
         return '<div class="nav-group"><div class="nav-label">' + g.label + '</div>' +
@@ -53,15 +54,16 @@
       '<div class="nav-footer">' +
         '<div class="unit-chip">' +
           '<span class="uc-ico">' + icon('doorOpen') + '</span>' +
-          '<div><b>Unit ' + DB.rental.unitNo + '</b><span>' + DB.rental.building + '</span></div>' +
+          '<div><b>Unit ' + UI.esc(DB.rental.unitNo) + '</b><span>' + UI.esc(DB.rental.building) + '</span></div>' +
         '</div>' +
         FOOTER_NAV.map(navItem).join('') +
+        '<button class="nav-item nav-logout" data-act="logout">' + icon('logout') + '<span>Log out</span></button>' +
       '</div>';
   }
 
   function topbarHtml() {
     var t = DB.tenant;
-    return '<button class="icon-btn menu-btn" id="menuBtn" aria-label="Toggle navigation">' + icon('menu') + '</button>' +
+    return '<button class="icon-btn menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false">' + icon('menu') + '</button>' +
       '<div class="topbar-title">' +
         '<strong id="pageTitle"></strong>' +
         '<span id="pageSub"></span>' +
@@ -71,9 +73,9 @@
         '<button class="icon-btn bell" id="bellBtn" aria-label="Notices">' + icon('bell') +
           '<span class="dot" hidden></span></button>' +
         '<div class="user-chip" id="userChip" tabindex="0">' +
-          '<div class="avatar avatar-teal">' + t.initials + '</div>' +
+          '<div class="avatar avatar-teal">' + UI.esc(t.initials) + '</div>' +
           '<div class="user-meta"><strong>' + UI.esc(t.name.split(' ')[0]) + '</strong>' +
-            '<span>Unit ' + DB.rental.unitNo + '</span></div>' +
+            '<span>Unit ' + UI.esc(DB.rental.unitNo) + '</span></div>' +
           '<span class="caret">' + icon('chevDown') + '</span>' +
         '</div>' +
       '</div>' +
@@ -94,7 +96,7 @@
     var top  = document.querySelector('[data-shell="topbar"]');
     if (side) side.innerHTML = sidebarHtml();
     if (top)  top.innerHTML  = topbarHtml();
-    document.body.insertAdjacentHTML('beforeend', overlaysHtml());
+    if (!document.getElementById('modalRoot')) document.body.insertAdjacentHTML('beforeend', overlaysHtml());
 
     /* The topbar carries the page name, so each page declares it once */
     var title = document.body.dataset.title || '';
@@ -116,8 +118,11 @@
       '<div class="pop-head"><b>Notices</b>' +
         (unread ? '<span class="badge badge-red">' + unread + ' new</span>' : '') +
         '<button class="btn btn-quiet" data-act="read-all">Mark all read</button></div>' +
-      '<div class="pop-list">' + DB.notices.map(function (n) {
-        return '<button class="pop-item"' + (n.unread ? ' style="background:var(--teal-050)"' : '') + '>' +
+      '<div class="pop-list">' + (DB.notices.length ? '' :
+        '<div class="empty" style="padding:28px 20px"><b>No notices</b><p>Messages from the office show up here.</p></div>') +
+        DB.notices.map(function (n) {
+        return '<button class="pop-item" data-nid="' + n.id + '" data-link="' + UI.esc(n.link || '') + '"' +
+          (n.unread ? ' style="background:var(--teal-050)"' : '') + '>' +
           '<span class="pi-ico stat-icon ' + (TONE_CLASS[n.tone] || 'i-teal') + '">' + icon(n.icon) + '</span>' +
           '<span class="pi-text"><b>' + UI.esc(n.title) + '</b>' +
             '<span>' + UI.esc(n.body) + '</span><i>' + UI.esc(n.when) + '</i></span></button>';
@@ -135,6 +140,8 @@
           '<span class="u-xs u-muted">' + UI.esc(DB.tenant.email) + '</span></div>' +
         '<a class="menu-item" href="rental.html">' + icon('idCard') + 'My rental info</a>' +
         '<a class="menu-item" href="payments.html">' + icon('receipt') + 'Payment history</a>' +
+        '<button class="menu-item" data-act="contact">' + icon('phone') + 'Update my contact details</button>' +
+        '<button class="menu-item" data-act="password">' + icon('lock') + 'Change password</button>' +
         '<div class="menu-sep"></div>' +
         '<button class="menu-item danger" data-act="logout">' + icon('logout') + 'Log out</button>' +
       '</div>');
@@ -154,21 +161,39 @@
   /* ============================================================
      Shared dialogs
      ============================================================ */
-  function afterMutation(msg) {
-    DB.refresh();
-    buildNotices();
-    if (msg) UI.toast(msg);
-    if (global.Page && typeof Page.refresh === 'function') Page.refresh();
+  function afterMutation(msg, tone) {
+    return DB.reload().then(function () {
+      var side = document.querySelector('[data-shell="sidebar"]');
+      if (side) side.innerHTML = sidebarHtml();
+      buildNotices();
+      if (msg) UI.toast(msg, tone);
+      if (global.Page && typeof Page.refresh === 'function') Page.refresh();
+    });
+  }
+
+  function save(action, data, msg) {
+    return API.post('tenant.php', action, data).then(function (r) {
+      return afterMutation(typeof msg === 'function' ? msg(r) : msg).then(function () { return r; });
+    });
+  }
+
+  function isoDate(d) {
+    d = d || DB.today;
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
 
   /* ---- Pay a charge ---- */
   function openPay(chargeId) {
     /* Soonest due first, so the default selection matches the "next due"
        date shown on the dashboard and the balance card. */
-    var unpaid = DB.charges.filter(function (c) { return c.status !== 'paid'; })
+    var unpaid = DB.charges.filter(function (c) { return c.status !== 'paid' && c.status !== 'pending'; })
                            .sort(function (a, b) { return a.due - b.due; });
-    if (!unpaid.length) { UI.toast('You have nothing due right now', 'info'); return; }
-    var picked = chargeId ? DB.charges.filter(function (c) { return c.id === chargeId; })[0] : unpaid[0];
+    if (!unpaid.length) {
+      UI.toast(DB.stats.pendingCount ? 'Your payment is waiting for confirmation' : 'You have nothing due right now', 'info');
+      return;
+    }
+    var picked = chargeId ? DB.charge(chargeId) : unpaid[0];
+    if (picked && picked.status === 'pending') { UI.toast('You already sent a payment for this. It is waiting for confirmation.', 'info'); return; }
 
     UI.modal({
       title: 'Pay ' + (picked ? picked.label.toLowerCase() : 'a charge'),
@@ -181,7 +206,9 @@
                      UI.esc(c.label) + ' — ' + UI.peso(c.amount) + ' (due ' + UI.fmtDate(c.due) + ')</option>';
             }).join('') + '</select></div>' +
           '<div class="form-row"><label>Amount</label>' +
-            '<input class="input" id="payAmount" type="number" /></div>' +
+            '<input class="input" id="payAmount" type="number" min="0" step="0.01" /></div>' +
+          '<div class="form-row"><label>Date you paid</label>' +
+            '<input class="input" id="payDate" type="date" value="' + isoDate() + '" /></div>' +
           '<div class="form-row"><label>Payment method</label>' +
             '<select class="select" id="payMethod">' + DB.methods.map(function (m) {
               return '<option value="' + m.key + '">' + UI.esc(m.label) + '</option>';
@@ -200,7 +227,7 @@
         var det = box.querySelector('#payDetail');
 
         function syncAmount() {
-          var c = DB.charges.filter(function (x) { return x.id === sel.value; })[0];
+          var c = DB.charge(sel.value);
           if (c) amt.value = c.amount;
         }
         function syncMethod() {
@@ -222,7 +249,18 @@
             box.querySelector('#payMethod').value !== 'cash') {
           UI.toast('Add the reference number from your receipt', 'warn'); return false;
         }
-        UI.toast(UI.peso(amount) + ' submitted — waiting for the admin to confirm');
+        var c = DB.charge(box.querySelector('#payCharge').value);
+        var fd = new FormData();
+        fd.append('chargeId', c ? c.chargeId : '');
+        fd.append('amount', amount);
+        fd.append('date', box.querySelector('#payDate').value);
+        fd.append('method', box.querySelector('#payMethod').value);
+        fd.append('reference', box.querySelector('#payRef').value.trim());
+        var proof = box.querySelector('#payProof').__files || [];
+        if (proof[0]) fd.append('proof', proof[0]);
+        return API.upload('tenant.php', 'submit_payment', fd).then(function () {
+          return afterMutation(UI.peso(amount) + ' submitted — waiting for the office to confirm');
+        });
       }
     });
   }
@@ -266,33 +304,16 @@
         if (!title) { UI.toast('Give the problem a short title', 'warn'); return false; }
 
         var files = box.querySelector('#reqMedia').__files || [];
-        var cat = box.querySelector('#reqCat').value;
-        var id = 'REQ-' + (1043 + DB.requests.filter(function (r) { return r.id.indexOf('REQ-10') === 0; }).length);
-
-        DB.requests.unshift({
-          id: id,
-          title: title,
-          detail: box.querySelector('#reqDetail').value.trim() || 'No extra detail given.',
-          category: cat,
-          priority: box.querySelector('#reqPri').value,
-          status: 'new',
-          submitted: DB.today,
-          assignee: null,
-          media: files.map(function (f) {
-            return { kind: f.type.indexOf('video') === 0 ? 'video' : 'photo', name: f.name };
-          }),
-          timeline: [
-            { label: 'Request submitted', when: DB.today,
-              note: files.length ? 'You sent this with ' + files.length + ' attachment' + (files.length > 1 ? 's' : '') + '.' : '',
-              done: true },
-            { label: 'Received by admin',  when: null, note: 'Usually within a few hours.', done: false },
-            { label: 'Assigned',           when: null, note: '', done: false },
-            { label: 'Repair in progress', when: null, note: '', done: false },
-            { label: 'Marked resolved',    when: null, note: '', done: false }
-          ]
+        var fd = new FormData();
+        fd.append('title', title);
+        fd.append('category', box.querySelector('#reqCat').value);
+        fd.append('priority', box.querySelector('#reqPri').value);
+        fd.append('details', box.querySelector('#reqDetail').value.trim());
+        fd.append('allowEntry', box.querySelector('#reqEntry').checked ? '1' : '0');
+        files.forEach(function (f) { fd.append('media[]', f); });
+        return API.upload('tenant.php', 'new_request', fd).then(function (r) {
+          return afterMutation('Request ' + r.id + ' sent to the office');
         });
-
-        afterMutation('Request ' + id + ' sent to the admin');
       }
     });
   }
@@ -370,7 +391,50 @@
       body: '<p class="u-sm u-muted" style="line-height:1.6">Anything you have not submitted will be lost.</p>',
       foot: '<button class="btn btn-ghost" data-close>Stay signed in</button>' +
             '<button class="btn btn-primary" data-confirm>Log out</button>',
-      onConfirm: function () { UI.toast('Signed out — connect this to your auth flow', 'info'); }
+      onConfirm: function () { return API.logout(); }
+    });
+  }
+
+  function openContact() {
+    var t = DB.tenant;
+    var e = t.emergency;
+    UI.modal({
+      title: 'Update my contact details',
+      sub: 'The office is notified when you change these',
+      body:
+        '<div class="form-grid">' +
+          '<div class="form-row full"><label>Mobile number</label><input class="input" id="cPhone" value="' + UI.esc(t.phone) + '"/></div>' +
+          '<div class="form-row"><label>Emergency contact</label><input class="input" id="cEmName" value="' + UI.esc(e.name === '—' ? '' : e.name) + '"/></div>' +
+          '<div class="form-row"><label>Relation</label><input class="input" id="cEmRel" value="' + UI.esc(e.relation === '—' ? '' : e.relation) + '"/></div>' +
+          '<div class="form-row full"><label>Their number</label><input class="input" id="cEmPhone" value="' + UI.esc(e.phone === '—' ? '' : e.phone) + '"/></div>' +
+        '</div>',
+      confirmText: 'Save',
+      onConfirm: function (box) {
+        var v = function (id) { return box.querySelector(id).value.trim(); };
+        if (!v('#cPhone')) { UI.toast('Enter your mobile number', 'warn'); return false; }
+        return save('update_contact', { phone: v('#cPhone'), emergencyName: v('#cEmName'),
+          emergencyRelation: v('#cEmRel'), emergencyPhone: v('#cEmPhone') }, 'Contact details saved');
+      }
+    });
+  }
+
+  function openPassword() {
+    UI.modal({
+      title: 'Change password',
+      body:
+        '<div class="form-grid">' +
+          '<div class="form-row full"><label>Current password</label><input class="input" type="password" id="pw0" autocomplete="current-password"/></div>' +
+          '<div class="form-row"><label>New password</label><input class="input" type="password" id="pw1" placeholder="At least 8 characters" autocomplete="new-password"/></div>' +
+          '<div class="form-row"><label>Repeat new password</label><input class="input" type="password" id="pw2" autocomplete="new-password"/></div>' +
+        '</div>',
+      confirmText: 'Update password',
+      onConfirm: function (box) {
+        var n = box.querySelector('#pw1').value;
+        if (n.length < 8) { UI.toast('Use at least 8 characters', 'warn'); return false; }
+        if (n !== box.querySelector('#pw2').value) { UI.toast('The new passwords do not match', 'warn'); return false; }
+        return API.post('auth.php', 'change_password', { current: box.querySelector('#pw0').value, next: n })
+          .then(function () { UI.toast('Password updated'); });
+      }
     });
   }
 
@@ -379,10 +443,15 @@
      ============================================================ */
   function wire() {
     document.getElementById('menuBtn').addEventListener('click', function () {
-      document.body.classList.toggle('nav-open');
+      setNav(!document.body.classList.contains('nav-open'));
     });
     var scrim = document.getElementById('sidebarScrim');
-    if (scrim) scrim.addEventListener('click', function () { document.body.classList.remove('nav-open'); });
+    if (scrim) scrim.addEventListener('click', function () { setNav(false); });
+    document.querySelector('[data-shell="sidebar"]').addEventListener('click', function (e) {
+      if (e.target.closest('#navClose')) { setNav(false); return; }
+      if (e.target.closest('[data-act="logout"]')) { setNav(false); doLogout(); return; }
+      if (e.target.closest('.nav-item')) setNav(false);
+    });
 
     document.getElementById('bellBtn').addEventListener('click', function (e) {
       e.stopPropagation(); togglePopover('notifPopover');
@@ -394,14 +463,25 @@
 
     document.getElementById('notifPopover').addEventListener('click', function (e) {
       if (e.target.closest('[data-act="read-all"]')) {
-        DB.notices.forEach(function (n) { n.unread = false; });
-        DB.refresh();
-        buildNotices();
-        UI.toast('All notices marked as read');
+        API.post('tenant.php', 'mark_notices_read', {}).then(function () {
+          DB.notices.forEach(function (n) { n.unread = false; });
+          DB.refresh();
+          buildNotices();
+          UI.toast('All notices marked as read');
+        }, function (err) { UI.toast(err.message, 'warn'); });
+        return;
+      }
+      var item = e.target.closest('[data-nid]');
+      if (item) {
+        var link = item.dataset.link;
+        API.post('tenant.php', 'mark_notices_read', { id: Number(item.dataset.nid) }).catch(function () {})
+          .then(function () { if (link) location.href = link; else afterMutation(); });
       }
     });
     document.getElementById('userPopover').addEventListener('click', function (e) {
       if (e.target.closest('[data-act="logout"]')) { closePopovers(); doLogout(); }
+      if (e.target.closest('[data-act="password"]')) { closePopovers(); openPassword(); }
+      if (e.target.closest('[data-act="contact"]')) { closePopovers(); openContact(); }
     });
 
     document.addEventListener('click', function (e) {
@@ -426,20 +506,37 @@
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
         UI.closeModal(); UI.closeDrawer(); closePopovers();
-        document.body.classList.remove('nav-open');
+        setNav(false);
       }
     });
   }
 
-  function init() {
-    mountChrome();
-    buildNotices();
-    buildUserMenu();
-    wire();
+  function setNav(open) {
+    document.body.classList.toggle('nav-open', open);
+    var b = document.getElementById('menuBtn');
+    if (b) b.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
 
-    UI.resolveIcons(document);
-    if (global.Page && typeof Page.init === 'function') Page.init();
-    UI.animateMeters(document);
+  function init() {
+    document.body.classList.add('booting');
+    DB.load().then(function () {
+      mountChrome();
+      buildNotices();
+      buildUserMenu();
+      wire();
+
+      UI.resolveIcons(document);
+      document.body.classList.remove('booting');
+      if (global.Page && typeof Page.init === 'function') Page.init();
+      UI.animateMeters(document);
+    }).catch(function (err) {
+      document.body.classList.remove('booting');
+      if (!document.getElementById('modalRoot')) document.body.insertAdjacentHTML('beforeend', overlaysHtml());
+      var main = document.querySelector('.content');
+      if (main) main.innerHTML = '<div class="card" style="max-width:560px;margin:60px auto"><div class="empty">' +
+        '<div class="ico">' + icon('alert') + '</div><b>Could not load your portal</b><p>' + UI.esc(err.message) + '</p>' +
+        '<div class="u-mt"><button class="btn btn-primary btn-sm" onclick="location.reload()">Try again</button></div></div></div>';
+    });
   }
 
   global.Shell = {
@@ -449,6 +546,9 @@
     dropzoneHtml: dropzoneHtml,
     wireDropzone: wireDropzone,
     afterMutation: afterMutation,
+    save: save,
+    isoDate: isoDate,
+    openContact: openContact,
     buildNotices: buildNotices
   };
 

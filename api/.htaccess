@@ -1,0 +1,3 @@
+<Files ~ "^(config|lib|print)\.php$">
+  Require all denied
+</Files>

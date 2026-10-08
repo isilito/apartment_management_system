@@ -35,7 +35,9 @@
       '<div class="t-meta">' +
         '<span class="u-row" style="gap:5px">' + icon('doorOpen') + 'Unit ' + UI.esc(t.unitNo) + '</span>' +
         '<span>&middot;</span><span>' + UI.relative(t.created) + '</span>' +
-        (t.assignee ? '<span class="u-end">' + UI.avatar(initialsOf(t.assignee), 'avatar-sm') + '</span>' : '') +
+        (t.followUps && t.status !== 'done' ? '<span class="badge badge-amber">' + t.followUps + ' follow-up</span>' : '') +
+        (t.media.length ? '<span class="u-row" style="gap:4px">' + icon('eye') + t.media.length + '</span>' : '') +
+        (t.assignee ? '<span class="u-end" title="' + UI.esc(t.assignee) + '">' + UI.avatar(initialsOf(t.assignee), 'avatar-sm') + '</span>' : '') +
       '</div>' +
     '</article>';
   }
@@ -89,7 +91,6 @@
   function openTicket(id) {
     var t = DB.ticket(id);
     if (!t) return;
-    var u = DB.unit(t.unitId);
     var tenant = t.tenantId ? DB.tenant(t.tenantId) : null;
 
     var head = '<div><div class="u-row" style="gap:12px">' +
@@ -104,28 +105,50 @@
 
       UI.card('<div class="card-pad"><dl class="kv">' +
         '<dt>Reported</dt><dd>' + UI.fmtDate(t.created) + '</dd>' +
-        '<dt>Location</dt><dd>' + UI.esc(DB.building(t.buildingId).name) + ' &middot; Unit ' + UI.esc(u.no) + '</dd>' +
-        '<dt>Reported by</dt><dd>' + UI.esc(tenant ? tenant.name : 'Caretaker') + '</dd>' +
-        '<dt>Assigned to</dt><dd>' + UI.esc(t.assignee || 'Unassigned') + '</dd>' +
-        (t.cost ? '<dt>Cost</dt><dd>' + UI.peso(t.cost) + '</dd>' : '') +
+        '<dt>Location</dt><dd>' + UI.esc(DB.building(t.buildingId).name) + ' &middot; Unit ' + UI.esc(t.unitNo) + '</dd>' +
+        '<dt>Reported by</dt><dd>' + (tenant ? '<a href="renters.html?tenant=' + tenant.id + '">' + UI.esc(tenant.name) + '</a>' : 'Caretaker') + '</dd>' +
+        (tenant ? '<dt>Phone</dt><dd>' + UI.esc(tenant.phone || '—') + '</dd>' : '') +
+        '<dt>Entry when out</dt><dd>' + (t.allowEntry ? 'Allowed — use the spare key' : 'Not allowed — tenant must be home') + '</dd>' +
+        (t.followUps ? '<dt>Follow-ups</dt><dd class="u-amber">Tenant asked ' + t.followUps + ' time' + (t.followUps > 1 ? 's' : '') + '</dd>' : '') +
+        (t.resolved ? '<dt>Resolved</dt><dd>' + UI.fmtDate(t.resolved) + '</dd>' : '') +
+        (t.rating ? '<dt>Tenant rating</dt><dd>' + t.rating + ' / 5</dd>' : '') +
       '</dl></div>') +
 
-      '<h4 class="u-b u-mt-lg u-mb">Notes</h4>' +
-      UI.card('<div class="card-pad"><p class="u-sm" style="line-height:1.65;color:var(--ink-2)">' +
-        UI.esc(t.notes) + '</p></div>') +
+      '<h4 class="u-b u-mt-lg u-mb">What was reported</h4>' +
+      UI.card('<div class="card-pad"><p class="u-sm" style="line-height:1.65;color:var(--ink-2);white-space:pre-line">' +
+        UI.esc(t.notes || 'No details given.') + '</p>' +
+        (t.media.length ? '<div class="media-strip u-mt">' + t.media.map(function (m) {
+          var inner = icon(m.kind === 'video' ? 'play' : 'eye') + UI.esc(m.name);
+          return m.url ? '<a class="media-chip" href="' + m.url + '" target="_blank" rel="noopener">' + inner + '</a>'
+                       : '<span class="media-chip">' + inner + '</span>';
+        }).join('') + '</div>' : '') +
+      '</div>') +
 
       '<h4 class="u-b u-mt-lg u-mb">Update status</h4>' +
-      '<div class="u-row u-wrap" style="gap:8px">' + COLUMNS.map(function (c) {
+      '<div class="u-row u-wrap" style="gap:8px" id="statusPick">' + COLUMNS.map(function (c) {
         return '<button class="btn btn-' + (t.status === c.key ? 'primary' : 'outline') + ' btn-sm" ' +
                'data-move="' + c.key + '">' + c.label + '</button>';
       }).join('') + '</div>' +
 
-      '<h4 class="u-b u-mt-lg u-mb">Assign a crew member</h4>' +
-      '<select class="select" id="assignee" style="width:100%">' +
-        '<option value="">Unassigned</option>' +
-        DB.crew.map(function (c) {
-          return '<option' + (t.assignee === c ? ' selected' : '') + '>' + c + '</option>';
-        }).join('') + '</select>';
+      '<div class="form-grid u-mt-lg">' +
+        '<div class="form-row"><label>Assigned to</label>' +
+          '<select class="select" id="assignee"><option value="">Unassigned</option>' +
+          DB.crew.map(function (c) {
+            return '<option' + (t.assignee === c ? ' selected' : '') + '>' + UI.esc(c) + '</option>';
+          }).join('') + '</select></div>' +
+        '<div class="form-row"><label>Visit date</label>' +
+          '<input class="input" type="date" id="sched" value="' + (t.scheduledFor ? Shell.isoDate(t.scheduledFor) : '') + '"/></div>' +
+        '<div class="form-row"><label>Repair cost</label>' +
+          '<input class="input" type="number" min="0" id="cost" value="' + (t.cost || '') + '" placeholder="0"/></div>' +
+        '<div class="form-row"><label>Priority</label><select class="select" id="prio">' +
+          ['urgent', 'high', 'normal', 'low'].map(function (p) {
+            return '<option value="' + p + '"' + (t.priority === p ? ' selected' : '') + '>' + p[0].toUpperCase() + p.slice(1) + '</option>';
+          }).join('') + '</select></div>' +
+        '<div class="form-row full"><label>Resolution note <span class="u-muted">(shown to the tenant)</span></label>' +
+          '<input class="input" id="resolution" value="' + UI.esc(t.resolution || '') + '" placeholder="e.g. Replaced the faucet cartridge"/></div>' +
+        '<div class="form-row full"><label>Internal notes</label>' +
+          '<textarea class="textarea" id="adminNotes">' + UI.esc(t.adminNotes || '') + '</textarea></div>' +
+      '</div>';
 
     UI.drawer({
       head: head,
@@ -136,16 +159,30 @@
         r.addEventListener('click', function (e) {
           var mv = e.target.closest('[data-move]');
           if (mv) {
-            t.status = mv.dataset.move;
-            UI.closeDrawer();
-            Shell.afterMutation(t.id + ' moved to ' +
-              COLUMNS.filter(function (c) { return c.key === t.status; })[0].label);
+            /* pick the new status; it is saved with the rest of the form */
+            r.querySelectorAll('[data-move]').forEach(function (b) {
+              b.className = 'btn btn-' + (b === mv ? 'primary' : 'outline') + ' btn-sm';
+            });
+            r.querySelector('#statusPick').dataset.value = mv.dataset.move;
             return;
           }
-          if (e.target.closest('[data-act="save"]')) {
-            t.assignee = r.querySelector('#assignee').value || null;
-            UI.closeDrawer();
-            Shell.afterMutation('Request updated');
+          var saveBtn = e.target.closest('[data-act="save"]');
+          if (saveBtn && !saveBtn.disabled) {
+            var status = r.querySelector('#statusPick').dataset.value || t.status;
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving…';
+            Shell.save('update_ticket', {
+              id: t.id, status: status, priority: r.querySelector('#prio').value,
+              assignee: r.querySelector('#assignee').value,
+              scheduledFor: r.querySelector('#sched').value,
+              cost: Number(r.querySelector('#cost').value) || 0,
+              resolution: r.querySelector('#resolution').value.trim(),
+              adminNotes: r.querySelector('#adminNotes').value.trim()
+            }, t.id + ' saved · ' + COLUMNS.filter(function (c) { return c.key === status; })[0].label)
+              .then(function () { UI.closeDrawer(); }, function (err) {
+                saveBtn.disabled = false; saveBtn.textContent = 'Save changes';
+                UI.toast(err.message, 'warn');
+              });
           }
         });
       }
@@ -156,18 +193,21 @@
     var s = DB.stats;
     var open = DB.tickets.filter(function (t) { return t.status !== 'done'; });
     var avgAge = Math.round(open.reduce(function (a, t) { return a + t.ageDays; }, 0) / Math.max(1, open.length));
+    var closed = DB.tickets.filter(function (t) { return t.status === 'done'; });
+    var avgFix = Math.round(closed.reduce(function (a, t) { return a + t.ageDays; }, 0) / Math.max(1, closed.length));
     var spend = DB.tickets.reduce(function (a, t) { return a + t.cost; }, 0);
 
     UI.bind({
       openCount:   s.openRepairs + ' open',
       urgentCount: s.urgentRepairs + ' urgent',
-      oldest:      'Oldest ' + s.oldestRepairDays + ' days',
+      oldest:      s.openRepairs ? 'Oldest ' + s.oldestRepairDays + ' days' : 'Nothing open',
 
       kpiOpen:     String(s.openRepairs),
       kpiOpenNote: DB.tickets.filter(function (t) { return t.status === 'new'; }).length + ' new · ' +
                    DB.tickets.filter(function (t) { return t.status === 'scheduled'; }).length + ' scheduled',
       kpiUrgent:   String(s.urgentRepairs),
       kpiAge:      avgAge + ' days',
+      kpiAgeNote:  'Resolved requests took ' + avgFix + ' days on average',
       kpiSpend:    UI.peso(spend)
     });
 
@@ -208,7 +248,7 @@
       if (tk) return openTicket(tk.dataset.ticket);
 
       var a = e.target.closest('[data-act]');
-      if (a && a.dataset.act === 'crew') UI.toast('Crew management opens here', 'info');
+      if (a && a.dataset.act === 'crew') location.href = 'settings.html?section=users';
     });
 
     content.addEventListener('keydown', function (e) {

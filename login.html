@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sign in — Saraza's Apartment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/base.css" />
+<link rel="stylesheet" href="assets/css/components.css" />
+<style>
+  body{ background:var(--canvas); }
+  .auth{ min-height:100vh; display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1fr); }
+
+  .auth-side{
+    background:var(--deep); color:#fff; padding:48px 56px;
+    display:flex; flex-direction:column; justify-content:space-between; gap:40px;
+    position:relative; overflow:hidden;
+  }
+  .auth-side::after{
+    content:""; position:absolute; right:-140px; bottom:-140px; width:420px; height:420px;
+    border-radius:50%; border:70px solid rgba(255,255,255,.04);
+  }
+  .auth-brand{ display:flex; align-items:center; gap:12px; }
+  .auth-brand .brand-mark{ width:42px; height:42px; }
+  .auth-brand strong{ display:block; font-size:16px; }
+  .auth-brand span{ font-size:12px; color:#7FA8B8; }
+  .auth-pitch h1{ font-size:34px; line-height:1.15; letter-spacing:-.03em; font-weight:700; max-width:15ch; }
+  .auth-pitch p{ color:#B9D2DC; margin-top:14px; max-width:44ch; line-height:1.65; }
+  .auth-points{ display:grid; gap:12px; margin-top:28px; }
+  .auth-points div{ display:flex; gap:10px; align-items:center; color:#DCEAF0; font-size:13.5px; }
+  .auth-points svg{ width:18px; height:18px; color:#7FD1B9; flex:none; }
+  .auth-foot{ font-size:12px; color:#5F8E9F; position:relative; z-index:1; }
+
+  .auth-main{ display:grid; place-items:center; padding:40px 24px; }
+  .auth-card{ width:100%; max-width:420px; }
+  .auth-card h2{ font-size:24px; letter-spacing:-.02em; }
+  .auth-card .lead{ color:var(--muted); margin:6px 0 24px; }
+
+  .role-pick{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:22px; }
+  .role-pick button{
+    border:1.5px solid var(--line); background:var(--surface); border-radius:12px; padding:14px;
+    text-align:left; display:flex; gap:11px; align-items:center; transition:border-color .15s, box-shadow .15s;
+  }
+  .role-pick button svg{ width:20px; height:20px; color:var(--muted); flex:none; }
+  .role-pick button b{ display:block; font-size:13.5px; }
+  .role-pick button span{ font-size:11.5px; color:var(--muted); }
+  .role-pick button.on{ border-color:var(--teal); box-shadow:0 0 0 3px var(--teal-100); }
+  .role-pick button.on svg{ color:var(--teal); }
+
+  .auth-form{ display:grid; gap:16px; }
+  .auth-form .input{ width:100%; height:46px; }
+  .pw-wrap{ position:relative; }
+  .pw-wrap .input{ padding-right:46px; }
+  .pw-toggle{ position:absolute; right:6px; top:50%; transform:translateY(-50%); }
+  .auth-form .btn-primary{ height:48px; justify-content:center; font-size:14.5px; }
+  .auth-error{
+    display:flex; gap:10px; align-items:flex-start; background:var(--red-bg); color:var(--red);
+    border:1px solid var(--red-line); border-radius:10px; padding:11px 13px; font-size:13px;
+  }
+  .auth-error svg{ width:17px; height:17px; flex:none; margin-top:1px; }
+  .auth-info{ background:var(--teal-050); color:var(--deep); border-color:var(--teal-100); }
+
+  .demo{ margin-top:26px; border:1px dashed var(--line); border-radius:12px; padding:14px 16px; font-size:12.5px; color:var(--muted); }
+  .demo b{ color:var(--ink-2); }
+  .demo button{ border:0; background:none; color:var(--teal); font-weight:600; padding:0; font-size:12.5px; }
+  .demo-row{ display:flex; justify-content:space-between; gap:10px; margin-top:6px; flex-wrap:wrap; }
+
+  @media (max-width:900px){
+    .auth{ grid-template-columns:1fr; }
+    .auth-side{ padding:28px 22px 30px; gap:20px; }
+    .auth-pitch h1{ font-size:24px; max-width:none; }
+    .auth-points, .auth-foot{ display:none; }
+    .auth-main{ place-items:start center; padding:28px 18px 40px; }
+  }
+  @media (max-width:420px){
+    .role-pick button{ padding:12px 10px; gap:8px; }
+    .role-pick button span{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="auth">
+  <aside class="auth-side">
+    <div class="auth-brand">
+      <div class="brand-mark">S</div>
+      <div><strong>Saraza's Apartment</strong><span>Property Management System</span></div>
+    </div>
+    <div class="auth-pitch">
+      <h1>Rent, repairs, and records in one place.</h1>
+      <p>Administrators manage units, tenants, and payments. Tenants check their balance, pay, and report problems from their phone.</p>
+      <div class="auth-points">
+        <div><span data-icon="check"></span>Live balances and receipts</div>
+        <div><span data-icon="check"></span>Maintenance requests with photos and video</div>
+        <div><span data-icon="check"></span>Reports you can print or open in Excel</div>
+      </div>
+    </div>
+    <div class="auth-foot">4109 Jose St., GTDL, Valenzuela City &middot; 311 Jacinto St., Canumay, Valenzuela City</div>
+  </aside>
+
+  <main class="auth-main">
+    <div class="auth-card">
+      <h2>Sign in</h2>
+      <p class="lead">Choose who you are, then enter your details.</p>
+
+      <div class="role-pick" role="tablist">
+        <button type="button" data-role="admin" class="on" role="tab">
+          <span data-icon="shield"></span><div><b>Administrator</b><span>Property console</span></div></button>
+        <button type="button" data-role="tenant" role="tab">
+          <span data-icon="home"></span><div><b>Tenant</b><span>My unit &amp; payments</span></div></button>
+      </div>
+
+      <form class="auth-form" id="loginForm" novalidate>
+        <div id="msg" hidden></div>
+        <div class="form-row"><label for="login" id="loginLabel">Email address</label>
+          <input class="input" id="login" autocomplete="username" autocapitalize="none" spellcheck="false" required /></div>
+        <div class="form-row"><label for="password">Password</label>
+          <div class="pw-wrap">
+            <input class="input" id="password" type="password" autocomplete="current-password" required />
+            <button type="button" class="icon-btn sm bare pw-toggle" id="pwToggle" aria-label="Show password"><span data-icon="eye"></span></button>
+          </div></div>
+        <button class="btn btn-primary" type="submit" id="submitBtn">Sign in</button>
+        <p class="u-xs u-muted" style="line-height:1.6;margin:0">Tenant accounts are created by the property
+          administrator. Ask the office for your login if you don't have one yet.</p>
+      </form>
+
+      <div class="demo">
+        <b>Demo accounts</b>
+        <div class="demo-row"><span>Admin · michael.saraza@gmail.com / admin123</span><button type="button" data-fill="admin">Use</button></div>
+        <div class="demo-row"><span>Tenant · jose.ramirez@gmail.com / tenant123</span><button type="button" data-fill="tenant">Use</button></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/icons.js"></script>
+<script src="assets/js/api.js"></script>
+<script>
+(function () {
+  var role = 'admin';
+  var params = new URLSearchParams(location.search);
+  var $ = function (id) { return document.getElementById(id); };
+
+  document.querySelectorAll('[data-icon]').forEach(function (el) { el.innerHTML = icon(el.dataset.icon); });
+
+  function setRole(r) {
+    role = r;
+    document.querySelectorAll('[data-role]').forEach(function (b) {
+      b.classList.toggle('on', b.dataset.role === r);
+      b.setAttribute('aria-selected', b.dataset.role === r ? 'true' : 'false');
+    });
+    $('loginLabel').textContent = 'Email address';
+    $('login').type = 'email';
+    $('login').placeholder = r === 'admin' ? 'admin@example.com' : 'you@example.com';
+  }
+
+  function show(text, info) {
+    var m = $('msg');
+    m.className = 'auth-error' + (info ? ' auth-info' : '');
+    m.innerHTML = icon(info ? 'info' : 'alert') + '<span></span>';
+    m.lastChild.textContent = text;
+    m.hidden = false;
+  }
+
+  function safeNext(target) {
+    var n = params.get('next') || '';
+    /* only follow relative links inside this site that match the role */
+    if (!/^[\w\-\/]+\.html(\?[\w=&\-%.]*)?$/.test(n)) return target;
+    if (role === 'tenant' && n.indexOf('tenant-portal/') !== 0) return target;
+    if (role === 'admin' && n.indexOf('tenant-portal/') === 0) return target;
+    return n;
+  }
+
+  document.querySelector('.role-pick').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-role]');
+    if (b) { setRole(b.dataset.role); $('msg').hidden = true; $('login').focus(); }
+  });
+
+  $('pwToggle').addEventListener('click', function () {
+    var p = $('password');
+    p.type = p.type === 'password' ? 'text' : 'password';
+  });
+
+  document.querySelector('.demo').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-fill]');
+    if (!b) return;
+    setRole(b.dataset.fill);
+    $('login').value = b.dataset.fill === 'admin' ? 'michael.saraza@gmail.com' : 'jose.ramirez@gmail.com';
+    $('password').value = b.dataset.fill === 'admin' ? 'admin123' : 'tenant123';
+  });
+
+  $('loginForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var login = $('login').value.trim(), pw = $('password').value;
+    if (!login || !pw) { show('Enter your email and password.'); return; }
+    var btn = $('submitBtn');
+    btn.disabled = true; btn.textContent = 'Signing in…';
+    API.post('auth.php', 'login', { role: role, login: login, password: pw }).then(function (r) {
+      location.replace(safeNext(r.redirect));
+    }, function (err) {
+      show(err.message);
+      btn.disabled = false; btn.textContent = 'Sign in';
+      $('password').select();
+    });
+  });
+
+  setRole(params.get('role') === 'tenant' ? 'tenant' : 'admin');
+  if (params.get('reason') === 'expired') show('Your session ended. Please sign in again.', true);
+
+  /* already signed in? go straight in */
+  API.get('auth.php', 'me').then(function (r) {
+    if (r.user) location.replace(r.user.role === 'admin' ? 'dashboard.html' : 'tenant-portal/dashboard.html');
+  }, function (err) { show(err.message); });
+
+  $('login').focus();
+})();
+</script>
+</body>
+</html>

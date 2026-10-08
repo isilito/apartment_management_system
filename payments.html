@@ -31,7 +31,7 @@
           </div>
         </div>
         <div class="page-actions">
-          <button class="btn btn-outline" data-act="statement"><span data-icon="file"></span>Monthly statement</button>
+          <button class="btn btn-outline" data-act="statement"><span data-icon="file"></span>Collection summary</button>
           <button class="btn btn-primary" data-shell-act="record-payment"><span data-icon="plus"></span>Record a payment</button>
         </div>
       </div>
@@ -59,7 +59,7 @@
             <span class="stat-icon i-teal" data-icon="chart"></span></div>
           <div class="stat-value"><b data-bind="rate"></b></div>
           <div class="meter"><i class="m-teal" data-bind-width="rateBar"></i></div>
-          <p class="stat-note">Up from 79% last month</p>
+          <p class="stat-note" data-bind="rateNote"></p>
         </div></section>
 
         <section class="card"><div class="stat">
@@ -89,7 +89,8 @@
           <select class="select" id="ps">
             <option value="all">All statuses</option>
             <option value="cleared">Cleared</option>
-            <option value="pending">Pending</option>
+            <option value="pending">Pending confirmation</option>
+            <option value="rejected">Rejected</option>
           </select>
           <div class="spacer"></div>
           <button class="btn btn-outline btn-sm" data-act="export"><span data-icon="download"></span>Export CSV</button>
@@ -164,6 +165,7 @@
 </div>
 
 <script src="assets/js/icons.js"></script>
+<script src="assets/js/api.js"></script>
 <script src="assets/js/data.js"></script>
 <script src="assets/js/ui.js"></script>
 <script src="assets/js/charts.js"></script>

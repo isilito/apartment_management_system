@@ -40,6 +40,12 @@
         </div>
       </div>
 
+      <a class="notice-bar u-mb-lg" id="pendingNotice" href="payments.html?status=pending" hidden>
+        <span data-icon="receipt"></span>
+        <div><b>Payments to confirm</b><span data-bind="pendingNote"></span></div>
+        <span class="nb-go" data-icon="arrowRight"></span>
+      </a>
+
       <div class="dash">
 
         <!-- ============ STAT CARDS ============ -->
@@ -203,7 +209,7 @@
           <header class="card-head">
             <div>
               <h3>Recent payments</h3>
-              <p class="sub">The last 5 payments recorded across all units</p>
+              <p class="sub">The last 5 payments recorded</p>
             </div>
             <div class="card-head-actions">
               <select class="select" id="unitFilter">
@@ -231,6 +237,7 @@
 </div>
 
 <script src="assets/js/icons.js"></script>
+<script src="assets/js/api.js"></script>
 <script src="assets/js/data.js"></script>
 <script src="assets/js/ui.js"></script>
 <script src="assets/js/charts.js"></script>

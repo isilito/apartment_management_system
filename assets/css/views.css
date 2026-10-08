@@ -274,7 +274,8 @@
 
    Most strips (stat row, KPI strips, board, card grids) use auto-fit and
    reflow on their own, so only the bespoke layouts need breakpoints.
-   Mobile is intentionally not addressed yet.
+   Phones (680px and below) get the rules at the end of this file
+   and in components.css → "Mobile".
    ============================================================ */
 
 /* ---------- Ultrawide: keep forms readable, let data breathe ---------- */
@@ -350,7 +351,7 @@
 
 /* ---------- Small desktop: single column ---------- */
 @media (max-width:1152px){
-  .dash{ grid-template-columns:1fr; }
+  .dash{ grid-template-columns:minmax(0,1fr); }
   .dash > .rail{ flex-direction:column; }
   .g-3, .g-2{ grid-template-columns:1fr; }
   .span-2, .span-3{ grid-column:span 1; }
@@ -371,11 +372,18 @@
   }
 }
 @media (max-width:680px){
-  .dash{ grid-template-columns:1fr; }
+  .dash{ grid-template-columns:minmax(0,1fr); }
   .dash > *, .dash > .stat-card, .dash > .c-rent, .dash > .c-occ,
   .dash > .c-recent, .dash > .rail{ grid-column:1 !important; }
   .dash > .rail{ flex-direction:column; }
-  .g-4, .kpi-strip, .pay-summary, .board{ grid-template-columns:1fr; }
+  .g-4, .board{ grid-template-columns:minmax(0,1fr); }
+  .dash > .stat-row, .kpi-strip, .pay-summary{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  .stat{ padding:14px 14px 16px; }
+  .stat-value{ flex-wrap:wrap; gap:6px; }
+  .stat-value b{ font-size:20px; }
+  .renter-grid{ grid-template-columns:minmax(0,1fr); }
+  .settings-layout .form-grid{ grid-template-columns:minmax(0,1fr); }
+  .unit-grid{ grid-template-columns:repeat(auto-fill,minmax(min(266px,100%),1fr)); }
   .page-head h1{ font-size:22px; }
   .help-hero{ padding:26px 22px; }
 }

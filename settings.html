@@ -26,8 +26,8 @@
         <div>
           <h1>Settings</h1>
           <div class="crumbs">
-            <span>Saraza's Apartment</span><span class="sep">&middot;</span>
-            <span>Signed in as Aling Nena</span>
+            <span data-bind="propName"></span><span class="sep">&middot;</span>
+            <span data-bind="signedInAs"></span>
           </div>
         </div>
       </div>
@@ -38,7 +38,7 @@
         <nav class="settings-nav">
           <button data-sec="property" class="on"><span data-icon="building"></span>Property profile</button>
           <button data-sec="billing"><span data-icon="peso"></span>Rent &amp; billing</button>
-          <button data-sec="users"><span data-icon="users"></span>Users &amp; roles</button>
+          <button data-sec="users"><span data-icon="users"></span>Staff &amp; crew</button>
           <button data-sec="notify"><span data-icon="bell"></span>Notifications</button>
           <button data-sec="security"><span data-icon="lock"></span>Security</button>
           <button data-sec="data"><span data-icon="archive"></span>Data &amp; backup</button>
@@ -48,7 +48,7 @@
 
           <!-- ============ PROPERTY ============ -->
           <section data-pane="property">
-            <div class="card">
+            <div class="card" data-form="property">
               <header class="card-head">
                 <div><h3>Property profile</h3>
                   <p class="sub">How your apartment appears across the system and on receipts</p></div>
@@ -56,23 +56,27 @@
               <div class="card-body">
                 <div class="form-grid">
                   <div class="form-row full"><label>Property name</label>
-                    <input class="input" value="Saraza's Apartment" /></div>
-                  <div class="form-row"><label>Owner / landlord</label>
-                    <input class="input" value="Liza Saraza" /></div>
+                    <input class="input" data-setting="property_name" /></div>
+                  <div class="form-row"><label>Owner / administrator</label>
+                    <input class="input" data-setting="owner_name" /></div>
                   <div class="form-row"><label>Contact number</label>
-                    <input class="input" value="+63 917 555 0142" /></div>
+                    <input class="input" data-setting="contact_phone" /></div>
+                  <div class="form-row"><label>Contact email</label>
+                    <input class="input" type="email" data-setting="contact_email" /></div>
+                  <div class="form-row"><label>Monthly collection target (₱)</label>
+                    <input class="input" type="number" min="0" data-setting="monthly_target" /></div>
                   <div class="form-row full"><label>Address</label>
-                    <input class="input" value="142 Mabini St., Brgy. San Roque, Marikina City" /></div>
-                  <div class="form-row"><label>Currency</label>
-                    <select class="select"><option>Philippine Peso (₱)</option><option>US Dollar ($)</option></select></div>
-                  <div class="form-row"><label>Time zone</label>
-                    <select class="select"><option>Asia/Manila (GMT+8)</option></select></div>
+                    <input class="input" data-setting="address" /></div>
+                  <div class="form-row"><label>Emergency contact (shown to tenants)</label>
+                    <input class="input" data-setting="emergency_name" /></div>
+                  <div class="form-row"><label>Emergency number</label>
+                    <input class="input" data-setting="emergency_phone" /></div>
                   <div class="form-row full"><label>Notes shown on receipts</label>
-                    <textarea class="textarea">Thank you for paying on time. Please keep this receipt for your records.</textarea></div>
+                    <textarea class="textarea" data-setting="receipt_note"></textarea></div>
                 </div>
               </div>
               <div class="card-foot" style="justify-content:flex-end">
-                <button class="btn btn-ghost">Discard</button>
+                <button class="btn btn-ghost" data-act="discard">Discard</button>
                 <button class="btn btn-primary" data-act="save">Save changes</button>
               </div>
             </div>
@@ -90,54 +94,22 @@
               </header>
               <div class="card-body"><div class="rows" id="buildingRows"></div></div>
             </div>
-          </section>
 
-          <!-- ============ BILLING ============ -->
-          <section data-pane="billing" hidden>
-            <div class="card">
+            <div style="height:20px"></div>
+
+            <div class="card" data-form="house">
               <header class="card-head">
-                <div><h3>Rent &amp; billing</h3>
-                  <p class="sub">Defaults applied to new leases and monthly billing runs</p></div>
+                <div><h3>Lease inclusions &amp; house rules</h3>
+                  <p class="sub">Shown to tenants in My Rental Info and printed on the lease. One item per line.</p></div>
               </header>
               <div class="card-body">
-                <div class="set-row">
-                  <div class="sr-label"><b>Rent due day</b><span>The day of the month rent is considered due</span></div>
-                  <div class="sr-control"><select class="select">
-                    <option>1st of the month</option><option selected>5th of the month</option>
-                    <option>15th of the month</option></select></div>
-                </div>
-                <div class="set-row">
-                  <div class="sr-label"><b>Grace period</b><span>Days after the due date before a balance is marked overdue</span></div>
-                  <div class="sr-control"><select class="select">
-                    <option>No grace period</option><option selected>3 days</option>
-                    <option>5 days</option><option>7 days</option></select></div>
-                </div>
-                <div class="set-row">
-                  <div class="sr-label"><b>Late fee</b><span>Charged once the grace period lapses</span></div>
-                  <div class="sr-control"><select class="select">
-                    <option>None</option><option selected>₱200 flat</option>
-                    <option>2% of rent</option><option>5% of rent</option></select></div>
-                </div>
-                <div class="set-row">
-                  <div class="sr-label"><b>Default deposit</b><span>Suggested security deposit for a new lease</span></div>
-                  <div class="sr-control"><select class="select">
-                    <option>1 month rent</option><option selected>2 months rent</option>
-                    <option>3 months rent</option></select></div>
-                </div>
-                <div class="set-row">
-                  <div class="sr-label"><b>Accepted payment methods</b><span>Channels tenants can use to settle rent</span></div>
-                  <div class="sr-control"><div class="u-row u-wrap" style="gap:6px;justify-content:flex-end"
-                       id="methodBadges"></div></div>
-                </div>
-                <div class="set-row">
-                  <div class="sr-label"><b>Auto-generate receipts</b><span>Create a receipt number the moment a payment is logged</span></div>
-                  <div class="sr-control"><label class="switch">
-                    <input type="checkbox" checked /><span class="track"></span></label></div>
-                </div>
-                <div class="set-row">
-                  <div class="sr-label"><b>Send payment confirmation</b><span>Text the tenant when their payment clears</span></div>
-                  <div class="sr-control"><label class="switch">
-                    <input type="checkbox" checked /><span class="track"></span></label></div>
+                <div class="form-grid">
+                  <div class="form-row"><label>Included in the rent</label>
+                    <textarea class="textarea" rows="5" data-setting="inclusions"></textarea></div>
+                  <div class="form-row"><label>Not included</label>
+                    <textarea class="textarea" rows="5" data-setting="exclusions"></textarea></div>
+                  <div class="form-row full"><label>House rules</label>
+                    <textarea class="textarea" rows="6" data-setting="house_rules"></textarea></div>
                 </div>
               </div>
               <div class="card-foot" style="justify-content:flex-end">
@@ -146,21 +118,84 @@
             </div>
           </section>
 
+          <!-- ============ BILLING ============ -->
+          <section data-pane="billing" hidden>
+            <div class="card" data-form="billing">
+              <header class="card-head">
+                <div><h3>Rent &amp; billing</h3>
+                  <p class="sub">Monthly rent charges are created automatically using these rules</p></div>
+              </header>
+              <div class="card-body">
+                <div class="set-row">
+                  <div class="sr-label"><b>Rent due day</b><span>The day of the month rent is due</span></div>
+                  <div class="sr-control"><select class="select" data-setting="rent_due_day">
+                    <option value="1">1st of the month</option><option value="5">5th of the month</option>
+                    <option value="10">10th of the month</option><option value="15">15th of the month</option>
+                    <option value="28">28th of the month</option></select></div>
+                </div>
+                <div class="set-row">
+                  <div class="sr-label"><b>Grace period</b><span>Days after the due date before a late fee is added</span></div>
+                  <div class="sr-control"><select class="select" data-setting="grace_days">
+                    <option value="0">No grace period</option><option value="3">3 days</option>
+                    <option value="5">5 days</option><option value="7">7 days</option></select></div>
+                </div>
+                <div class="set-row">
+                  <div class="sr-label"><b>Late fee</b><span>Added once per month's rent after the grace period</span></div>
+                  <div class="sr-control"><select class="select" data-setting="late_fee">
+                    <option value="none">None</option><option value="flat200">₱200 flat</option>
+                    <option value="pct2">2% of rent</option><option value="pct5">5% of rent</option></select></div>
+                </div>
+                <div class="set-row">
+                  <div class="sr-label"><b>Default deposit</b><span>Suggested security deposit for a new lease</span></div>
+                  <div class="sr-control"><select class="select" data-setting="deposit_months">
+                    <option value="1">1 month rent</option><option value="2">2 months rent</option>
+                    <option value="3">3 months rent</option></select></div>
+                </div>
+                <div class="set-row">
+                  <div class="sr-label"><b>Advance rent</b><span>Months of advance recorded on a new lease</span></div>
+                  <div class="sr-control"><select class="select" data-setting="advance_months">
+                    <option value="0">None</option><option value="1">1 month</option><option value="2">2 months</option></select></div>
+                </div>
+                <div class="set-row">
+                  <div class="sr-label"><b>Tell the tenant when a payment clears</b><span>Sends a notice to their tenant portal</span></div>
+                  <div class="sr-control"><label class="switch">
+                    <input type="checkbox" data-setting="notify_tenant_on_clear" /><span class="track"></span></label></div>
+                </div>
+              </div>
+              <div class="card-foot" style="justify-content:flex-end">
+                <button class="btn btn-primary" data-act="save">Save changes</button>
+              </div>
+            </div>
+
+            <div style="height:20px"></div>
+
+            <div class="card">
+              <header class="card-head">
+                <div><h3>Payment methods</h3>
+                  <p class="sub">Channels tenants can use, and the account details shown to them</p></div>
+              </header>
+              <div class="card-body" id="methodRows"></div>
+              <div class="card-foot" style="justify-content:flex-end">
+                <button class="btn btn-primary" data-act="save-methods">Save methods</button>
+              </div>
+            </div>
+          </section>
+
           <!-- ============ USERS ============ -->
           <section data-pane="users" hidden>
             <div class="card">
               <header class="card-head">
-                <div><h3>Users &amp; roles</h3>
-                  <p class="sub">Who can sign in to this system and what they may do</p></div>
+                <div><h3>Staff &amp; crew</h3>
+                  <p class="sub">Administrators can sign in; crew members can be assigned repairs</p></div>
                 <div class="card-head-actions">
                   <button class="btn btn-primary btn-sm" data-act="invite">
-                    <span data-icon="plus"></span>Invite user</button>
+                    <span data-icon="plus"></span>Add person</button>
                 </div>
               </header>
               <div class="table-wrap">
                 <table class="tbl" style="min-width:780px">
                   <thead>
-                    <tr><th>Person</th><th>Role</th><th>Email</th><th>Last active</th><th class="num"></th></tr>
+                    <tr><th>Person</th><th>Role</th><th>Contact</th><th>Last active</th><th class="num"></th></tr>
                   </thead>
                   <tbody id="userRows"></tbody>
                 </table>
@@ -172,18 +207,16 @@
             <div class="card">
               <header class="card-head">
                 <div><h3>What each role can do</h3>
-                  <p class="sub">Permissions are fixed for now and can be customised later</p></div>
+                  <p class="sub">Tenants sign in separately, to the tenant portal</p></div>
               </header>
               <div class="card-body">
                 <div class="rows">
-                  <div class="row"><div class="row-main"><b>Owner</b>
-                    <span>Full access, including financial reports and user management</span></div></div>
-                  <div class="row"><div class="row-main"><b>Administrator</b>
-                    <span>Everything except deleting the property or removing the owner</span></div></div>
+                  <div class="row"><div class="row-main"><b>Owner / Administrator</b>
+                    <span>Signs in to this console with full access to units, tenants, money, and settings</span></div></div>
                   <div class="row"><div class="row-main"><b>Caretaker</b>
-                    <span>Units, tenants, and maintenance — no financial reports</span></div></div>
-                  <div class="row"><div class="row-main"><b>Maintenance</b>
-                    <span>Maintenance requests only</span></div></div>
+                    <span>Listed as a contact for tenants and can be assigned repairs</span></div></div>
+                  <div class="row"><div class="row-main"><b>Maintenance / Contractor</b>
+                    <span>Can be assigned maintenance requests</span></div></div>
                 </div>
               </div>
             </div>
@@ -191,45 +224,33 @@
 
           <!-- ============ NOTIFICATIONS ============ -->
           <section data-pane="notify" hidden>
-            <div class="card">
+            <div class="card" data-form="notify">
               <header class="card-head">
-                <div><h3>Notifications</h3><p class="sub">Choose what pings you, and where it lands</p></div>
+                <div><h3>Notifications</h3><p class="sub">Choose what shows up in your bell menu</p></div>
               </header>
               <div class="card-body">
                 <h4 class="u-b u-mb" style="font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted-2)">Money</h4>
-                <div class="set-row"><div class="sr-label"><b>Payment received</b>
-                  <span>Every time a tenant settles rent</span></div>
-                  <div class="sr-control"><label class="switch"><input type="checkbox" checked /><span class="track"></span></label></div></div>
+                <div class="set-row"><div class="sr-label"><b>Payment sent from the portal</b>
+                  <span>When a tenant submits a payment for you to confirm</span></div>
+                  <div class="sr-control"><label class="switch"><input type="checkbox" data-setting="notif_payment" /><span class="track"></span></label></div></div>
                 <div class="set-row"><div class="sr-label"><b>Rent overdue</b>
                   <span>When a balance passes the grace period</span></div>
-                  <div class="sr-control"><label class="switch"><input type="checkbox" checked /><span class="track"></span></label></div></div>
-                <div class="set-row"><div class="sr-label"><b>Weekly collection summary</b>
-                  <span>A Monday morning recap of last week</span></div>
-                  <div class="sr-control"><label class="switch"><input type="checkbox" /><span class="track"></span></label></div></div>
+                  <div class="sr-control"><label class="switch"><input type="checkbox" data-setting="notif_overdue" /><span class="track"></span></label></div></div>
 
                 <div class="u-rule"></div>
                 <h4 class="u-b u-mb" style="font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted-2)">Property</h4>
                 <div class="set-row"><div class="sr-label"><b>New maintenance request</b>
-                  <span>The moment a tenant reports something</span></div>
-                  <div class="sr-control"><label class="switch"><input type="checkbox" checked /><span class="track"></span></label></div></div>
+                  <span>The moment a tenant reports something, or follows up</span></div>
+                  <div class="sr-control"><label class="switch"><input type="checkbox" data-setting="notif_maintenance" /><span class="track"></span></label></div></div>
                 <div class="set-row"><div class="sr-label"><b>Urgent repair unassigned</b>
                   <span>If an urgent request sits for 24 hours</span></div>
-                  <div class="sr-control"><label class="switch"><input type="checkbox" checked /><span class="track"></span></label></div></div>
+                  <div class="sr-control"><label class="switch"><input type="checkbox" data-setting="notif_urgent" /><span class="track"></span></label></div></div>
                 <div class="set-row"><div class="sr-label"><b>Lease expiring</b>
                   <span>Sixty days before a lease ends</span></div>
-                  <div class="sr-control"><label class="switch"><input type="checkbox" checked /><span class="track"></span></label></div></div>
+                  <div class="sr-control"><label class="switch"><input type="checkbox" data-setting="notif_lease" /><span class="track"></span></label></div></div>
                 <div class="set-row"><div class="sr-label"><b>Unit turned vacant</b>
                   <span>When a tenant moves out</span></div>
-                  <div class="sr-control"><label class="switch"><input type="checkbox" /><span class="track"></span></label></div></div>
-
-                <div class="u-rule"></div>
-                <h4 class="u-b u-mb" style="font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted-2)">Delivery</h4>
-                <div class="set-row"><div class="sr-label"><b>In-app</b><span>Show in the bell menu</span></div>
-                  <div class="sr-control"><label class="switch"><input type="checkbox" checked /><span class="track"></span></label></div></div>
-                <div class="set-row"><div class="sr-label"><b>Email</b><span>nena@sarazaapartment.ph</span></div>
-                  <div class="sr-control"><label class="switch"><input type="checkbox" checked /><span class="track"></span></label></div></div>
-                <div class="set-row"><div class="sr-label"><b>SMS</b><span>+63 917 555 0142 — standard rates apply</span></div>
-                  <div class="sr-control"><label class="switch"><input type="checkbox" /><span class="track"></span></label></div></div>
+                  <div class="sr-control"><label class="switch"><input type="checkbox" data-setting="notif_vacant" /><span class="track"></span></label></div></div>
               </div>
               <div class="card-foot" style="justify-content:flex-end">
                 <button class="btn btn-primary" data-act="save">Save preferences</button>
@@ -241,33 +262,40 @@
           <section data-pane="security" hidden>
             <div class="card">
               <header class="card-head">
-                <div><h3>Security</h3><p class="sub">Protect access to tenant and financial records</p></div>
+                <div><h3>Change your password</h3><p class="sub" data-bind="signedInAs"></p></div>
               </header>
               <div class="card-body">
                 <div class="form-grid">
-                  <div class="form-row"><label>Current password</label>
-                    <input class="input" type="password" value="........" /></div>
+                  <div class="form-row full"><label>Current password</label>
+                    <input class="input" type="password" id="pwCur" autocomplete="current-password" /></div>
                   <div class="form-row"><label>New password</label>
-                    <input class="input" type="password" placeholder="At least 8 characters" /></div>
-                  <div class="form-row full"><label>Confirm new password</label>
-                    <input class="input" type="password" /></div>
+                    <input class="input" type="password" id="pwNew" placeholder="At least 8 characters" autocomplete="new-password" /></div>
+                  <div class="form-row"><label>Confirm new password</label>
+                    <input class="input" type="password" id="pwNew2" autocomplete="new-password" /></div>
                 </div>
-                <div class="u-rule"></div>
-                <div class="set-row"><div class="sr-label"><b>Two-factor authentication</b>
-                  <span>Require a one-time code from SMS at sign-in</span></div>
-                  <div class="sr-control"><label class="switch"><input type="checkbox" /><span class="track"></span></label></div></div>
+              </div>
+              <div class="card-foot" style="justify-content:flex-end">
+                <button class="btn btn-primary" data-act="password">Update password</button>
+              </div>
+            </div>
+
+            <div style="height:20px"></div>
+
+            <div class="card" data-form="security">
+              <div class="card-body">
                 <div class="set-row"><div class="sr-label"><b>Auto sign-out</b>
-                  <span>End the session after a period of inactivity</span></div>
-                  <div class="sr-control"><select class="select">
-                    <option>Never</option><option selected>After 30 minutes</option>
-                    <option>After 1 hour</option></select></div></div>
+                  <span>End a session after a period of inactivity (admins and tenants)</span></div>
+                  <div class="sr-control"><select class="select" data-setting="session_timeout">
+                    <option value="0">Never</option><option value="15">After 15 minutes</option>
+                    <option value="30">After 30 minutes</option><option value="60">After 1 hour</option>
+                    <option value="240">After 4 hours</option></select></div></div>
                 <div class="set-row"><div class="sr-label"><b>Activity log</b>
-                  <span>Keep a record of who changed what</span></div>
-                  <div class="sr-control"><button class="btn btn-outline btn-sm">
+                  <span>A record of who signed in and what they changed</span></div>
+                  <div class="sr-control"><button class="btn btn-outline btn-sm" data-act="log">
                     <span data-icon="eye"></span>View log</button></div></div>
               </div>
               <div class="card-foot" style="justify-content:flex-end">
-                <button class="btn btn-primary" data-act="save">Update security</button>
+                <button class="btn btn-primary" data-act="save">Save</button>
               </div>
             </div>
           </section>
@@ -277,24 +305,22 @@
             <div class="card">
               <header class="card-head">
                 <div><h3>Data &amp; backup</h3>
-                  <p class="sub">Export your records or bring in data from a spreadsheet</p></div>
+                  <p class="sub">Export your records or bring in tenants from a spreadsheet</p></div>
               </header>
               <div class="card-body">
                 <div class="set-row"><div class="sr-label"><b>Export everything</b>
-                  <span>Units, tenants, payments, and maintenance as one archive</span></div>
-                  <div class="sr-control"><button class="btn btn-outline btn-sm" data-act="export-all">
-                    <span data-icon="download"></span>Export</button></div></div>
+                  <span>Units, tenants, charges, payments, and maintenance as one JSON file</span></div>
+                  <div class="sr-control"><a class="btn btn-outline btn-sm" id="exportLink" href="api/admin.php?action=export">
+                    <span data-icon="download"></span>Export</a></div></div>
                 <div class="set-row"><div class="sr-label"><b>Import tenants</b>
-                  <span>Upload a CSV to add renters in bulk</span></div>
+                  <span>CSV with a header row: name, unit, phone, email, occupation, move_in (YYYY-MM-DD), rent. Units must be vacant.</span></div>
                   <div class="sr-control"><button class="btn btn-outline btn-sm" data-act="import">
-                    <span data-icon="upload"></span>Import CSV</button></div></div>
-                <div class="set-row"><div class="sr-label"><b>Automatic backup</b>
-                  <span>A nightly snapshot kept for 30 days</span></div>
-                  <div class="sr-control"><label class="switch"><input type="checkbox" checked /><span class="track"></span></label></div></div>
-                <div class="set-row"><div class="sr-label"><b>Last backup</b>
-                  <span>Completed 11 Sep 2026 at 2:00 AM</span></div>
-                  <div class="sr-control"><span class="badge badge-green">
-                    <span data-icon="check"></span>Healthy</span></div></div>
+                    <span data-icon="upload"></span>Import CSV</button>
+                    <input type="file" id="importFile" accept=".csv,text/csv" hidden /></div></div>
+                <div class="set-row"><div class="sr-label"><b>Last export</b>
+                  <span data-bind="lastBackup"></span></div>
+                  <div class="sr-control"><span class="badge badge-teal">
+                    <span data-icon="info"></span>Also back up the database in phpMyAdmin</span></div></div>
               </div>
             </div>
 
@@ -307,12 +333,11 @@
                   <b style="font-size:15px">Danger zone</b>
                 </div>
                 <p class="u-sm u-muted" style="line-height:1.6;max-width:56ch">
-                  These actions cannot be undone. Archiving hides the property from every user;
-                  deleting removes all tenant and payment history permanently.
+                  Deleting removes every building, unit, tenant, payment, and maintenance request permanently.
+                  Your settings and admin account are kept. Export first if you might need the data.
                 </p>
                 <div class="u-row u-mt" style="gap:10px">
-                  <button class="btn btn-outline btn-sm"><span data-icon="archive"></span>Archive property</button>
-                  <button class="btn btn-danger btn-sm" data-act="delete"><span data-icon="trash"></span>Delete property</button>
+                  <button class="btn btn-danger btn-sm" data-act="delete"><span data-icon="trash"></span>Delete property data</button>
                 </div>
               </div>
             </div>
@@ -326,6 +351,7 @@
 </div>
 
 <script src="assets/js/icons.js"></script>
+<script src="assets/js/api.js"></script>
 <script src="assets/js/data.js"></script>
 <script src="assets/js/ui.js"></script>
 <script src="assets/js/charts.js"></script>

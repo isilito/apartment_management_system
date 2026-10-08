@@ -68,6 +68,11 @@
     cleared:      ['Cleared',      'green'],
     pending:      ['Pending',      'amber'],
     failed:       ['Failed',       'red'],
+    rejected:     ['Rejected',     'red'],
+    paid:         ['Paid',         'green'],
+    partial:      ['Partly paid',  'amber'],
+    unpaid:       ['Unpaid',       'red'],
+    upcoming:     ['Upcoming',     'slate'],
     occupied:     ['Occupied',     'green'],
     vacant:       ['Vacant',       'slate'],
     repair:       ['Under repair', 'amber'],
@@ -243,7 +248,24 @@
     var confirmBtn = box.querySelector('[data-confirm]');
     if (confirmBtn && opts.onConfirm) {
       confirmBtn.addEventListener('click', function () {
-        if (opts.onConfirm(box) !== false) closeModal();
+        if (confirmBtn.disabled) return;
+        var r = opts.onConfirm(box);
+        /* async save: keep the dialog open until the server answers */
+        if (r && typeof r.then === 'function') {
+          var label = confirmBtn.innerHTML;
+          confirmBtn.disabled = true;
+          confirmBtn.textContent = 'Saving…';
+          r.then(function (v) {
+            if (v !== false && box.contains(confirmBtn)) closeModal();
+          }, function (err) {
+            toast(err && err.message ? err.message : 'Something went wrong', 'warn');
+          }).then(function () {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = label;
+          });
+          return;
+        }
+        if (r !== false) closeModal();
       });
     }
     if (opts.onOpen) opts.onOpen(box);

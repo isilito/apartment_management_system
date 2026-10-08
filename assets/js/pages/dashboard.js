@@ -24,30 +24,40 @@
       occupancySub:     'Where all ' + s.totalUnits + ' units stand today',
 
       income:           UI.peso(s.incomeThisMonth),
-      incomeDelta:      icon('trendUp') + s.incomeDelta + '%',
-      incomeBar:        Math.round(s.incomeThisMonth / s.incomeTarget * 100),
-      incomeNote:       Math.round(s.incomeThisMonth / s.incomeTarget * 100) +
-                        '% of the ' + UI.peso(s.incomeTarget) + ' target',
+      incomeDelta:      icon(s.incomeDelta < 0 ? 'trendDown' : 'trendUp') + Math.abs(s.incomeDelta) + '%',
+      incomeBar:        pct(s.incomeThisMonth, s.incomeTarget),
+      incomeNote:       pct(s.incomeThisMonth, s.incomeTarget) +
+                        '% of the ' + UI.peso(s.incomeTarget) + ' monthly target',
 
       outstanding:      UI.peso(s.outstanding),
       outstandingCount: s.overdueTenants.length + ' tenants',
-      outstandingBar:   Math.round(s.outstanding / s.expectedThisMonth * 100),
-      outstandingNote:  Math.round(s.outstanding / s.expectedThisMonth * 100) + '% of rent still uncollected',
+      outstandingBar:   pct(s.outstanding, s.expectedThisMonth),
+      outstandingNote:  s.overdueTenants.length
+                          ? 'Longest unpaid: ' + s.overdueTenants[0].overdueDays + ' days'
+                          : 'Everyone is paid up',
 
       repairs:          String(s.openRepairs),
       repairsUrgent:    s.urgentRepairs + ' urgent',
       repairsBar:       Math.min(100, s.openRepairs / 12 * 100),
-      repairsNote:      'Oldest request is ' + s.oldestRepairDays + ' days old',
+      repairsNote:      s.openRepairs ? 'Oldest request is ' + s.oldestRepairDays + ' days old' : 'No open requests',
 
       monthYear:        UI.fmtMonthYear(DB.today),
       collected:        UI.peso(s.incomeThisMonth),
       collectedOf:      'of ' + UI.peso(s.expectedThisMonth),
-      collectedBar:     Math.round(s.incomeThisMonth / s.expectedThisMonth * 100),
-      collectedPct:     Math.round(s.incomeThisMonth / s.expectedThisMonth * 100) + '% collected',
+      collectedBar:     pct(s.incomeThisMonth, s.expectedThisMonth),
+      collectedPct:     pct(s.incomeThisMonth, s.expectedThisMonth) + '% collected',
       outstandingLabel: UI.peso(s.outstanding) + ' outstanding',
-      remindAllLabel:   'Send reminder to all ' + s.overdueTenants.length + ' tenants'
+      remindAllLabel:   s.overdueTenants.length
+                          ? 'Send reminder to all ' + s.overdueTenants.length + ' tenants'
+                          : 'No reminders needed',
+      pendingNote:      s.pendingCount
+                          ? s.pendingCount + ' portal payment' + (s.pendingCount > 1 ? 's' : '') + ' (' +
+                            UI.peso(s.pendingAmount) + ') waiting for you to confirm'
+                          : ''
     };
   }
+
+  function pct(a, b) { return b ? Math.min(100, Math.round(a / b * 100)) : 0; }
 
   /* ---------- mount points ---------- */
   var chartRange = '6';
@@ -74,7 +84,11 @@
   }
 
   function renderOverdue() {
-    UI.fill('overdueRows', DB.stats.overdueTenants.slice(0, 3).map(function (t) {
+    if (!DB.stats.overdueTenants.length) {
+      UI.fill('overdueRows', '<p class="u-sm u-muted" style="padding:10px 0">Nobody is behind on rent.</p>');
+      return;
+    }
+    UI.fill('overdueRows', DB.stats.overdueTenants.slice(0, 4).map(function (t) {
       return '<div class="row">' + UI.avatar(t.initials, 'avatar-sm') +
         '<div class="row-main"><b>' + UI.esc(t.name) + '</b>' +
           '<span>Unit ' + UI.esc(t.unitNo) + ' &middot; ' + t.overdueDays + ' days late</span></div>' +
@@ -86,7 +100,7 @@
   function renderPayments(buildingId) {
     var list = DB.payments.filter(function (p) {
       if (buildingId === 'all' || !buildingId) return true;
-      var u = DB.units.filter(function (x) { return x.no === p.unitNo; })[0];
+      var u = DB.unit(p.unitNo);
       return u && u.buildingId === buildingId;
     }).slice(0, 5);
 
@@ -101,7 +115,7 @@
       return {
         attrs: 'class="linked" data-payment="' + p.id + '"',
         cells: [
-          UI.personCell(p.initials, p.tenantName),
+          UI.personCell(p.initials, p.fullName),
           '<span class="strong">' + UI.esc(p.unitNo) + '</span>',
           '<span class="nowrap">' + UI.fmtDate(p.date) + '</span>',
           UI.esc(p.method),
@@ -121,6 +135,8 @@
     renderOccupancy();
     renderOverdue();
     renderPayments(els.filter ? els.filter.value : 'all');
+    var pn = document.getElementById('pendingNotice');
+    if (pn) pn.hidden = !DB.stats.pendingCount;
     UI.animateMeters(document);
   }
 
@@ -128,7 +144,7 @@
     els.filter = document.getElementById('unitFilter');
 
     /* building options come from the data, not hardcoded markup */
-    els.filter.innerHTML = '<option value="all">All units</option>' +
+    els.filter.innerHTML = '<option value="all">All buildings</option>' +
       DB.buildings.map(function (b) {
         return '<option value="' + b.id + '">' + UI.esc(b.name) + '</option>';
       }).join('');
@@ -149,7 +165,7 @@
       var el;
 
       if ((el = e.target.closest('[data-remind]'))) {
-        UI.toast('Reminder sent to ' + DB.tenant(el.dataset.remind).name);
+        Shell.sendReminder(el.dataset.remind);
         return;
       }
       if ((el = e.target.closest('[data-payment]'))) {
@@ -157,7 +173,7 @@
         return;
       }
       if (e.target.closest('[data-act="remind-all"]')) {
-        UI.toast('SMS reminders queued for ' + DB.stats.overdueTenants.length + ' tenants');
+        if (DB.stats.overdueTenants.length) Shell.remindAll();
       }
     });
   }

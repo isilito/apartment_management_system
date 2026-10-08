@@ -13,7 +13,7 @@
         '<span class="m-ico">' + icon(m.icon) + '</span>' +
         '<div style="flex:1;min-width:0"><b>' + UI.esc(m.label) + '</b>' +
           '<span>' + UI.esc(m.detail) + '</span></div>' +
-        '<button class="icon-btn sm bare" data-copy="' + UI.esc(m.detail) + '" title="Copy details">' +
+        '<button class="icon-btn sm bare" data-copy="' + UI.esc(m.detail) + '" title="Copy details" aria-label="Copy details">' +
           icon('file') + '</button></div>';
     }).join(''));
   }
@@ -27,23 +27,26 @@
     UI.fill('chargeList', sorted.map(function (c) {
       var days = DB.daysFrom(c.due);
       var paid = c.status === 'paid';
-      var tone = paid ? 'i-green' : (days < 0 ? 'i-red' : (days <= 3 ? 'i-amber' : 'i-teal'));
+      var pending = c.status === 'pending';
+      var tone = paid ? 'i-green' : (pending ? 'i-teal' : (days < 0 ? 'i-red' : (days <= 3 ? 'i-amber' : 'i-teal')));
       var when = paid
-        ? 'Paid ' + UI.fmtDate(c.paidOn)
+        ? 'Paid ' + (c.paidOn ? UI.fmtDate(c.paidOn) : '')
+        : (pending ? 'Payment sent — waiting for confirmation'
         : (days < 0 ? Math.abs(days) + ' days overdue'
-                    : (days === 0 ? 'Due today' : 'Due in ' + days + ' days'));
+                    : (days === 0 ? 'Due today' : 'Due in ' + days + ' days')) +
+          (c.partial ? ' · ' + UI.peso(c.total - c.amount) + ' already paid' : ''));
 
       return '<div class="charge-row">' +
         '<span class="ch-ico stat-icon ' + tone + '">' +
-          icon(c.kind === 'rent' ? 'home' : 'droplet') + '</span>' +
+          icon({ rent: 'home', utility: 'droplet', late_fee: 'clock', deposit: 'shield' }[c.kind] || 'receipt') + '</span>' +
         '<div class="ch-meta"><b>' + UI.esc(c.label) + '</b>' +
           '<span>' + UI.esc(c.detail) + ' &middot; ' + UI.fmtDate(c.due) + '</span></div>' +
         '<div class="ch-end">' +
           '<div><div class="ch-amt">' + UI.peso(c.amount) + '</div>' +
             '<div class="u-xs ' + (paid ? 'u-green' : (days < 0 ? 'u-red' : 'u-muted')) + '">' +
               UI.esc(when) + '</div></div>' +
-          (paid
-            ? UI.badge('Paid', 'green')
+          (paid ? UI.badge('Paid', 'green')
+            : pending ? UI.badge('Pending', 'teal')
             : '<button class="btn btn-primary btn-sm" data-shell-act="pay" data-charge="' +
               c.id + '">Pay</button>') +
         '</div></div>';
@@ -111,17 +114,14 @@
           '<dt>Date paid</dt><dd>' + UI.fmtDate(p.date) + '</dd>' +
           '<dt>Method</dt><dd>' + UI.esc(p.method) + '</dd>' +
           '<dt>Reference</dt><dd>' + UI.esc(p.ref) + '</dd>' +
-          '<dt>Received by</dt><dd>Aling Nena</dd>' +
-        '</dl>',
+          '<dt>Received by</dt><dd>' + UI.esc(p.receivedBy) + '</dd>' +
+          (p.proof ? '<dt>Your proof</dt><dd><a href="' + p.proof + '" target="_blank" rel="noopener">View attachment</a></dd>' : '') +
+          (p.status === 'rejected' && p.note ? '<dt>Why it was rejected</dt><dd class="u-red">' + UI.esc(p.note) + '</dd>' : '') +
+        '</dl>' +
+        (p.status === 'pending' ? '<p class="u-sm u-muted u-mt">The office checks your reference number, then confirms the payment. You will get a notice when it clears.</p>' : ''),
       foot: '<button class="btn btn-ghost" data-close>Close</button>' +
-            '<button class="btn btn-outline" data-act="print">' + icon('print') + 'Print</button>' +
-            '<button class="btn btn-primary" data-confirm>' + icon('download') + 'Download</button>',
-      onConfirm: function () { UI.toast('Receipt ' + p.id + ' downloaded'); },
-      onOpen: function (box) {
-        box.addEventListener('click', function (e) {
-          if (e.target.closest('[data-act="print"]')) window.print();
-        });
-      }
+            '<button class="btn btn-primary" data-confirm>' + icon('print') + 'Open printable receipt</button>',
+      onConfirm: function () { window.open(API.url('receipt.php', null, { id: p.id }), '_blank'); }
     });
   }
 
@@ -154,8 +154,8 @@
       tabHistory:   DB.payments.length,
       paidYear:     UI.peso(s.paidThisYear),
       paidYearNote: DB.payments.filter(function (p) {
-                      return p.date.getFullYear() === DB.today.getFullYear();
-                    }).length + ' payments in 2026',
+                      return p.status === 'cleared' && p.date.getFullYear() === DB.today.getFullYear();
+                    }).length + ' payments in ' + DB.today.getFullYear(),
       receiptCount: String(DB.payments.length),
       streak:       s.onTimeStreak,
       depositHeld:  UI.peso(r.deposit)
@@ -192,7 +192,7 @@
 
       var a = e.target.closest('[data-act]');
       if (a && a.dataset.act === 'statement') {
-        UI.toast('Building your statement…', 'info');
+        window.open(API.url('document.php', null, { doc: 'statement' }), '_blank');
       }
     });
 

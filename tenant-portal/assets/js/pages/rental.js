@@ -46,8 +46,8 @@
         '<span class="d-ico">' + icon('file') + '</span>' +
         '<div class="d-meta"><b>' + UI.esc(d.name) + '</b>' +
           '<span>' + UI.esc(d.type) + ' &middot; ' + UI.esc(d.size) + ' &middot; ' + UI.fmtDate(d.date) + '</span></div>' +
-        '<button class="icon-btn sm bare" data-doc="' + UI.esc(d.name) + '" title="Download">' +
-          icon('download') + '</button></div>';
+        '<a class="icon-btn sm bare" href="' + d.url + '" target="_blank" rel="noopener" title="Open" aria-label="Open ' +
+          UI.esc(d.name) + '">' + icon('download') + '</a></div>';
     }).join(''));
   }
 
@@ -92,7 +92,7 @@
 
       leaseProgress: pct,
       leaseFrom:     'Started ' + UI.fmtDate(r.leaseStart),
-      leaseLeft:     monthsLeft + ' months left',
+      leaseLeft:     monthsLeft > 0 ? monthsLeft + ' months left' : 'Lease has ended',
 
       occupants:     t.occupants + ' (including you)',
       emergencyName: t.emergency.name + ' · ' + t.emergency.relation,
@@ -116,19 +116,20 @@
 
     document.querySelector('.content').addEventListener('click', function (e) {
       var doc = e.target.closest('[data-doc]');
-      if (doc) { UI.toast('Downloading ' + doc.dataset.doc); return; }
+      if (doc) return;
 
       var a = e.target.closest('[data-act]');
       if (!a) return;
-      if (a.dataset.act === 'print') window.print();
+      if (a.dataset.act === 'print') window.open(API.url('document.php', null, { doc: 'lease' }), '_blank');
+      if (a.dataset.act === 'edit-contact') Shell.openContact();
       if (a.dataset.act === 'ask') {
         UI.modal({
           title: 'Ask about your lease',
-          sub: 'This goes straight to Aling Nena',
+          sub: 'This goes straight to ' + (DB.settings.ownerName || 'the office'),
           body:
             '<div class="form-grid">' +
               '<div class="form-row full"><label>What do you need help with?</label>' +
-                '<select class="select">' +
+                '<select class="select" id="leaseTopic">' +
                   '<option>Renewing my lease</option>' +
                   '<option>Ending my lease early</option>' +
                   '<option>Getting my deposit back</option>' +
@@ -145,7 +146,10 @@
               UI.toast('Write your question first', 'warn');
               return false;
             }
-            UI.toast('Message sent to Aling Nena');
+            return Shell.save('send_message', {
+              topic: box.querySelector('#leaseTopic').value,
+              body: box.querySelector('#leaseMsg').value.trim()
+            }, 'Message sent to ' + (DB.settings.ownerName || 'the office'));
           }
         });
       }

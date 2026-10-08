@@ -4,7 +4,7 @@
 (function (global) {
 
   function greeting() {
-    var h = DB.today.getHours();
+    var h = new Date().getHours();
     var part = h < 12 ? 'Good morning' : (h < 18 ? 'Good afternoon' : 'Good evening');
     return part + ', ' + UI.esc(DB.tenant.name.split(' ')[0]);
   }
@@ -45,9 +45,9 @@
 
     UI.fill('upcomingCharges', unpaid.map(function (c) {
       var days = DB.daysFrom(c.due);
-      var tone = days < 0 ? 'red' : (days <= 3 ? 'amber' : 'slate');
-      var when = days < 0 ? Math.abs(days) + ' days late'
-               : (days === 0 ? 'Due today' : 'in ' + days + ' days');
+      var tone = c.status === 'pending' ? 'teal' : (days < 0 ? 'red' : (days <= 3 ? 'amber' : 'slate'));
+      var when = c.status === 'pending' ? 'Awaiting confirmation'
+               : (days < 0 ? Math.abs(days) + ' days late' : (days === 0 ? 'Due today' : 'in ' + days + ' days'));
       return '<div class="row">' +
         '<div class="row-main"><b>' + UI.esc(c.label) + '</b>' +
           '<span>' + UI.fmtDate(c.due) + ' &middot; ' + UI.esc(c.detail) + '</span></div>' +
@@ -108,8 +108,9 @@
   }
 
   function renderRecentPayments() {
+    if (!DB.payments.length) { UI.fill('recentPayments', '<p class="u-sm u-muted">No payments yet.</p>'); return; }
     UI.fill('recentPayments', DB.payments.slice(0, 4).map(function (p) {
-      return '<div class="row"><div class="row-main"><b>' + UI.peso(p.amount) + '</b>' +
+      return '<div class="row" data-receipt="' + p.id + '" style="cursor:pointer"><div class="row-main"><b>' + UI.peso(p.amount) + '</b>' +
         '<span>' + UI.esc(p.covers) + ' &middot; ' + UI.esc(p.method) + '</span></div>' +
         '<div class="row-end"><span class="u-xs u-muted">' + UI.fmtDate(p.date) + '</span>' +
         '<div style="margin-top:4px">' + UI.statusBadge(p.status) + '</div></div></div>';
@@ -141,8 +142,8 @@
                           ? s.openRequests + ' open right now'
                           : 'Nothing open',
 
-      noticeTitle:  DB.notices[0] ? DB.notices[0].title : '',
-      noticeBody:   DB.notices[0] ? DB.notices[0].body : ''
+      noticeTitle:  DB.notices[0] ? UI.esc(DB.notices[0].title) : '',
+      noticeBody:   DB.notices[0] ? UI.esc(DB.notices[0].body) : ''
     });
 
     var notice = document.getElementById('topNotice');
@@ -162,6 +163,8 @@
     document.querySelector('.content').addEventListener('click', function (e) {
       var r = e.target.closest('[data-request]');
       if (r) location.href = 'maintenance.html?request=' + r.dataset.request;
+      var p = e.target.closest('[data-receipt]');
+      if (p) location.href = 'payments.html?receipt=' + p.dataset.receipt;
     });
 
     document.querySelector('.content').addEventListener('keydown', function (e) {

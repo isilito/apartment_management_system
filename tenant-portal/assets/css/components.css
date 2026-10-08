@@ -609,3 +609,127 @@ body.chat-open .chat-fab{ display:none; }
 .u-red{ color:var(--red); }
 .u-teal{ color:var(--teal); }
 .u-rule{ height:1px; background:var(--line-soft); margin:16px 0; }
+
+/* ============================================================
+   Live-data additions: boot state, alerts, menu extras
+   ============================================================ */
+
+/* While the first API call is in flight, hide the empty page and show a spinner */
+body.booting .content{ visibility:hidden; }
+body.booting::before{
+  content:""; position:fixed; left:50%; top:50%; width:34px; height:34px; margin:-17px 0 0 -17px;
+  border-radius:50%; border:3px solid var(--teal-100); border-top-color:var(--teal);
+  animation:spin .8s linear infinite; z-index:100;
+}
+@keyframes spin{ to{ transform:rotate(360deg); } }
+
+/* Info bar used for "payments to confirm" */
+.notice-bar{
+  display:flex; align-items:center; gap:13px;
+  padding:13px 16px; border-radius:var(--r);
+  border:1px solid var(--teal-100); background:var(--teal-050); color:var(--deep);
+}
+.notice-bar > span:first-child{ display:flex; color:var(--teal); flex:none; }
+.notice-bar svg{ width:19px; height:19px; }
+.notice-bar b{ display:block; font-size:13.5px; font-weight:700; }
+.notice-bar div > span{ display:block; font-size:12.5px; color:var(--ink-2); margin-top:1px; }
+.notice-bar .nb-go{ margin-left:auto; display:flex; color:var(--teal); }
+a.notice-bar:hover{ border-color:var(--teal); }
+.u-mb-lg{ margin-bottom:20px; }
+
+a.row{ color:inherit; }
+a.row:hover b{ color:var(--teal); }
+tr.row-pending td{ background:var(--amber-bg); }
+tr.row-pending:hover td{ background:#F9E7CC; }
+
+.profile-actions{ flex-wrap:wrap; gap:8px; }
+.profile-actions .btn-primary{ flex:1 1 140px; justify-content:center; }
+
+/* Photo / video attachments (shared with the tenant portal) */
+.media-strip{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+.media-chip{
+  display:flex; align-items:center; gap:7px;
+  height:30px; padding:0 11px; border-radius:var(--r-pill);
+  background:var(--surface-2); border:1px solid var(--line);
+  font-size:11.5px; font-weight:500; color:var(--ink-2);
+}
+.media-chip svg{ width:13px; height:13px; color:var(--muted); }
+a.media-chip:hover{ border-color:var(--teal); color:var(--teal); }
+
+/* Star rating */
+.stars{ display:inline-flex; gap:2px; }
+.stars button{ border:0; background:none; font-size:24px; line-height:1; color:var(--line); padding:2px; }
+.stars button.on, .stars:hover button{ color:#E2A13B; }
+.stars button:hover ~ button{ color:var(--line); }
+
+/* The hamburger only exists below 1024px (.icon-btn would otherwise show it) */
+.topbar .menu-btn{ display:none; }
+
+/* Sidebar extras that only appear on small screens */
+.nav-close{ display:none; margin-left:auto; color:#B9D2DC; background:transparent; border-color:rgba(255,255,255,.12); }
+.nav-close:hover{ background:var(--deep-2); color:#fff; }
+.nav-logout{ display:none; }
+
+/* ============================================================
+   Mobile
+   ============================================================ */
+@media (max-width:1024px){
+  .sidebar{ width:min(300px, 86vw); box-shadow:var(--sh-3); }
+  .nav-close{ display:grid; }
+  .topbar .menu-btn{ display:grid; flex:none; }
+  body.nav-open{ overflow:hidden; }
+}
+
+@media (max-width:680px){
+  :root{ --topbar-h:64px; }
+  .nav-logout{ display:flex; color:#F3CFCA; }
+  .nav-item{ padding:12px; }
+
+  .topbar-right{ gap:6px; }
+  .user-chip{ padding:3px; }
+  .user-chip .caret{ display:none; }
+  .search input{ height:40px; font-size:16px; }   /* 16px stops iOS zooming on focus */
+  .popover{ position:fixed; top:calc(var(--topbar-h) + 6px); left:10px; right:10px; width:auto; max-width:none; }
+
+  .page-head{ gap:14px; margin-bottom:18px; }
+  .page-head > div:first-child{ width:100%; }
+  .page-actions{ margin-left:0; width:100%; }
+  .page-actions .btn{ flex:1 1 auto; justify-content:center; }
+
+  .toolbar{ gap:8px; }
+  .toolbar .field, .toolbar .field .input, .toolbar > .select{ width:100% !important; flex:1 1 100%; }
+  .toolbar .spacer{ display:none; }
+  .toolbar .segment{ width:100%; }
+  .toolbar .segment button{ flex:1; }
+
+  .tabs{ overflow-x:auto; flex-wrap:nowrap; scrollbar-width:none; }
+  .tabs::-webkit-scrollbar{ display:none; }
+  .tabs button{ white-space:nowrap; flex:none; }
+
+  .card-head{ flex-wrap:wrap; gap:10px; }
+  .card-head-actions{ margin-left:0; flex-wrap:wrap; }
+
+  input.input, select.select, textarea.textarea{ font-size:16px; }
+
+  /* dialogs become bottom sheets */
+  .modal-root{ place-items:end stretch; padding:0; }
+  .modal{ max-width:none; max-height:92vh; border-radius:var(--r-lg) var(--r-lg) 0 0; }
+  .modal.wide{ max-width:none; }
+  .modal-foot{ flex-wrap:wrap; border-radius:0; padding-bottom:max(16px, env(safe-area-inset-bottom)); }
+  .modal-foot .btn{ flex:1 1 auto; justify-content:center; }
+  .drawer{ width:100%; }
+  .drawer-foot{ flex-wrap:wrap; }
+
+  .kv{ grid-template-columns:minmax(0,1fr) minmax(0,1.4fr); gap:10px 14px; }
+  .kv dd{ overflow-wrap:anywhere; }
+  .set-row{ flex-direction:column; align-items:flex-start; gap:10px; }
+  .set-row .sr-control{ width:100%; }
+  .set-row .sr-control .select{ width:100%; }
+
+  .chat-panel{ width:auto; left:10px; right:10px; }
+}
+
+/* Toasts never block clicks, and move out of the way of open dialogs */
+.toast-root{ pointer-events:none; }
+body:has(.modal-root:not([hidden])) .toast-root,
+body:has(.drawer-root) .toast-root{ top:22px; bottom:auto; }

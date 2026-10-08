@@ -19,7 +19,7 @@
       if (state.method !== 'all' && p.method !== state.method) return false;
       if (state.status !== 'all' && p.status !== state.status) return false;
       if (!q) return true;
-      return (p.tenantName + ' ' + p.unitNo + ' ' + p.id + ' ' + p.covers).toLowerCase().indexOf(q) > -1;
+      return (p.fullName + ' ' + p.unitNo + ' ' + p.id + ' ' + p.covers + ' ' + p.reference).toLowerCase().indexOf(q) > -1;
     });
   }
 
@@ -39,10 +39,10 @@
     UI.fill('ledgerRows', UI.tbody(page.map(function (p) {
       var m = METHOD_META[p.method] || { icon: 'card' };
       return {
-        attrs: 'class="linked" data-payment="' + p.id + '"',
+        attrs: 'class="linked' + (p.status === 'pending' ? ' row-pending' : '') + '" data-payment="' + p.id + '"',
         cells: [
           '<span class="muted nowrap">' + UI.esc(p.id) + '</span>',
-          UI.personCell(p.initials, p.tenantName, 'Unit ' + p.unitNo),
+          UI.personCell(p.initials, p.fullName, 'Unit ' + p.unitNo),
           '<span class="nowrap">' + UI.fmtDate(p.date) + '</span>',
           '<span class="u-row" style="gap:7px">' + icon(m.icon) + UI.esc(p.method) + '</span>',
           '<span class="muted">' + UI.esc(p.covers) + '</span>',
@@ -89,13 +89,14 @@
     var byMethod = {};
     DB.methods.forEach(function (m) { byMethod[m] = { count: 0, amount: 0 }; });
     DB.payments.forEach(function (p) {
+      if (p.status !== 'cleared') return;
       if (!byMethod[p.method]) byMethod[p.method] = { count: 0, amount: 0 };
       byMethod[p.method].count++;
       byMethod[p.method].amount += p.amount;
     });
 
     var parts = DB.methods.map(function (m) {
-      return { label: m, value: byMethod[m].amount, color: METHOD_META[m].color };
+      return { label: m, value: byMethod[m].amount, color: (METHOD_META[m] || { color: '#52646E' }).color };
     });
     var total = parts.reduce(function (a, p) { return a + p.value; }, 0) || 1;
 
@@ -115,7 +116,9 @@
   /* ---------- lifecycle ---------- */
   function refresh() {
     var s = DB.stats;
-    var rate = Math.round(s.incomeThisMonth / s.expectedThisMonth * 100);
+    var rate = s.expectedThisMonth ? Math.min(100, Math.round(s.incomeThisMonth / s.expectedThisMonth * 100)) : 0;
+    var lastRate = DB.money.expectedLastMonth
+      ? Math.min(100, Math.round(DB.money.collectedLastMonth / DB.money.expectedLastMonth * 100)) : 0;
     var owed = s.overdueTenants;
     var total = owed.reduce(function (a, t) { return a + t.balance; }, 0);
 
@@ -125,12 +128,14 @@
 
       collected:        UI.peso(s.incomeThisMonth),
       collectedBar:     rate,
-      collectedNote:    UI.peso(s.expectedThisMonth) + ' expected',
+      collectedNote:    UI.peso(s.expectedThisMonth) + ' billed this month' +
+                        (s.pendingCount ? ' · ' + s.pendingCount + ' pending' : ''),
       outstanding:      UI.peso(s.outstanding),
       outstandingBar:   100 - rate,
       outstandingNote:  owed.length + ' tenants owe rent',
       rate:             rate + '%',
       rateBar:          rate,
+      rateNote:         (rate >= lastRate ? 'Up from ' : 'Down from ') + lastRate + '% last month',
       deposits:         UI.peso(DB.tenants.reduce(function (a, t) { return a + t.deposit; }, 0)),
       depositsNote:     'Across ' + DB.tenants.length + ' active leases',
 
@@ -147,6 +152,16 @@
     UI.animateMeters(document);
   }
 
+  function exportCsv() {
+    var rows = ledger();
+    API.downloadCsv('payments-' + Shell.isoDate() + '.csv',
+      [['Receipt', 'Tenant', 'Unit', 'Date paid', 'Method', 'Reference', 'Covers', 'Amount', 'Status']]
+      .concat(rows.map(function (p) {
+        return [p.id, p.fullName, p.unitNo, Shell.isoDate(p.date), p.method, p.reference, p.covers, p.amount, p.status];
+      })));
+    UI.toast('Exported ' + rows.length + ' payment records');
+  }
+
   function showPane(name) {
     document.querySelectorAll('[data-pane]').forEach(function (p) {
       p.hidden = p.dataset.pane !== name;
@@ -156,6 +171,9 @@
   function init() {
     document.getElementById('pm').innerHTML = '<option value="all">All methods</option>' +
       DB.methods.map(function (m) { return '<option>' + UI.esc(m) + '</option>'; }).join('');
+
+    var st = UI.query('status');
+    if (st && /^(cleared|pending|rejected)$/.test(st)) { state.status = st; document.getElementById('ps').value = st; }
 
     refresh();
 
@@ -175,7 +193,7 @@
       var el;
 
       if ((el = e.target.closest('[data-remind]'))) {
-        UI.toast('Reminder sent to ' + DB.tenant(el.dataset.remind).name); return;
+        Shell.sendReminder(el.dataset.remind); return;
       }
       if ((el = e.target.closest('[data-collect]'))) {
         Shell.openRecordPayment(el.dataset.collect); return;
@@ -190,9 +208,12 @@
       var a = e.target.closest('[data-act]');
       if (!a) return;
       if (a.dataset.act === 'more')       { state.limit += 12; renderLedger(); }
-      if (a.dataset.act === 'export')     UI.toast('Exported ' + ledger().length + ' payment records');
-      if (a.dataset.act === 'statement')  UI.toast('Building the ' + UI.fmtMonthYear(DB.today) + ' statement…', 'info');
-      if (a.dataset.act === 'remind-all') UI.toast('SMS reminders queued for ' + DB.stats.overdueTenants.length + ' tenants');
+      if (a.dataset.act === 'export')     exportCsv();
+      if (a.dataset.act === 'statement')  window.open(API.url('report.php', null, { type: 'collections', format: 'html' }), '_blank');
+      if (a.dataset.act === 'remind-all') {
+        if (DB.stats.overdueTenants.length) Shell.remindAll();
+        else UI.toast('Nobody has a balance right now', 'info');
+      }
     });
 
     /* ?receipt=PMT-1001 — the client-side equivalent of $_GET['receipt'] */

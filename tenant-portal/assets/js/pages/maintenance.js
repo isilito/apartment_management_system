@@ -36,10 +36,7 @@
         '</div>' +
         '<h4>' + UI.esc(r.title) + '</h4>' +
         '<p>' + UI.esc(r.detail) + '</p>' +
-        (r.media.length ? '<div class="media-strip">' + r.media.map(function (m) {
-          return '<span class="media-chip">' + icon(m.kind === 'video' ? 'play' : 'eye') +
-                 UI.esc(m.name) + '</span>';
-        }).join('') + '</div>' : '') +
+        (r.media.length ? '<div class="media-strip">' + r.media.map(mediaChip).join('') + '</div>' : '') +
         '<div class="rq-foot">' +
           '<span>' + icon('calendar') + 'Sent ' + UI.relative(r.submitted) + '</span>' +
           '<span>' + icon(cat.icon) + UI.esc(cat.label) + '</span>' +
@@ -70,6 +67,12 @@
     }
 
     UI.fill('requestList', '<div class="req-list">' + list.map(card).join('') + '</div>');
+  }
+
+  function mediaChip(m) {
+    var inner = icon(m.kind === 'video' ? 'play' : 'eye') + UI.esc(m.name);
+    return m.url ? '<a class="media-chip" href="' + m.url + '" target="_blank" rel="noopener">' + inner + '</a>'
+                 : '<span class="media-chip">' + inner + '</span>';
   }
 
   /* ---------- status tracker ---------- */
@@ -106,21 +109,23 @@
         (r.media.length
           ? '<h4 class="u-b u-mt-lg u-mb" style="font-size:12.5px;letter-spacing:.06em;' +
             'text-transform:uppercase;color:var(--muted-2)">What you sent</h4>' +
-            '<div class="media-strip">' + r.media.map(function (m) {
-              return '<span class="media-chip">' + icon(m.kind === 'video' ? 'play' : 'eye') +
-                     UI.esc(m.name) + '</span>';
-            }).join('') + '</div>'
+            '<div class="media-strip">' + r.media.map(mediaChip).join('') + '</div>'
           : '') +
 
         '<h4 class="u-b u-mt-lg u-mb" style="font-size:12.5px;letter-spacing:.06em;' +
         'text-transform:uppercase;color:var(--muted-2)">Progress</h4>' +
         '<div class="track">' + steps + '</div>' +
 
-        (r.status === 'done' && r.rating
-          ? '<div class="u-rule"></div><div class="u-row" style="gap:8px">' +
-            '<span class="u-sm u-muted">You rated this repair</span>' +
-            '<b class="u-sm">' + r.rating + ' / 5</b></div>'
-          : ''),
+        (r.status === 'done'
+          ? '<div class="u-rule"></div><div class="u-row u-wrap" style="gap:10px">' +
+            '<span class="u-sm u-muted">' + (r.rating ? 'You rated this repair' : 'How did the repair go?') + '</span>' +
+            '<span class="stars" id="stars">' + [1, 2, 3, 4, 5].map(function (n) {
+              return '<button type="button" data-star="' + n + '" class="' + (r.rating >= n ? 'on' : '') +
+                '" aria-label="' + n + ' star' + (n > 1 ? 's' : '') + '">&#9733;</button>';
+            }).join('') + '</span></div>'
+          : '') +
+        (r.followUps && r.status !== 'done'
+          ? '<p class="u-xs u-muted u-mt">You followed up ' + r.followUps + ' time' + (r.followUps > 1 ? 's' : '') + '.</p>' : ''),
 
       foot: '<button class="btn btn-ghost" data-close>Close</button>' +
             (r.status === 'done'
@@ -131,11 +136,19 @@
       onConfirm: function () {},
       onOpen: function (box) {
         box.addEventListener('click', function (e) {
+          var star = e.target.closest('[data-star]');
+          if (star) {
+            var n = Number(star.dataset.star);
+            Shell.save('rate_request', { id: r.id, rating: n }, 'Thanks — you rated this ' + n + '/5')
+              .then(function () { UI.closeModal(); }, function (err) { UI.toast(err.message, 'warn'); });
+            return;
+          }
           var a = e.target.closest('[data-act]');
           if (!a) return;
           if (a.dataset.act === 'nudge') {
-            UI.closeModal();
-            UI.toast('Follow-up sent — the admin has been notified about ' + r.id);
+            a.disabled = true;
+            Shell.save('follow_up', { id: r.id }, 'Follow-up sent — the office has been notified about ' + r.id)
+              .then(function () { UI.closeModal(); }, function (err) { a.disabled = false; UI.toast(err.message, 'warn'); });
           }
           if (a.dataset.act === 'reopen') {
             UI.closeModal();

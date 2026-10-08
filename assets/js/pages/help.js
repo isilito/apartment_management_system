@@ -63,6 +63,7 @@
   function refresh() {
     UI.resolveIcons(document);
     updateCount(faqItems().length, '');
+    UI.bind({ firstName: UI.esc(DB.me.name.split(' ')[0]) });
   }
 
   function init() {
@@ -79,7 +80,18 @@
       if (g) return openGuide(g);
 
       var a = e.target.closest('[data-act]');
-      if (a && a.dataset.act === 'contact') UI.toast('Support form opens here', 'info');
+      if (a && a.dataset.act === 'contact') {
+        UI.modal({
+          title: 'Property contacts',
+          body: '<dl class="kv">' +
+            '<dt>Office</dt><dd>' + UI.esc(DB.settings.contact_phone || '—') + '</dd>' +
+            '<dt>Email</dt><dd>' + UI.esc(DB.settings.contact_email || '—') + '</dd>' +
+            DB.staff.filter(function (s) { return s.role !== 'Owner'; }).map(function (s) {
+              return '<dt>' + UI.esc(s.name) + '</dt><dd>' + UI.esc(s.role) + ' &middot; ' + UI.esc(s.phone || '—') + '</dd>';
+            }).join('') + '</dl>',
+          foot: '<button class="btn btn-primary" data-close>Close</button>'
+        });
+      }
     });
 
     content.addEventListener('keydown', function (e) {

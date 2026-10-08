@@ -33,7 +33,7 @@
 
       <!-- ============ HERO ============ -->
       <div class="help-hero">
-        <h2>How can we help, Aling Nena?</h2>
+        <h2>How can we help, <span data-bind="firstName">there</span>?</h2>
         <p>Short, task-shaped guides for the things you do every week — collecting rent,
            moving tenants in and out, and keeping repairs moving.</p>
         <label class="field">
@@ -77,7 +77,7 @@
           <template>
             <li>Add a tenant from Renter Information or straight from a vacant unit.</li>
             <li>Record the deposit amount so it shows in the deposit register.</li>
-            <li>When a lease nears its end, use Apartment Analytics &rarr; Leases ending soon to send notices.</li>
+            <li>When a lease nears its end you get a bell alert 60 days ahead; open the renter to extend the lease or send a message.</li>
             <li>On move-out, end the lease and the unit becomes available again.</li>
           </template>
         </article>
@@ -151,42 +151,42 @@
             <div class="acc-item">
               <button class="acc-head"><span>How do I mark a unit as vacant?</span>
                 <span class="chev" data-icon="chevDown"></span></button>
-              <div class="acc-body">Open the unit from <b>Unit &amp; Tenant Management</b>, then end the current
-                lease in the tenant panel. The unit flips to <b>Vacant</b>, stops counting toward occupancy, and
-                its rent moves into vacancy loss on the analytics tab.</div>
+              <div class="acc-body">Open the tenant in <b>Renter Information</b> and choose <b>Move out</b>. The unit flips to
+                <b>Vacant</b>, future rent charges are cancelled, and the tenant's portal login is turned off.
+                To take an empty unit off the market, edit the unit and set it to <b>Under repair</b>.</div>
             </div>
 
             <div class="acc-item">
               <button class="acc-head"><span>Can I send reminders to everyone who owes rent at once?</span>
                 <span class="chev" data-icon="chevDown"></span></button>
               <div class="acc-body">Yes. The dashboard has <b>Send reminder to all tenants</b> under Rent
-                collection, and the <b>Outstanding</b> tab has <b>Remind everyone</b>. Both use the message
-                template set in Settings &rarr; Notifications.</div>
+                collection, and the <b>Outstanding</b> tab has <b>Remind everyone</b>. Each tenant with a balance
+                gets a notice in their tenant portal showing what they owe.</div>
             </div>
 
             <div class="acc-item">
-              <button class="acc-head"><span>What is the difference between the two analytics tabs?</span>
+              <button class="acc-head"><span>How do tenants pay through the portal?</span>
                 <span class="chev" data-icon="chevDown"></span></button>
-              <div class="acc-body"><b>Reports &amp; Analytics</b> is about money on paper — rent rolls, income
-                statements, and exports you can hand to the owner or an accountant.
-                <b>Apartment Analytics</b> is about how the property is running — occupancy, tenure, turnover,
-                and where repair effort goes.</div>
+              <div class="acc-body">Tenants pick a charge, send the money by GCash, Maya, bank, or cash, and upload
+                a screenshot with the reference number. It appears as <b>Pending</b> in Payment &amp; Balances.
+                Open it, check the reference, and click <b>Confirm payment</b> — the charge is marked paid and the
+                tenant is notified. <b>Reject</b> tells them it could not be matched.</div>
             </div>
 
             <div class="acc-item">
               <button class="acc-head"><span>Who can see financial information?</span>
                 <span class="chev" data-icon="chevDown"></span></button>
-              <div class="acc-body">Owners and Administrators see everything. Caretakers can work with units,
-                tenants, and maintenance but cannot open financial reports. Maintenance accounts see only the
-                repair queue. Change this in Settings &rarr; Users &amp; roles.</div>
+              <div class="acc-body">Only administrators can sign in to this console, and they see everything. Tenants sign in
+                to the tenant portal and see only their own unit, charges, payments, and requests.
+                Caretakers and crew are contacts you assign repairs to. Manage them in Settings &rarr; Staff &amp; crew.</div>
             </div>
 
             <div class="acc-item">
               <button class="acc-head"><span>How do I back up my records?</span>
                 <span class="chev" data-icon="chevDown"></span></button>
-              <div class="acc-body">Automatic nightly backups are on by default and kept for 30 days. For a copy
-                you control, go to Settings &rarr; Data &amp; backup and choose <b>Export</b> — it produces one
-                archive with units, tenants, payments, and repairs.</div>
+              <div class="acc-body">Go to Settings &rarr; Data &amp; backup and choose <b>Export</b> — it downloads one JSON file
+                with units, tenants, charges, payments, and repairs. For a full restorable copy, use
+                phpMyAdmin &rarr; <b>saraza_apartment</b> &rarr; Export.</div>
             </div>
 
           </div>
@@ -231,7 +231,7 @@
                         data-ask="How do I record a partial payment?">
                   <span data-icon="bot"></span>Ask the assistant</button>
                 <button class="btn btn-outline btn-block" data-act="contact">
-                  <span data-icon="mail"></span>Contact support</button>
+                  <span data-icon="phone"></span>Property contacts</button>
               </div>
             </div>
           </section>
@@ -244,6 +244,7 @@
 </div>
 
 <script src="assets/js/icons.js"></script>
+<script src="assets/js/api.js"></script>
 <script src="assets/js/data.js"></script>
 <script src="assets/js/ui.js"></script>
 <script src="assets/js/charts.js"></script>

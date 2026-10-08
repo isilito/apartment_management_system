@@ -34,7 +34,7 @@
              '<span>Available to rent now</span></div>';
     }
 
-    return '<article class="unit-card" data-unit="' + u.id + '" tabindex="0">' +
+    return '<article class="unit-card" data-unit="' + UI.esc(u.id) + '" tabindex="0">' +
       '<div class="uc-top"><div><div class="uc-no">' + UI.esc(u.no) + '</div>' +
         '<div class="uc-type">' + UI.esc(u.type) + ' &middot; ' + u.size + ' sqm</div></div>' +
         UI.statusBadge(u.status) + '</div>' +
@@ -48,7 +48,7 @@
     var rows = list.map(function (u) {
       var t = DB.tenantOfUnit(u.id);
       return {
-        attrs: 'class="linked" data-unit="' + u.id + '"',
+        attrs: 'class="linked" data-unit="' + UI.esc(u.id) + '"',
         cells: [
           '<span class="strong">' + UI.esc(u.no) + '</span>',
           '<span class="muted">' + UI.esc(DB.building(u.buildingId).name) + '</span>',
@@ -74,7 +74,7 @@
       return UI.card('<div class="bld"><span class="b-ico">' + icon('building') + '</span>' +
         '<div style="flex:1;min-width:0"><b>' + UI.esc(b.name) + '</b>' +
         '<span>' + occ + ' of ' + us.length + ' units occupied</span></div>' +
-        '<b class="u-teal" style="font-size:16px">' + Math.round(occ / us.length * 100) + '%</b></div>');
+        '<b class="u-teal" style="font-size:16px">' + (us.length ? Math.round(occ / us.length * 100) : 0) + '%</b></div>');
     }).join(''));
   }
 
@@ -99,7 +99,7 @@
     var tix = DB.tickets.filter(function (x) { return x.unitId === id; });
     var pays = DB.payments.filter(function (p) { return t && p.tenantId === t.id; }).slice(0, 5);
 
-    var head = '<div><div class="u-row" style="gap:12px">' +
+    var head = '<div data-unit-open="' + UI.esc(u.id) + '"><div class="u-row" style="gap:12px">' +
         '<span class="stat-icon i-teal" style="width:44px;height:44px">' + icon('doorOpen') + '</span>' +
         '<div><h3 style="font-size:19px;font-weight:800;letter-spacing:-.02em">Unit ' + UI.esc(u.no) + '</h3>' +
         '<p class="u-sm u-muted">' + UI.esc(b.name) + ' &middot; Floor ' + u.floor + ' &middot; ' + UI.esc(u.type) + '</p></div>' +
@@ -117,8 +117,12 @@
             ' occupant' + (t.occupants > 1 ? 's' : '') + '</div></div>' +
             UI.statusBadge(t.status) + '</div>' +
           '<div class="renter-contact">' +
-            '<div>' + icon('phone') + UI.esc(t.phone) + '</div>' +
-            '<div>' + icon('mail') + UI.esc(t.email) + '</div>' +
+            '<div>' + icon('phone') + UI.esc(t.phone || '—') + '</div>' +
+            '<div>' + icon('mail') + UI.esc(t.email || '—') + '</div>' +
+          '</div>' +
+          '<div class="u-row u-wrap u-mt" style="gap:8px">' +
+            '<a class="btn btn-outline btn-sm" href="renters.html?tenant=' + t.id + '">' + icon('user') + 'Open renter</a>' +
+            '<button class="btn btn-outline btn-sm" data-act="collect">' + icon('peso') + 'Record payment</button>' +
           '</div></div>')
         : UI.card(UI.emptyState('doorOpen', 'This unit is empty',
             u.status === 'repair' ? 'It is flagged for repair and is not listed for rent.'
@@ -134,8 +138,11 @@
              '<dt>Lease ends</dt><dd>' + UI.fmtDate(t.leaseEnd) + '</dd>' +
              '<dt>Outstanding</dt><dd class="' + (t.balance ? 'u-red' : 'u-green') + '">' +
                (t.balance ? UI.peso(t.balance) : 'Fully paid') + '</dd>'
-           : '<dt>Suggested deposit</dt><dd>' + UI.peso(u.rent * 2) + '</dd>' +
-             '<dt>Last occupied</dt><dd>&mdash;</dd>') +
+           : '<dt>Suggested deposit</dt><dd>' + UI.peso(u.rent * Number(DB.settings.deposit_months || 2)) + '</dd>' +
+             '<dt>Vacant since</dt><dd>' + (u.vacantSince ? UI.fmtDate(u.vacantSince) : '&mdash;') + '</dd>') +
+        '<dt>Furnishing</dt><dd>' + UI.esc(u.furnishing) + '</dd>' +
+        '<dt>Bathrooms</dt><dd>' + u.bathrooms + '</dd>' +
+        (u.notes ? '<dt>Notes</dt><dd>' + UI.esc(u.notes) + '</dd>' : '') +
       '</dl></div>') +
 
       (pays.length ? '<h4 class="u-b u-mt-lg u-mb">Recent payments</h4>' +
@@ -147,25 +154,38 @@
 
       (tix.length ? '<h4 class="u-b u-mt-lg u-mb">Maintenance history</h4>' +
         UI.card('<div class="card-pad"><div class="rows">' + tix.map(function (x) {
-          return '<div class="row"><div class="row-main"><b>' + UI.esc(x.title) + '</b>' +
+          return '<a class="row" href="maintenance.html?ticket=' + x.id + '"><div class="row-main"><b>' + UI.esc(x.title) + '</b>' +
             '<span>' + UI.esc(x.categoryLabel) + ' &middot; ' + UI.relative(x.created) + '</span></div>' +
-            '<div class="row-end">' + UI.statusBadge(x.status) + '</div></div>';
+            '<div class="row-end">' + UI.statusBadge(x.status) + '</div></a>';
         }).join('') + '</div></div>') : '');
 
     UI.drawer({
       head: head,
       body: body,
-      foot: '<button class="btn btn-outline" data-close>Close</button>' +
+      foot: '<button class="btn btn-outline" data-act="log-repair">' + icon('wrench') + 'Log repair</button>' +
             '<button class="btn btn-primary" style="flex:1" data-act="edit-unit">' + icon('edit') + 'Edit unit</button>',
       onOpen: function (r) {
         r.addEventListener('click', function (e) {
           var a = e.target.closest('[data-act]');
           if (!a) return;
-          if (a.dataset.act === 'assign') { UI.closeDrawer(); Shell.openAddTenant(u.no); }
-          if (a.dataset.act === 'edit-unit') UI.toast('Unit editor opens here once the backend is wired', 'info');
+          if (a.dataset.act === 'assign') { UI.closeDrawer(); Shell.openAddTenant(u.id); }
+          if (a.dataset.act === 'edit-unit') Shell.openEditUnit(u.id);
+          if (a.dataset.act === 'log-repair') { UI.closeDrawer(); Shell.openNewTicket(u.id); }
+          if (a.dataset.act === 'collect' && t) { UI.closeDrawer(); Shell.openRecordPayment(t.id); }
         });
       }
     });
+  }
+
+  function exportCsv() {
+    var list = filtered();
+    API.downloadCsv('units-' + Shell.isoDate() + '.csv', [['Unit', 'Building', 'Floor', 'Type', 'Size (sqm)', 'Rent', 'Status', 'Tenant', 'Phone', 'Balance']]
+      .concat(list.map(function (u) {
+        var t = DB.tenantOfUnit(u.id);
+        return [u.no, DB.building(u.buildingId).name, u.floor, u.type, u.size, u.rent, u.status,
+                t ? t.name : '', t ? t.phone : '', t ? t.balance : ''];
+      })));
+    UI.toast('Exported ' + list.length + ' units to CSV');
   }
 
   function refresh() {
@@ -177,6 +197,8 @@
     });
     renderBuildings();
     renderList();
+    var open = document.querySelector('#drawerRoot [data-unit-open]');
+    if (open) openUnit(open.dataset.unitOpen);
   }
 
   function init() {
@@ -210,7 +232,7 @@
         document.getElementById('ut').value = 'all';
         renderList();
       }
-      if (a.dataset.act === 'export') UI.toast('Exported ' + filtered().length + ' units to CSV');
+      if (a.dataset.act === 'export') exportCsv();
     });
 
     content.addEventListener('keydown', function (e) {
