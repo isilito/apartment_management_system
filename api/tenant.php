@@ -44,6 +44,7 @@ function tenant_bootstrap(array $me, array $t): array
         $pendingFor[(int) $p['charge_id']] = true;
     }
 
+    /* utilities run on each tenant's own meters, so they are never billed here */
     $charges = array_map(function ($c) use ($today, $pendingFor) {
         $remaining = round((float) $c['amount'] - (float) $c['amount_paid'], 2);
         $status = $c['status'] === 'paid' ? 'paid'
@@ -54,7 +55,7 @@ function tenant_bootstrap(array $me, array $t): array
             'partial' => $c['status'] === 'partial', 'due' => $c['due_date'], 'status' => $status,
             'kind' => $c['kind'], 'paidOn' => $c['paid_on'],
         ];
-    }, all("SELECT * FROM charges WHERE tenant_id=? AND (status <> 'paid' OR paid_on >= ?) ORDER BY due_date DESC, id DESC",
+    }, all("SELECT * FROM charges WHERE tenant_id=? AND kind <> 'utility' AND (status <> 'paid' OR paid_on >= ?) ORDER BY due_date DESC, id DESC",
            [$t['id'], date('Y-m-d', strtotime('-75 days'))]));
 
     $payments = array_map(fn($p) => [
@@ -156,6 +157,7 @@ function act_submit_payment(array $me, array $t): array
     $chargeId = (int) preg_replace('/\D/', '', (string) (input()['chargeId'] ?? ''));
     $charge = $chargeId ? one('SELECT * FROM charges WHERE id=? AND tenant_id=?', [$chargeId, $t['id']]) : null;
     if ($chargeId && !$charge) fail('That charge could not be found.');
+    if ($charge && $charge['kind'] !== 'rent') fail('Only rent can be paid through the portal.');
     if ($charge && $charge['status'] === 'paid') fail('That charge is already paid.');
     if ($charge && val("SELECT 1 FROM payments WHERE charge_id=? AND status='pending'", [$charge['id']])) {
         fail('You already sent a payment for this charge. It is waiting for confirmation.');

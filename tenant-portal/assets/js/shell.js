@@ -186,21 +186,22 @@
   function openPay(chargeId) {
     /* Soonest due first, so the default selection matches the "next due"
        date shown on the dashboard and the balance card. */
-    var unpaid = DB.charges.filter(function (c) { return c.status !== 'paid' && c.status !== 'pending'; })
+    var unpaid = DB.charges.filter(function (c) { return c.kind === 'rent' && c.status !== 'paid' && c.status !== 'pending'; })
                            .sort(function (a, b) { return a.due - b.due; });
     if (!unpaid.length) {
-      UI.toast(DB.stats.pendingCount ? 'Your payment is waiting for confirmation' : 'You have nothing due right now', 'info');
+      UI.toast(DB.stats.pendingCount ? 'Your payment is waiting for confirmation' : 'You have no rent due right now', 'info');
       return;
     }
     var picked = chargeId ? DB.charge(chargeId) : unpaid[0];
     if (picked && picked.status === 'pending') { UI.toast('You already sent a payment for this. It is waiting for confirmation.', 'info'); return; }
+    if (picked && picked.kind !== 'rent') { UI.toast('Only rent can be paid here. Please settle this with the office.', 'info'); return; }
 
     UI.modal({
-      title: 'Pay ' + (picked ? picked.label.toLowerCase() : 'a charge'),
+      title: 'Pay ' + (picked ? picked.label.toLowerCase() : 'rent'),
       sub: 'Send your payment, then upload the proof so it can be confirmed',
       body:
         '<div class="form-grid">' +
-          '<div class="form-row full"><label>What are you paying?</label>' +
+          '<div class="form-row full"><label>Which rent are you paying?</label>' +
             '<select class="select" id="payCharge">' + unpaid.map(function (c) {
               return '<option value="' + c.id + '"' + (picked && c.id === picked.id ? ' selected' : '') + '>' +
                      UI.esc(c.label) + ' — ' + UI.peso(c.amount) + ' (due ' + UI.fmtDate(c.due) + ')</option>';

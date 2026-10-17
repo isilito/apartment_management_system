@@ -47,6 +47,7 @@
               UI.esc(when) + '</div></div>' +
           (paid ? UI.badge('Paid', 'green')
             : pending ? UI.badge('Pending', 'teal')
+            : c.kind !== 'rent' ? UI.badge('Pay at office', 'slate')
             : '<button class="btn btn-primary btn-sm" data-shell-act="pay" data-charge="' +
               c.id + '">Pay</button>') +
         '</div></div>';

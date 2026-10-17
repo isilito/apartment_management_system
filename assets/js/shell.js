@@ -629,22 +629,22 @@
     var d = new Date(DB.today); d.setDate(d.getDate() + 10);
     UI.modal({
       title: 'Bill ' + t.name,
-      sub: 'Add a utility bill or other charge to Unit ' + t.unitNo,
+      sub: 'Add a charge to Unit ' + t.unitNo,
       body:
         '<div class="form-grid">' +
           '<div class="form-row"><label>Type</label><select class="select" id="cKind">' +
-            '<option value="utility">Water &amp; electricity</option><option value="other">Other charge</option>' +
+            '<option value="other">Other charge</option>' +
             '<option value="deposit">Deposit top-up</option></select></div>' +
           '<div class="form-row"><label>Amount</label><input class="input" id="cAmt" type="number" min="0" step="0.01"/></div>' +
-          '<div class="form-row"><label>Label</label><input class="input" id="cLabel" value="Water &amp; electricity"/></div>' +
+          '<div class="form-row"><label>Label</label><input class="input" id="cLabel" placeholder="e.g. Replacement key"/></div>' +
           '<div class="form-row"><label>Due date</label><input class="input" id="cDue" type="date" value="' + isoDate(d) + '"/></div>' +
           '<div class="form-row full"><label>Details <span class="u-muted">(shown to the tenant)</span></label>' +
-            '<input class="input" id="cDetail" placeholder="e.g. September meter reading — 182 kWh, 9 m³"/></div>' +
+            '<input class="input" id="cDetail" placeholder="e.g. Lost key replaced on 12 Oct"/></div>' +
         '</div>',
       confirmText: 'Add charge',
       onOpen: function (box) {
         box.querySelector('#cKind').addEventListener('change', function (e) {
-          box.querySelector('#cLabel').value = { utility: 'Water & electricity', other: '', deposit: 'Deposit top-up' }[e.target.value];
+          box.querySelector('#cLabel').value = { other: '', deposit: 'Deposit top-up' }[e.target.value];
         });
       },
       onConfirm: function (box) {

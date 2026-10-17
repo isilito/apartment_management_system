@@ -375,10 +375,11 @@ function act_reject_payment(array $me): array
 function act_add_charge(array $me): array
 {
     $t = tenant_or_fail(str_in('tenantId', 8, true, 'Tenant'));
-    $kind = enum_in('kind', ['utility', 'other', 'deposit']);
+    /* no utility billing: every unit has its own water and electric meters */
+    $kind = enum_in('kind', ['other', 'deposit']);
     $amount = round(num_in('amount'), 2);
     if ($amount <= 0) fail('Enter an amount greater than zero.');
-    $label = str_in('label', 120) ?: ($kind === 'utility' ? 'Water & electricity' : 'Other charge');
+    $label = str_in('label', 120) ?: 'Other charge';
     $due = date_in('due', today());
     q("INSERT INTO charges (tenant_id, kind, label, detail, period, amount, amount_paid, due_date, status, created_at)
        VALUES (?,?,?,?,NULL,?,0,?, 'unpaid', ?)", [$t['id'], $kind, $label, str_in('detail', 200), $amount, $due, now()]);
