@@ -1,7 +1,8 @@
 # Saraza's Apartment — Property Management System
 
 Admin console + tenant portal for a 20-unit apartment, backed by **PHP 8 + MySQL/MariaDB**.
-Runs on a stock **XAMPP** install. No build step, no Composer, no npm.
+Runs on a stock **XAMPP** install, or on **Vercel** with a hosted MySQL database.
+No build step, no Composer, no npm.
 
 ## Setup (XAMPP, about 5 minutes)
 
@@ -17,6 +18,51 @@ If your MySQL user or password is not the XAMPP default (`root`, empty password)
 
 > The pages must be opened through `http://localhost/...`. Double-clicking an `.html` file
 > (a `file://` address) cannot reach the PHP backend.
+
+## Deploy to Vercel
+
+Vercel serves the HTML/CSS/JS as static files and runs each `api/*.php` file as a serverless
+function through the community [`vercel-php`](https://github.com/juicyfx/vercel-php) runtime
+(PHP 8.5, set in `vercel.json`). Vercel has no database of its own, so you need a hosted MySQL.
+
+1. **Create a MySQL database** with any hosted MySQL-compatible provider, for example
+   TiDB Cloud Serverless or Aiven for MySQL (both have free tiers). Pick a region near
+   Singapore if you can; `vercel.json` runs the functions in `sin1` (Singapore). If your
+   database is elsewhere, change `regions` to the closest
+   [Vercel region](https://vercel.com/docs/edge-network/regions).
+2. **Import `database/saraza_apartment.sql`** with the provider's console or the `mysql` client.
+   It creates a database called `saraza_apartment`. If your provider does not let you create
+   databases, delete the `DROP DATABASE` / `CREATE DATABASE` / `USE` lines near the top, import it
+   into the database they give you, and set `SARAZA_DB_NAME` to that name.
+   *Already have a database from an older version?* Run `database/cloud-tables.sql` instead.
+   It only adds the `sessions` and `uploads` tables.
+3. **Push this folder to GitHub** and import the repository at <https://vercel.com/new>.
+   Framework preset **Other**; leave the build command and output directory empty.
+4. **Add the environment variables** (Project → Settings → Environment Variables):
+
+   | Variable | Value |
+   |---|---|
+   | `SARAZA_DB_HOST` | database host name |
+   | `SARAZA_DB_PORT` | usually `3306` (TiDB Cloud: `4000`) |
+   | `SARAZA_DB_NAME` | `saraza_apartment` (or the name from step 2) |
+   | `SARAZA_DB_USER` | database user |
+   | `SARAZA_DB_PASS` | database password |
+   | `SARAZA_DB_SSL` | `1`. Hosted databases require TLS |
+   | `SARAZA_DB_SSL_CA_PEM` | *only if the provider uses its own CA (e.g. Aiven)*: paste the CA certificate |
+
+5. **Deploy**, open the site, sign in, and **change every demo password** (Settings → Security).
+
+If the build fails with a Node.js version error, set Project → Settings → General →
+Node.js Version to **22.x**.
+
+How it differs from XAMPP (all automatic when Vercel's `VERCEL=1` variable is present):
+
+- **Sessions and uploads live in the database** (`sessions` and `uploads` tables), because each
+  request may run on a different server and the filesystem is read-only.
+- **Uploads are limited to 4 MB per file and 4.4 MB per request.** Vercel rejects request
+  bodies over 4.5 MB. The tenant portal checks this before sending.
+- `.vercelignore` keeps `database/`, this README, and the design files off the site, and
+  `api/php.ini` holds the PHP settings (XAMPP ignores it).
 
 ## Logins
 
@@ -79,7 +125,8 @@ login.html                 Sign-in for admins and tenants (index.html redirects 
 tenant-portal/*.html       Tenant portal pages
 
 api/                       PHP backend (JSON)
-  config.php               Database settings
+  config.php               Database settings (environment variables override them)
+  php.ini                  PHP settings for Vercel
   lib.php                  DB, sessions, auth, billing engine, notifications
   auth.php                 login / logout / me / change_password
   admin.php                Admin data + every admin action
@@ -91,6 +138,10 @@ api/                       PHP backend (JSON)
   uploads/                 Proofs of payment and request photos (direct access blocked)
 
 database/saraza_apartment.sql   Schema + demo data
+database/cloud-tables.sql       Adds the Vercel tables to an older database
+
+vercel.json                Vercel functions (PHP runtime), region, headers
+.vercelignore              Files kept off the Vercel deployment
 
 assets/js/api.js           fetch wrapper (sends you to login when the session ends)
 assets/js/data.js          Loads api/admin.php into window.DB
@@ -109,6 +160,8 @@ The tenant portal keeps its own copies of `base.css`, `components.css`, `ui.js`,
 - Five wrong passwords in a row pause sign-in for a minute.
 - `.htaccess` files block direct access to `api/uploads/`, `database/`, and the PHP includes.
   If you deploy beyond your own PC, also use HTTPS and change every demo password.
+- On Vercel, `.vercelignore` does that job: the SQL dump is never uploaded, and `config.php`,
+  `lib.php`, and `print.php` answer 404 when requested directly.
 
 ## Keyboard (admin)
 

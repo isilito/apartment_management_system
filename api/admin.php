@@ -854,12 +854,14 @@ function act_clear_report_log(array $me): array
 
 function act_delete_property(array $me): array
 {
+    global $CONFIG;
     if (str_in('confirm', 10) !== 'DELETE') fail('Type DELETE to confirm.');
     $hash = val('SELECT password_hash FROM users WHERE id=?', [$me['id']]);
     if (!password_verify((string) (input()['password'] ?? ''), $hash)) fail('Your password is not correct.');
     foreach (['maintenance_media', 'maintenance_requests', 'payments', 'charges', 'messages', 'report_log', 'expenses'] as $t) {
         q("DELETE FROM `$t`");
     }
+    if ($CONFIG['upload_store'] === 'db') q('DELETE FROM uploads');
     q("DELETE FROM notifications WHERE user_id IN (SELECT id FROM users WHERE role='tenant')");
     q("DELETE FROM users WHERE role='tenant'");
     q('DELETE FROM tenants');

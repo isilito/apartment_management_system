@@ -1,0 +1,16 @@
+# Everything not listed here is uploaded, and anything that is not a PHP
+# function is served as a public static file — so keep private files out.
+
+# SQL dumps contain the demo password hashes; import them into the database instead
+database/
+
+# local-only (XAMPP) upload folder and Apache rules; Vercel stores uploads in the database
+api/uploads/
+.htaccess
+**/.htaccess
+
+# project documents, not part of the site
+README.md
+*.pdf
+*.png
+.gitattributes

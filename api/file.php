@@ -22,14 +22,22 @@ if (!$row || !$row['path'] || ($u['role'] === 'tenant' && $row['tenant_id'] !== 
     http_response_code(404); exit('File not found.');
 }
 
-$base = realpath($CONFIG['upload_dir']);
-$full = realpath($CONFIG['upload_dir'] . '/' . $row['path']);
-if (!$base || !$full || strpos($full, $base) !== 0 || !is_file($full)) { http_response_code(404); exit('File not found.'); }
+if ($CONFIG['upload_store'] === 'db') {
+    $blob = one('SELECT mime, data FROM uploads WHERE path=?', [$row['path']]);
+    if (!$blob) { http_response_code(404); exit('File not found.'); }
+    $mime = $blob['mime'] ?: 'application/octet-stream';
+    $data = $blob['data'];
+} else {
+    $base = realpath($CONFIG['upload_dir']);
+    $full = realpath($CONFIG['upload_dir'] . '/' . $row['path']);
+    if (!$base || !$full || strpos($full, $base) !== 0 || !is_file($full)) { http_response_code(404); exit('File not found.'); }
+    $mime = (new finfo(FILEINFO_MIME_TYPE))->file($full) ?: 'application/octet-stream';
+    $data = file_get_contents($full);
+}
 
-$mime = (new finfo(FILEINFO_MIME_TYPE))->file($full) ?: 'application/octet-stream';
 header('Content-Type: ' . $mime);
-header('Content-Length: ' . filesize($full));
-header('Content-Disposition: inline; filename="' . basename($full) . '"');
+header('Content-Length: ' . strlen($data));
+header('Content-Disposition: inline; filename="' . basename($row['path']) . '"');
 header('X-Content-Type-Options: nosniff');
 header('Cache-Control: private, max-age=3600');
-readfile($full);
+echo $data;

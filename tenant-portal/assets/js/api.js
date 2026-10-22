@@ -29,8 +29,10 @@
       var body;
       try { body = JSON.parse(txt); }
       catch (e) {
+        /* a body over the host's limit (4.5 MB on Vercel) is refused before PHP sees it */
+        if (res.status === 413) throw new Error('The attachments are too large. Send fewer or smaller files.');
         throw new Error(res.ok ? 'The server sent an unexpected reply.'
-          : 'The server is not responding (' + res.status + '). Is Apache/PHP running?');
+          : 'The server is not responding (' + res.status + '). Please try again in a moment.');
       }
       /* a 401 from the login form itself just means a wrong password */
       if (res.status === 401 && file !== 'auth.php') { toLogin('expired'); throw new Error(body.error || 'Please sign in again.'); }
@@ -41,7 +43,9 @@
 
   function network(err) {
     if (err instanceof TypeError) {
-      throw new Error('Could not reach the server. Open the site through http://localhost/ with Apache running.');
+      throw new Error(location.protocol === 'file:'
+        ? 'Could not reach the server. Open the site through http://localhost/ with Apache running.'
+        : 'Could not reach the server. Check your internet connection and try again.');
     }
     throw err;
   }

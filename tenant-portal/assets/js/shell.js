@@ -355,10 +355,16 @@
       zone.classList.toggle('has-files', zone.__files.length > 0);
     }
 
+    /* limits come from api/config.php (smaller on Vercel, which caps a request at 4.5 MB) */
+    var maxFile  = Number(DB.settings.maxUploadMb) || 25;
+    var maxTotal = Number(DB.settings.maxRequestMb) || 120;
+
     function add(list) {
       Array.prototype.forEach.call(list, function (f) {
         if (zone.__files.length >= 5) return;
-        if (f.size > 25 * 1024 * 1024) { UI.toast(f.name + ' is larger than 25 MB', 'warn'); return; }
+        if (f.size > maxFile * 1024 * 1024) { UI.toast(f.name + ' is larger than ' + maxFile + ' MB', 'warn'); return; }
+        var total = zone.__files.reduce(function (s, x) { return s + x.size; }, f.size);
+        if (total > maxTotal * 1024 * 1024) { UI.toast('Attachments can add up to ' + maxTotal + ' MB at most', 'warn'); return; }
         zone.__files.push(f);
       });
       render();

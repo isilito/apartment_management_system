@@ -8,6 +8,9 @@
 
 declare(strict_types=1);
 
+/* included by the endpoints, never requested directly */
+if (get_included_files()[0] === __FILE__) { http_response_code(404); exit; }
+
 $CONFIG = require __DIR__ . '/config.php';
 date_default_timezone_set($CONFIG['timezone']);
 
@@ -17,21 +20,10 @@ error_reporting(E_ALL);
 set_exception_handler(function (Throwable $e) {
     error_log('[saraza] ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine());
     $msg = $e instanceof PDOException
-        ? 'Database error. Check that MySQL is running and the saraza_apartment database is imported.'
+        ? 'Database error. Check that the database server is reachable and the saraza_apartment database is imported.'
         : 'Server error: ' . $e->getMessage();
     json_out(['ok' => false, 'error' => $msg], 500);
 });
-
-/* ---------------- Session ---------------- */
-session_name('SARAZASESS');
-session_set_cookie_params([
-    'lifetime' => 0,
-    'path'     => '/',
-    'httponly' => true,
-    'samesite' => 'Lax',
-    'secure'   => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
-]);
-session_start();
 
 /* ---------------- Database ---------------- */
 function db(): PDO
@@ -41,14 +33,105 @@ function db(): PDO
     if ($pdo === null) {
         $dsn = sprintf('mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4',
             $CONFIG['db_host'], $CONFIG['db_port'], $CONFIG['db_name']);
-        $pdo = new PDO($dsn, $CONFIG['db_user'], $CONFIG['db_pass'], [
+        $opts = [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES   => false,
-        ]);
+        ];
+        if ($CONFIG['db_ssl']) {
+            $opts[mysql_attr('SSL_CA')] = db_ssl_ca();
+            $opts[mysql_attr('SSL_VERIFY_SERVER_CERT')] = true;
+        }
+        $pdo = new PDO($dsn, $CONFIG['db_user'], $CONFIG['db_pass'], $opts);
         $pdo->exec("SET time_zone = '+08:00'");
     }
     return $pdo;
+}
+
+/** PDO::MYSQL_ATTR_* moved to Pdo\Mysql::ATTR_* in PHP 8.4 (the old names are deprecated in 8.5). */
+function mysql_attr(string $name): int
+{
+    return defined('Pdo\\Mysql::ATTR_' . $name) ? constant('Pdo\\Mysql::ATTR_' . $name) : constant('PDO::MYSQL_ATTR_' . $name);
+}
+
+/** CA certificate used to verify the database server. */
+function db_ssl_ca(): string
+{
+    global $CONFIG;
+    if ($CONFIG['db_ssl_ca_pem'] !== '') {
+        /* a CA pasted into an environment variable; written once per server to its temp dir */
+        $pem = str_replace('\n', "\n", $CONFIG['db_ssl_ca_pem']);
+        $path = sys_get_temp_dir() . '/saraza-db-ca-' . md5($pem) . '.pem';
+        if (!is_file($path)) file_put_contents($path, $pem);
+        return $path;
+    }
+    if ($CONFIG['db_ssl_ca'] !== '') return $CONFIG['db_ssl_ca'];
+    $candidates = [
+        openssl_get_cert_locations()['default_cert_file'] ?? '',
+        '/etc/pki/tls/certs/ca-bundle.crt',      // Amazon Linux (Vercel)
+        '/etc/ssl/certs/ca-certificates.crt',    // Debian / Ubuntu
+        '/etc/ssl/cert.pem',                     // macOS, Alpine
+    ];
+    foreach ($candidates as $c) if ($c !== '' && is_readable($c)) return $c;
+    throw new RuntimeException('No CA certificate found for the database TLS connection. Set SARAZA_DB_SSL_CA.');
+}
+
+/* ---------------- Session ---------------- */
+/** Keeps sessions in the database so they survive serverless hosts (Vercel), where each
+    request may run on a different machine and local files do not persist. */
+final class DbSessionHandler implements SessionHandlerInterface
+{
+    private const TTL = 7 * 86400;   // the idle timeout in Settings → Security still applies on top
+
+    public function open(string $path, string $name): bool { return true; }
+    public function close(): bool { return true; }
+
+    public function read(string $id): string|false
+    {
+        return (string) (val('SELECT data FROM sessions WHERE id=? AND expires_at > ?', [$id, time()]) ?? '');
+    }
+
+    public function write(string $id, string $data): bool
+    {
+        q('INSERT INTO sessions (id, data, expires_at) VALUES (?,?,?)
+           ON DUPLICATE KEY UPDATE data=VALUES(data), expires_at=VALUES(expires_at)', [$id, $data, time() + self::TTL]);
+        return true;
+    }
+
+    public function destroy(string $id): bool
+    {
+        q('DELETE FROM sessions WHERE id=?', [$id]);
+        return true;
+    }
+
+    public function gc(int $max_lifetime): int|false
+    {
+        return q('DELETE FROM sessions WHERE expires_at < ?', [time()])->rowCount();
+    }
+}
+
+if (PHP_SAPI !== 'cli') {
+    if ($CONFIG['session_store'] === 'db') {
+        ini_set('session.gc_probability', '1');
+        ini_set('session.gc_divisor', '100');
+        session_set_save_handler(new DbSessionHandler(), true);
+    }
+    session_name('SARAZASESS');
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path'     => '/',
+        'httponly' => true,
+        'samesite' => 'Lax',
+        'secure'   => is_https(),
+    ]);
+    session_start();
+}
+
+/** True for HTTPS requests, including ones that reach PHP through a proxy (Vercel). */
+function is_https(): bool
+{
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') return true;
+    return strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https';
 }
 
 function q(string $sql, array $p = []): PDOStatement
@@ -84,6 +167,11 @@ function input(): array
     if (stripos($ct, 'application/json') !== false) {
         $in = json_decode(file_get_contents('php://input') ?: '[]', true) ?: [];
     } else {
+        /* PHP drops the whole body when it exceeds post_max_size; say so instead of "title is required" */
+        if (!$_POST && !$_FILES && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0 && stripos($ct, 'multipart/') === 0) {
+            global $CONFIG;
+            fail('The attachments are too large. Send at most ' . $CONFIG['max_request_mb'] . ' MB at a time.', 413);
+        }
         $in = $_POST;
     }
     return $in;
@@ -347,10 +435,17 @@ function save_upload(array $file, string $sub, array $allowPrefixes): array
 
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     $ext = preg_replace('/[^a-z0-9]/', '', $ext) ?: 'bin';
-    $dir = $CONFIG['upload_dir'] . '/' . $sub;
-    if (!is_dir($dir)) mkdir($dir, 0775, true);
     $name = date('Ymd-His') . '-' . bin2hex(random_bytes(6)) . '.' . $ext;
-    if (!move_uploaded_file($file['tmp_name'], $dir . '/' . $name)) fail('Could not store ' . $file['name'] . '.');
+
+    if ($CONFIG['upload_store'] === 'db') {
+        if (!is_uploaded_file($file['tmp_name'])) fail('Could not store ' . $file['name'] . '.');
+        q('INSERT INTO uploads (path, mime, size, data, created_at) VALUES (?,?,?,?,?)',
+          [$sub . '/' . $name, $mime, (int) $file['size'], file_get_contents($file['tmp_name']), now()]);
+    } else {
+        $dir = $CONFIG['upload_dir'] . '/' . $sub;
+        if (!is_dir($dir)) mkdir($dir, 0775, true);
+        if (!move_uploaded_file($file['tmp_name'], $dir . '/' . $name)) fail('Could not store ' . $file['name'] . '.');
+    }
 
     return [
         'path' => $sub . '/' . $name,

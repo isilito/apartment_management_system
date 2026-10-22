@@ -34,6 +34,7 @@ ok($result ?: []);
    ============================================================ */
 function tenant_bootstrap(array $me, array $t): array
 {
+    global $CONFIG;
     $today = today();
     $u = $t['unit_id'] ? one('SELECT u.*, ut.label AS type_label, ut.beds, b.name AS building, b.address AS baddress
                               FROM units u JOIN unit_types ut ON ut.tkey=u.type_key JOIN buildings b ON b.id=u.building_id
@@ -112,7 +113,8 @@ function tenant_bootstrap(array $me, array $t): array
     return [
         'today' => $today,
         'settings' => ['propertyName' => setting('property_name'), 'ownerName' => setting('owner_name'),
-                       'receiptNote' => setting('receipt_note', '')],
+                       'receiptNote' => setting('receipt_note', ''),
+                       'maxUploadMb' => $CONFIG['max_upload_mb'], 'maxRequestMb' => $CONFIG['max_request_mb']],
         'tenant' => [
             'id' => $t['id'], 'name' => $t['name'], 'initials' => initials_of($t['name']), 'phone' => $t['phone'],
             'email' => $t['email'], 'occupation' => $t['occupation'], 'occupants' => (int) $t['occupants'],
