@@ -274,6 +274,24 @@ CREATE TABLE `report_log` (
   `created_at`  DATETIME NOT NULL
 ) ENGINE=InnoDB;
 
+-- ---------------- Cloud hosting (Vercel) ----------------
+-- Used when SARAZA_SESSION_STORE=db / SARAZA_UPLOAD_STORE=db (the defaults on Vercel),
+-- where the server keeps no files between requests. Unused on XAMPP.
+CREATE TABLE `sessions` (
+  `id`         VARCHAR(128) NOT NULL PRIMARY KEY,
+  `data`       MEDIUMBLOB NOT NULL,
+  `expires_at` INT UNSIGNED NOT NULL,
+  KEY `idx_sess_exp` (`expires_at`)
+) ENGINE=InnoDB;
+
+CREATE TABLE `uploads` (
+  `path`       VARCHAR(255) NOT NULL PRIMARY KEY,   -- matches payments.proof_path / maintenance_media.file_path
+  `mime`       VARCHAR(100) NOT NULL,
+  `size`       INT UNSIGNED NOT NULL,
+  `data`       LONGBLOB NOT NULL,
+  `created_at` DATETIME NOT NULL
+) ENGINE=InnoDB;
+
 
 INSERT INTO `settings` (`skey`, `svalue`) VALUES
   ('property_name', 'Saraza''s Apartment'),

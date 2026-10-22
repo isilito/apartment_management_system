@@ -4,6 +4,7 @@
    lease documents, reports). Included, never requested directly.
    Use the browser's Print → "Save as PDF" to get a PDF.
    ============================================================ */
+if (get_included_files()[0] === __FILE__) { http_response_code(404); exit; }
 
 function h($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8'); }
 function fdate(?string $d): string { return $d ? date('d M Y', strtotime($d)) : '—'; }
