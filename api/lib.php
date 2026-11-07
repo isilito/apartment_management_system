@@ -250,7 +250,9 @@ function current_user(): ?array
         session_unset();
         return null;
     }
-    $_SESSION['last_seen'] = time();
+    /* Automatic background checks must not count as activity, or an open
+       dashboard would keep an unattended session signed in forever. */
+    if (($_SERVER['HTTP_X_BACKGROUND'] ?? '') !== '1') $_SESSION['last_seen'] = time();
 
     $u = one('SELECT id, role, tenant_id, name, email, username FROM users WHERE id = ? AND is_active = 1',
         [$_SESSION['uid']]);
@@ -370,10 +372,14 @@ function ensure_charges(): void
         }
     }
 
+    /* money already on file from an overpayment or advance pays new charges */
+    apply_credits();
+
     /* late fees */
     $cutoff = date('Y-m-d', strtotime(today() . " -$grace days"));
     $late = all("SELECT c.tenant_id, c.period, c.amount, t.rent FROM charges c JOIN tenants t ON t.id = c.tenant_id
                  WHERE c.kind='rent' AND c.status <> 'paid' AND c.due_date < ? AND t.status IN ('current','notice')
+                 AND NOT EXISTS (SELECT 1 FROM payments p WHERE p.charge_id=c.id AND p.status='pending')
                  AND NOT EXISTS (SELECT 1 FROM charges f WHERE f.tenant_id=c.tenant_id AND f.kind='late_fee' AND f.period=c.period)",
                 [$cutoff]);
     foreach ($late as $c) {
@@ -395,9 +401,19 @@ function apply_payment(string $paymentId): void
     $p = one('SELECT * FROM payments WHERE id=?', [$paymentId]);
     if (!$p || $p['status'] !== 'cleared' || (int) $p['applied']) return;
 
-    $left = (float) $p['amount'];
-    $order = all("SELECT id, amount, amount_paid FROM charges WHERE tenant_id=? AND status <> 'paid'
-                  ORDER BY (id = ?) DESC, due_date, id", [$p['tenant_id'], (int) ($p['charge_id'] ?? 0)]);
+    $left = allocate_to_charges($p['tenant_id'], (float) $p['amount'], $p['paid_on'], (int) ($p['charge_id'] ?? 0));
+    q('UPDATE payments SET applied=1, unapplied=? WHERE id=?', [$left, $paymentId]);
+}
+
+/**
+ * Pays open charges from $amount and returns what is left over. Utility rows are
+ * skipped: units have their own meters, so those charges are not owed here.
+ */
+function allocate_to_charges(string $tenantId, float $amount, string $paidOn, int $firstChargeId = 0): float
+{
+    $left = $amount;
+    $order = all("SELECT id, amount, amount_paid FROM charges WHERE tenant_id=? AND status <> 'paid' AND kind <> 'utility'
+                  ORDER BY (id = ?) DESC, due_date, id", [$tenantId, $firstChargeId]);
 
     foreach ($order as $c) {
         if ($left <= 0) break;
@@ -407,16 +423,54 @@ function apply_payment(string $paymentId): void
         $paid = (float) $c['amount_paid'] + $pay;
         $status = $paid + 0.001 >= (float) $c['amount'] ? 'paid' : 'partial';
         q('UPDATE charges SET amount_paid=?, status=?, paid_on=? WHERE id=?',
-          [$paid, $status, $status === 'paid' ? $p['paid_on'] : null, $c['id']]);
+          [$paid, $status, $status === 'paid' ? $paidOn : null, $c['id']]);
     }
-    q('UPDATE payments SET applied=1, unapplied=? WHERE id=?', [max(0, $left), $paymentId]);
+    return round(max(0, $left), 2);
+}
+
+/** Spends leftover payment money on charges that were created after it came in. */
+function apply_credits(): void
+{
+    if (!val("SELECT 1 FROM payments WHERE status='cleared' AND applied=1 AND unapplied > 0 LIMIT 1")) return;
+
+    $own = !db()->inTransaction();
+    if ($own) db()->beginTransaction();
+    /* the row lock stops two page loads from spending the same credit twice */
+    foreach (all("SELECT id, tenant_id, paid_on, unapplied FROM payments
+                  WHERE status='cleared' AND applied=1 AND unapplied > 0 ORDER BY paid_on, id FOR UPDATE") as $p) {
+        $left = allocate_to_charges($p['tenant_id'], (float) $p['unapplied'], $p['paid_on']);
+        if ($left !== round((float) $p['unapplied'], 2)) q('UPDATE payments SET unapplied=? WHERE id=?', [$left, $p['id']]);
+    }
+    if ($own) db()->commit();
+}
+
+/** Payment date from the form: defaults to today and may not be in the future. */
+function paid_date_in(): string
+{
+    $d = date_in('date', today());
+    if ($d > today()) fail('The payment date cannot be in the future.');
+    return $d;
+}
+
+/** Changes whenever a figure on the admin dashboard would change. */
+function pulse_sig(int $userId): string
+{
+    return md5(json_encode([
+        today(),
+        one("SELECT COUNT(*) n, COALESCE(SUM(amount),0) a, SUM(status='pending') p, SUM(status='cleared') c, MAX(cleared_at) m FROM payments"),
+        one('SELECT COUNT(*) n, COALESCE(SUM(amount),0) a, COALESCE(SUM(amount_paid),0) p FROM charges'),
+        one("SELECT COUNT(*) n, SUM(status='occupied') o, SUM(status='vacant') v FROM units"),
+        one("SELECT COUNT(*) n, SUM(status='done') d, SUM(priority='urgent') u FROM maintenance_requests"),
+        one("SELECT COUNT(*) n FROM tenants WHERE status <> 'moved_out'"),
+        one('SELECT COUNT(*) n, SUM(is_read=0) u FROM notifications WHERE user_id=?', [$userId]),
+    ]));
 }
 
 /** Outstanding balance on charges already due, and how late the oldest one is. */
 function tenant_balance(string $tenantId): array
 {
     $r = one("SELECT COALESCE(SUM(amount - amount_paid),0) AS bal, MIN(due_date) AS oldest
-              FROM charges WHERE tenant_id=? AND status <> 'paid' AND due_date <= ?", [$tenantId, today()]);
+              FROM charges WHERE tenant_id=? AND status <> 'paid' AND kind <> 'utility' AND due_date <= ?", [$tenantId, today()]);
     $bal = round((float) $r['bal'], 2);
     return ['balance' => $bal, 'overdueDays' => $bal > 0 && $r['oldest'] ? max(0, days_between($r['oldest'], today())) : 0];
 }

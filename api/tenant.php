@@ -155,6 +155,7 @@ function act_submit_payment(array $me, array $t): array
     if (!$m) fail('Choose a payment method.');
     $ref = str_in('reference', 80);
     if ($ref === '' && $m['mkey'] !== 'cash') fail('Add the reference number from your receipt.');
+    $paidOn = paid_date_in();
 
     $chargeId = (int) preg_replace('/\D/', '', (string) (input()['chargeId'] ?? ''));
     $charge = $chargeId ? one('SELECT * FROM charges WHERE id=? AND tenant_id=?', [$chargeId, $t['id']]) : null;
@@ -173,7 +174,7 @@ function act_submit_payment(array $me, array $t): array
     q("INSERT INTO payments (id, tenant_id, unit_id, charge_id, paid_on, method, covers, amount, reference, status,
         proof_path, submitted_by, recorded_by, applied, created_at)
        VALUES (?,?,?,?,?,?,?,?,?, 'pending', ?, 'tenant', ?, 0, ?)",
-      [$id, $t['id'], $t['unit_id'], $charge['id'] ?? null, date_in('date', today()), $m['label'],
+      [$id, $t['id'], $t['unit_id'], $charge['id'] ?? null, $paidOn, $m['label'],
        $charge ? $charge['label'] : 'Payment', $amount, $ref, $proof, $t['name'], now()]);
 
     notify_admins('notif_payment', 'teal', 'receipt', 'Payment waiting for confirmation',

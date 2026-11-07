@@ -66,8 +66,12 @@
     url: url,
     toLogin: toLogin,
 
-    get: function (file, action, params) {
-      return fetch(url(file, action, params), { credentials: 'same-origin', cache: 'no-store' })
+    /* opts.background: an automatic check, which does not count as user activity */
+    get: function (file, action, params, opts) {
+      return fetch(url(file, action, params), {
+        credentials: 'same-origin', cache: 'no-store',
+        headers: opts && opts.background ? { 'X-Background': '1' } : {}
+      })
         .catch(network).then(handler(file));
     },
 

@@ -21,6 +21,11 @@ if ($action === 'bootstrap') {
     json_out(['ok' => true, 'data' => bootstrap($ME)]);
 }
 
+/* cheap "has anything changed?" check that the open dashboard polls */
+if ($action === 'pulse') {
+    ok(['sig' => pulse_sig((int) $ME['id'])]);
+}
+
 if ($action === 'activity') {
     $rows = all('SELECT user_name, action, detail, created_at FROM activity_log ORDER BY id DESC LIMIT 150');
     ok(['rows' => $rows]);
@@ -120,13 +125,14 @@ function bootstrap(array $me): array
         'amount' => (float) $p['amount'], 'status' => $p['status'], 'reference' => $p['reference'] ?: '—',
         'notes' => $p['notes'], 'proof' => $p['proof_path'] ? 'api/file.php?payment=' . rawurlencode($p['id']) : null,
         'recordedBy' => $p['recorded_by'], 'submittedBy' => $p['submitted_by'], 'createdAt' => $p['created_at'],
+        'clearedAt' => $p['cleared_at'],
     ], all('SELECT * FROM payments ORDER BY paid_on DESC, created_at DESC, id DESC'));
 
     $charges = array_map(fn($c) => [
         'id' => (int) $c['id'], 'tenantId' => $c['tenant_id'], 'kind' => $c['kind'], 'label' => $c['label'],
         'detail' => $c['detail'], 'amount' => (float) $c['amount'], 'paid' => (float) $c['amount_paid'],
         'due' => $c['due_date'], 'status' => $c['status'],
-    ], all("SELECT * FROM charges WHERE status <> 'paid' ORDER BY due_date, id"));
+    ], all("SELECT * FROM charges WHERE status <> 'paid' AND kind <> 'utility' ORDER BY due_date, id"));
 
     $cats = categories();
     $catOf = array_column($cats, null, 'key');
@@ -162,7 +168,7 @@ function bootstrap(array $me): array
         $monthly[] = [
             'month' => date('M', strtotime($start)), 'start' => $start,
             'expected' => (float) val("SELECT COALESCE(SUM(amount),0) FROM charges WHERE due_date BETWEEN ? AND ?
-                                       AND kind IN ('rent','utility','late_fee','other')", [$start, $end]),
+                                       AND kind IN ('rent','utility','late_fee','other') AND NOT (kind='utility' AND status<>'paid')", [$start, $end]),
             'collected' => (float) val("SELECT COALESCE(SUM(amount),0) FROM payments WHERE status='cleared' AND paid_on BETWEEN ? AND ?",
                                        [$start, $end]),
         ];
@@ -219,8 +225,12 @@ function bootstrap(array $me): array
             'target'             => (float) ($s['monthly_target'] ?? 0),
             'pendingCount'       => (int) val("SELECT COUNT(*) FROM payments WHERE status='pending'"),
             'pendingAmount'      => (float) val("SELECT COALESCE(SUM(amount),0) FROM payments WHERE status='pending'"),
+            /* cleared this month but dated earlier, so it counts under that earlier month */
+            'earlierDated'       => (float) val("SELECT COALESCE(SUM(amount),0) FROM payments WHERE status='cleared'
+                                                 AND cleared_at >= ? AND paid_on < ?", [date('Y-m-01'), date('Y-m-01')]),
             'lastBackup'         => $s['last_export'] ?? null,
         ],
+        'pulse' => pulse_sig((int) $me['id']),
     ];
 }
 
@@ -332,7 +342,7 @@ function act_record_payment(array $me): array
     q("INSERT INTO payments (id, tenant_id, unit_id, charge_id, paid_on, method, covers, amount, reference, notes, status,
         submitted_by, recorded_by, applied, created_at, cleared_at)
        VALUES (?,?,?,NULL,?,?,?,?,?,?, 'cleared', 'admin', ?, 0, ?, ?)",
-      [$id, $t['id'], $t['unit_id'], date_in('date', today()), $method, str_in('covers', 120) ?: 'Rent',
+      [$id, $t['id'], $t['unit_id'], paid_date_in(), $method, str_in('covers', 120) ?: 'Rent',
        $amount, str_in('reference', 80), str_in('notes', 255), $me['name'], now(), now()]);
     apply_payment($id);
 

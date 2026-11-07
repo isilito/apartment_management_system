@@ -244,12 +244,49 @@
 
   /* Re-fetch from the server, then redraw the chrome and the page. */
   function afterMutation(message, tone) {
-    return DB.reload().then(function () {
-      refreshSidebar();
-      buildNotifications();
-      if (message) UI.toast(message, tone);
-      if (global.Page && typeof Page.refresh === 'function') Page.refresh();
+    return DB.reload().then(function () { redraw(message, tone); });
+  }
+
+  function redraw(message, tone) {
+    refreshSidebar();
+    buildNotifications();
+    if (message) UI.toast(message, tone);
+    if (global.Page && typeof Page.refresh === 'function') Page.refresh();
+  }
+
+  /* Keeps a page current while it sits open: asks the server every 15 seconds,
+     and on returning to the tab, whether anything changed. Waits while a dialog,
+     drawer or menu is open so nothing moves under the admin's hands. */
+  var LIVE_MS = 15000;
+  var liveBusy = false;
+
+  function uiBusy() {
+    var modal = document.getElementById('modalRoot');
+    return (modal && !modal.hidden) || !!document.getElementById('drawerRoot') ||
+      !!document.querySelector('.popover.open, #searchResults.open');
+  }
+
+  function liveCheck() {
+    if (liveBusy || document.hidden || uiBusy()) return;
+    liveBusy = true;
+    API.get('admin.php', 'pulse', null, { background: true }).then(function (res) {
+      if (res.sig === DB.pulse || uiBusy()) return;
+      return DB.load(true).then(function () { redraw(); });
+    }).catch(function () { /* a missed check is retried on the next tick */ }).then(function () {
+      liveBusy = false;
     });
+  }
+
+  function startLiveUpdates() {
+    setInterval(liveCheck, LIVE_MS);
+    document.addEventListener('visibilitychange', liveCheck);
+    global.addEventListener('focus', liveCheck);
+  }
+
+  /* Why a figure may not move this month: totals follow the date paid. */
+  function dateNote(d) {
+    if (!d || (d.getFullYear() === DB.today.getFullYear() && d.getMonth() === DB.today.getMonth())) return '';
+    return ' · counted under ' + UI.fmtMonthYear(d) + ', the date paid';
   }
 
   /* POST an action, then reload. Returns the server reply. */
@@ -316,7 +353,7 @@
           '<div class="form-row"><label>Amount received</label>' +
             '<input class="input" id="pAmount" type="number" min="0" step="0.01" placeholder="0"/>' +
             '<span class="hint" id="pHint"></span></div>' +
-          '<div class="form-row"><label>Date paid</label><input class="input" id="pDate" type="date" value="' + isoDate() + '"/></div>' +
+          '<div class="form-row"><label>Date paid</label><input class="input" id="pDate" type="date" max="' + isoDate() + '" value="' + isoDate() + '"/></div>' +
           '<div class="form-row"><label>Method</label><select class="select" id="pMethod">' + methodOptions() + '</select></div>' +
           '<div class="form-row"><label>Covers</label><input class="input" id="pCovers" list="pCoversList"/>' +
             '<datalist id="pCoversList"></datalist></div>' +
@@ -354,7 +391,7 @@
         return save('record_payment', {
           tenantId: t.id, amount: amount, date: val(box, '#pDate'), method: val(box, '#pMethod'),
           covers: val(box, '#pCovers'), reference: val(box, '#pRef'), notes: val(box, '#pNotes')
-        }, function (r) { return UI.peso(amount) + ' recorded for ' + t.name + ' · ' + r.id; });
+        }, function (r) { return UI.peso(amount) + ' recorded for ' + t.name + ' · ' + r.id + dateNote(DB.parse(val(box, '#pDate'))); });
       }
     });
   }
@@ -608,7 +645,7 @@
           '<button class="btn btn-primary" data-confirm>' + icon('print') + 'Print receipt</button>',
       onConfirm: function () {
         if (!pending) { window.open(API.url('receipt.php', null, { id: p.id }), '_blank'); return; }
-        return save('confirm_payment', { id: p.id }, p.id + ' confirmed — ' + UI.peso(p.amount) + ' applied to ' + p.fullName);
+        return save('confirm_payment', { id: p.id }, p.id + ' confirmed — ' + UI.peso(p.amount) + ' applied to ' + p.fullName + dateNote(p.date));
       },
       onOpen: function (box) {
         var rej = box.querySelector('[data-act="reject"]');
@@ -1044,6 +1081,11 @@
   }
 
   function init() {
+    /* Back/Forward can restore this page exactly as it was left, old figures included */
+    global.addEventListener('pageshow', function (e) {
+      if (e.persisted) afterMutation().catch(function () {});
+    });
+
     document.body.classList.add('booting');
     DB.load().then(function () {
       mountChrome();
@@ -1080,6 +1122,7 @@
     remindAll: remindAll,
     askAssistant: askAssistant,
     afterMutation: afterMutation,
+    startLiveUpdates: startLiveUpdates,
     save: save,
     isoDate: isoDate,
     buildNotifications: buildNotifications
