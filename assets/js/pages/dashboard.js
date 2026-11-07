@@ -27,7 +27,9 @@
       incomeDelta:      icon(s.incomeDelta < 0 ? 'trendDown' : 'trendUp') + Math.abs(s.incomeDelta) + '%',
       incomeBar:        pct(s.incomeThisMonth, s.incomeTarget),
       incomeNote:       pct(s.incomeThisMonth, s.incomeTarget) +
-                        '% of the ' + UI.peso(s.incomeTarget) + ' monthly target',
+                        '% of the ' + UI.peso(s.incomeTarget) + ' monthly target' +
+                        (s.earlierDated ? ' · ' + UI.peso(s.earlierDated) +
+                          ' confirmed this month counts under its earlier date paid' : ''),
 
       outstanding:      UI.peso(s.outstanding),
       outstandingCount: s.overdueTenants.length + ' tenants',
@@ -88,13 +90,22 @@
       UI.fill('overdueRows', '<p class="u-sm u-muted" style="padding:10px 0">Nobody is behind on rent.</p>');
       return;
     }
+    var pending = {};
+    DB.payments.forEach(function (p) {
+      if (p.status === 'pending') pending[p.tenantId] = (pending[p.tenantId] || 0) + p.amount;
+    });
     UI.fill('overdueRows', DB.stats.overdueTenants.slice(0, 4).map(function (t) {
       return '<div class="row">' + UI.avatar(t.initials, 'avatar-sm') +
         '<div class="row-main"><b>' + UI.esc(t.name) + '</b>' +
-          '<span>Unit ' + UI.esc(t.unitNo) + ' &middot; ' + t.overdueDays + ' days late</span></div>' +
+          '<span>Unit ' + UI.esc(t.unitNo) + ' &middot; ' + t.overdueDays + ' days late' +
+            (pending[t.id] ? ' &middot; ' + UI.peso(pending[t.id]) + ' waiting for you to confirm' : '') + '</span></div>' +
         '<div class="row-end"><b class="u-red">' + UI.peso(t.balance) + '</b>' +
           '<button class="link" data-remind="' + t.id + '">Remind</button></div></div>';
     }).join(''));
+  }
+
+  function lastActivity(p) {
+    return Math.max(p.createdAt ? p.createdAt.getTime() : 0, p.clearedAt ? p.clearedAt.getTime() : 0);
   }
 
   function renderPayments(buildingId) {
@@ -102,6 +113,8 @@
       if (buildingId === 'all' || !buildingId) return true;
       var u = DB.unit(p.unitNo);
       return u && u.buildingId === buildingId;
+    }).sort(function (a, b) {
+      return lastActivity(b) - lastActivity(a);   // a backdated entry still surfaces here
     }).slice(0, 5);
 
     if (!list.length) {
@@ -150,6 +163,7 @@
       }).join('');
 
     refresh();
+    Shell.startLiveUpdates();
 
     els.filter.addEventListener('change', function () { renderPayments(els.filter.value); });
 

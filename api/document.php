@@ -56,7 +56,7 @@ case 'deposit':
     print_page('Deposit acknowledgement', fdate($t['move_in']), $body);
 
 case 'statement':
-    $rows = all('SELECT * FROM charges WHERE tenant_id=? ORDER BY due_date, id', [$t['id']]);
+    $rows = all("SELECT * FROM charges WHERE tenant_id=? AND NOT (kind='utility' AND status<>'paid') ORDER BY due_date, id", [$t['id']]);
     $pays = all("SELECT * FROM payments WHERE tenant_id=? AND status='cleared' ORDER BY paid_on, id", [$t['id']]);
     $billed = array_sum(array_map(fn($c) => (float) $c['amount'], $rows));
     $paid = array_sum(array_map(fn($p) => (float) $p['amount'], $pays));

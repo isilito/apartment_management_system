@@ -46,7 +46,9 @@ password shown on screen. Change the admin password under **Settings → Securit
 ## What works
 
 **Admin console** (`dashboard.html` … `settings.html`)
-- Dashboard with live occupancy, collections, balances, repairs, and charts
+- Dashboard with live occupancy, collections, balances, repairs, and charts; it refreshes itself
+  within 15 seconds of a change. "Income this month" follows each payment's date paid, so confirming
+  a payment dated last month updates last month's total (the dashboard notes this when it happens)
 - Units: add, edit, mark under repair, delete (if no history); per-unit drawer
 - Tenants: add (with portal login), edit, add charges (utilities, etc.), waive charges,
   message, rent reminders, move-out, reset portal password, printable statement

@@ -38,7 +38,7 @@
     d.today = parse(d.today);
     dates(d.tenants, ['moveIn', 'leaseEnd']);
     dates(d.units, ['vacantSince']);
-    dates(d.payments, ['date', 'createdAt']);
+    dates(d.payments, ['date', 'createdAt', 'clearedAt']);
     dates(d.charges, ['due']);
     dates(d.tickets, ['created', 'resolved', 'scheduledFor']);
     dates(d.notifications, ['at']);
@@ -77,6 +77,7 @@
       expectedThisMonth: m.expectedThisMonth || 0,
       pendingCount: m.pendingCount,
       pendingAmount: m.pendingAmount,
+      earlierDated: m.earlierDated,
 
       outstanding: overdue.reduce(function (s, t) { return s + t.balance; }, 0),
       overdueTenants: overdue,
@@ -98,8 +99,8 @@
   var DB = {
     loaded: false,
 
-    load: function () {
-      return API.get('admin.php').then(function (res) {
+    load: function (background) {
+      return API.get('admin.php', null, null, { background: !!background }).then(function (res) {
         var d = hydrate(res.data);
         Object.keys(d).forEach(function (k) { DB[k] = d[k]; });
         DB.stats = derive(DB);

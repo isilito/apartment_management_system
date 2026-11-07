@@ -209,7 +209,7 @@
           '<div class="form-row"><label>Amount</label>' +
             '<input class="input" id="payAmount" type="number" min="0" step="0.01" /></div>' +
           '<div class="form-row"><label>Date you paid</label>' +
-            '<input class="input" id="payDate" type="date" value="' + isoDate() + '" /></div>' +
+            '<input class="input" id="payDate" type="date" max="' + isoDate() + '" value="' + isoDate() + '" /></div>' +
           '<div class="form-row"><label>Payment method</label>' +
             '<select class="select" id="payMethod">' + DB.methods.map(function (m) {
               return '<option value="' + m.key + '">' + UI.esc(m.label) + '</option>';

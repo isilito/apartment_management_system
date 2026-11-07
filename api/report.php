@@ -76,9 +76,9 @@ case 'collections':
     $num = [2, 3, 4, 5];
     foreach (all("SELECT t.id, t.name, t.unit_id FROM tenants t JOIN units un ON un.id=t.unit_id
                   WHERE t.status<>'moved_out' $bClause ORDER BY t.unit_id") as $t) {
-        $billed = (float) val('SELECT COALESCE(SUM(amount),0) FROM charges WHERE tenant_id=? AND due_date BETWEEN ? AND ?', [$t['id'], $from, $to]);
+        $billed = (float) val("SELECT COALESCE(SUM(amount),0) FROM charges WHERE tenant_id=? AND NOT (kind='utility' AND status<>'paid') AND due_date BETWEEN ? AND ?", [$t['id'], $from, $to]);
         $paid = (float) val("SELECT COALESCE(SUM(amount),0) FROM payments WHERE tenant_id=? AND status='cleared' AND paid_on BETWEEN ? AND ?", [$t['id'], $from, $to]);
-        $out = (float) val("SELECT COALESCE(SUM(amount-amount_paid),0) FROM charges WHERE tenant_id=? AND status<>'paid' AND due_date BETWEEN ? AND ?", [$t['id'], $from, $asOf]);
+        $out = (float) val("SELECT COALESCE(SUM(amount-amount_paid),0) FROM charges WHERE tenant_id=? AND status<>'paid' AND kind<>'utility' AND due_date BETWEEN ? AND ?", [$t['id'], $from, $asOf]);
         $rows[] = [$t['unit_id'], $t['name'], $billed, $paid, $out, $billed > 0 ? round(min($paid, $billed) / $billed * 100) . '%' : '—'];
     }
     $b = array_sum(array_column($rows, 2)); $c = array_sum(array_column($rows, 3));
@@ -91,7 +91,7 @@ case 'aging':
     foreach (all("SELECT t.id, t.name, t.phone, t.unit_id FROM tenants t JOIN units un ON un.id=t.unit_id
                   WHERE t.status<>'moved_out' $bClause ORDER BY t.unit_id") as $t) {
         $buckets = [0, 0, 0, 0];
-        foreach (all("SELECT due_date, amount-amount_paid AS owed FROM charges WHERE tenant_id=? AND status<>'paid' AND due_date <= ?", [$t['id'], $asOf]) as $c) {
+        foreach (all("SELECT due_date, amount-amount_paid AS owed FROM charges WHERE tenant_id=? AND status<>'paid' AND kind<>'utility' AND due_date <= ?", [$t['id'], $asOf]) as $c) {
             $d = days_between($c['due_date'], $asOf);
             $buckets[$d <= 30 ? 0 : ($d <= 60 ? 1 : ($d <= 90 ? 2 : 3))] += (float) $c['owed'];
         }
