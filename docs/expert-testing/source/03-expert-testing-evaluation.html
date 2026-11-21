@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Expert Testing Evaluation Form</title>
+<link rel="stylesheet" href="print.css">
+<style>
+  table.tc td, table.tc th { font-size: 8.6pt; padding: 3px 5px; }
+  table.tc td.id { white-space: nowrap; font-weight: bold; color: var(--navy); }
+  table.tc td.id small { display: block; font-weight: normal; }
+  tr.neg td.id { color: #a3262e; }
+  table.iso td, table.iso th { font-size: 8.8pt; padding: 3px 5px; }
+  table.iso td.r { width: 6.5%; text-align: center; }
+  .legend { display: flex; gap: 16px; font-size: 8.5pt; color: var(--muted); margin: 2px 0 6px; }
+  .sw { display: inline-block; width: 9px; height: 9px; vertical-align: -1px; margin-right: 4px; }
+  td.blank { height: 26px; }
+  td.tall { height: 46px; }
+</style>
+<style>@page { @bottom-center { content: "Saraza's Apartment — Expert Testing Evaluation Form (ET-02) · Page " counter(page) " of " counter(pages); } }</style>
+</head>
+<body>
+
+<div class="head">
+  <div>
+    <h1 class="doctitle">Expert Testing Evaluation Form</h1>
+    <div class="sub">Saraza's Apartment — Property Management System · Admin console and tenant portal</div>
+  </div>
+  <div class="meta">Form ET-02<br>Attach to Form ET-01 (Expert Tester Profile)</div>
+</div>
+
+<div class="fields">
+  <div class="f s8"><span class="l">Expert tester (full name)</span><div class="v"></div></div>
+  <div class="f s4"><span class="l">Date of testing</span><div class="v"></div></div>
+  <div class="f s8"><span class="l">System address (URL) tested</span><div class="v"></div></div>
+  <div class="f s4"><span class="l">Time started – ended</span><div class="v"></div></div>
+  <div class="f s4"><span class="l">Device (laptop, phone, …)</span><div class="v"></div></div>
+  <div class="f s4"><span class="l">Operating system and version</span><div class="v"></div></div>
+  <div class="f s4"><span class="l">Browser and version</span><div class="v"></div></div>
+</div>
+
+<h2>Instructions</h2>
+<ol style="font-size:9.5pt">
+  <li>Complete <b>Form ET-01 (Expert Tester Profile)</b> first, so the adviser can verify your qualifications.</li>
+  <li><b>Part I:</b> perform each test scenario and check <b>Pass</b> or <b>Fail</b>. If it fails, describe what happened in
+      <i>Remarks</i> and log it in Part III. Scenarios marked <span style="color:#a3262e"><b>red</b></span> are
+      <i>negative tests</i>: the system <b>should refuse</b> the action, so a refusal counts as a Pass.</li>
+  <li><b>Part II:</b> rate the system on each quality criterion from 5 (Excellent) to 1 (Poor), based on what you observed.
+      Mark <b>N/A</b> only if you could not assess the item.</li>
+  <li><b>Part III:</b> log every defect or issue you find, even small ones.</li>
+  <li><b>Part IV:</b> give your overall assessment and recommendations, then sign.</li>
+</ol>
+
+<table style="font-size:9pt">
+  <thead><tr><th style="width:28%">Test account</th><th>Sign in with</th><th style="width:18%">Password</th></tr></thead>
+  <tr><td>Administrator</td><td><code>michael.saraza@gmail.com</code> (choose <b>Administrator</b>)</td><td><code>admin123</code></td></tr>
+  <tr><td>Tenant: Jose Ramirez, Unit 201</td><td><code>jose.ramirez@gmail.com</code> (choose <b>Tenant</b>)</td><td><code>tenant123</code></td></tr>
+  <tr><td>Other tenants</td><td>their email, shown under Renter Information</td><td><code>tenant123</code></td></tr>
+</table>
+<div class="note" style="font-size:9pt">The system holds demo data (2 buildings, 20 units, 17 tenants). Tests change this data, so
+perform them in the order listed. The proponents can reset the demo data at any time. The <b>TC</b> number under each
+scenario refers to the proponents' own test-case document.</div>
+
+<!-- ======================= PART I ======================= -->
+<h2>Part I. Functional testing checklist</h2>
+<div class="legend">
+  <span><span class="sw" style="background:var(--navy)"></span>Positive test: the action should succeed</span>
+  <span><span class="sw" style="background:#a3262e"></span>Negative test: the system should refuse</span>
+</div>
+
+<table class="tc">
+  <thead><tr>
+    <th style="width:8%">No.</th><th style="width:24%">Scenario</th><th>What to do → expected result</th>
+    <th class="c" style="width:5.5%">Pass</th><th class="c" style="width:5.5%">Fail</th><th style="width:16%">Remarks</th>
+  </tr></thead>
+
+  <tr class="sec"><td colspan="6">A. Login and access</td></tr>
+  <tr><td class="id">ET-01<small>TC01</small></td><td>Administrator login</td><td>Choose Administrator, sign in with the admin account → Dashboard opens showing "Micheal Saraza • Administrator".</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr><td class="id">ET-02<small>TC02</small></td><td>Tenant login</td><td>Choose Tenant, sign in as Jose Ramirez → Tenant Portal opens for Unit 201.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr class="neg"><td class="id">ET-03<small>TC03</small></td><td>Wrong password</td><td>Sign in with the admin email and a wrong password → "Wrong email or password." and no access.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr class="neg"><td class="id">ET-04<small>TC06</small></td><td>Tenant uses the Administrator option</td><td>Choose Administrator, enter a tenant's email and password → login refused.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr class="neg"><td class="id">ET-05<small>TC08</small></td><td>Admin page without signing in</td><td>Signed out, type <code>…/dashboard.html</code> in the address bar → sent to the login page, no data shown.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr class="neg"><td class="id">ET-06<small>TC09</small></td><td>Tenant opens the admin console</td><td>Signed in as a tenant, open <code>…/dashboard.html</code> → "You do not have access to this area."</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr><td class="id">ET-07<small>TC10</small></td><td>Logout</td><td>Click Log out and confirm, then press Back → login page; the dashboard can't be reopened.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+
+  <tr class="sec"><td colspan="6">B. Units and tenants (administrator)</td></tr>
+  <tr><td class="id">ET-08<small>TC11</small></td><td>Add a unit</td><td>Add unit J206 (Jacinto St., floor 2, Studio, rent 6,400) → "Unit J206 added", listed as Vacant.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr class="neg"><td class="id">ET-09<small>TC12</small></td><td>Duplicate unit number</td><td>Add a unit numbered 101 → "Unit 101 already exists."; no duplicate created.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr><td class="id">ET-10<small>TC14</small></td><td>Add a tenant with a portal login</td><td>Add a tenant to vacant unit J203 with "Create a tenant portal login" on → a temporary password is shown once and works for signing in.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr class="neg"><td class="id">ET-11<small>TC15</small></td><td>Tenant without a name</td><td>Add a tenant with the Full name empty → "Enter the tenant's full name"; nothing saved.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr><td class="id">ET-12<small>TC17</small></td><td>Edit tenant details</td><td>Edit Andres Santos's mobile number and save → "Andres Santos updated"; new number shown.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr><td class="id">ET-13<small>TC18</small></td><td>Move out a tenant</td><td>Move out Jenny Mendoza (J202) → J202 becomes Vacant; she can no longer sign in.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr><td class="id">ET-14<small>TC19</small></td><td>Reset a tenant's password</td><td>Reset Karla Lopez's portal password → new temporary password works; the old one doesn't.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+
+  <tr class="sec"><td colspan="6">C. Payments and balances</td></tr>
+  <tr><td class="id">ET-15<small>TC20</small></td><td>Record a payment</td><td>Record a Cash payment for Perla Villanueva (Unit 101) with the pre-filled amount → payment recorded; balance becomes 0.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr class="neg"><td class="id">ET-16<small>TC21</small></td><td>Payment of zero</td><td>Record a payment of 0 → "Enter an amount greater than zero"; nothing saved.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr class="neg"><td class="id">ET-17<small>TC47</small></td><td>Future-dated payment</td><td>Record a payment dated next year → "The payment date cannot be in the future."</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr><td class="id">ET-18<small>TC22</small></td><td>Tenant pays with proof</td><td>As Jose: Pay now → GCash, reference number, upload a screenshot → "waiting for the office to confirm"; charge shows Pending.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr class="neg"><td class="id">ET-19<small>TC23</small></td><td>GCash without a reference</td><td>Pay by GCash with the reference number empty → "Add the reference number from your receipt".</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr><td class="id">ET-20<small>TC24</small></td><td>Admin confirms a payment</td><td>Open Jose's pending payment, check the proof, Confirm → Cleared, charge Paid, Jose gets "Payment confirmed".</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr><td class="id">ET-21<small>TC25</small></td><td>Admin rejects a payment</td><td>Reject Ricardo Navarro's pending payment with a reason → Rejected; charge stays unpaid; tenant told why.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr><td class="id">ET-22<small>TC26</small></td><td>Print a receipt</td><td>Open a cleared payment → Print receipt → "Official receipt" with amount, tenant, method and reference.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+
+  <tr class="sec"><td colspan="6">D. Maintenance requests</td></tr>
+  <tr><td class="id">ET-23<small>TC27</small></td><td>Tenant request with a photo</td><td>As Jose: submit a request with a title, category and photo → "Request MR-#### sent"; admin sees it under New with the photo.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr class="neg"><td class="id">ET-24<small>TC28</small></td><td>Request without a title</td><td>Submit with "What is the problem?" empty → "Give the problem a short title".</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr><td class="id">ET-25<small>TC29</small></td><td>Assign and schedule a repair</td><td>Set a request to Scheduled, assign a crew member and visit date → tenant's tracker shows who and when.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr><td class="id">ET-26<small>TC30</small></td><td>Tenant rates a resolved repair</td><td>Open a resolved request and click the 4th star → "you rated this 4/5"; rating saved.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+
+  <tr class="sec"><td colspan="6">E. Reports, settings and dashboard</td></tr>
+  <tr><td class="id">ET-27<small>TC31</small></td><td>Printable report</td><td>Reports → Rent roll → Printable page → opens a printable list of all units with tenant, rent and balance.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr><td class="id">ET-28<small>TC32</small></td><td>CSV report</td><td>Reports → Balance aging → CSV → a .csv file downloads and opens in Excel.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr><td class="id">ET-29<small>TC33</small></td><td>Change a billing setting</td><td>Settings → Rent &amp; billing → grace period 5 days → Save, reload → still 5 days.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr class="neg"><td class="id">ET-30<small>TC34</small></td><td>Wrong current password</td><td>Settings → Security, enter a wrong current password → "Your current password is not correct."</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr><td class="id">ET-31<small>TC38</small></td><td>Dashboard updates by itself</td><td>Leave the admin Dashboard open; in another browser a tenant submits a payment → within 20 s the dashboard shows it, without reloading.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+
+  <tr class="sec"><td colspan="6">F. Mobile and responsive design</td></tr>
+  <tr><td class="id">ET-32<small>TC36</small></td><td>Menu on a phone</td><td>On a phone, tap the ☰ button, then a page link → menu slides in; the link opens the page and closes the menu.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr><td class="id">ET-33<small>TC37</small></td><td>Pages fit a phone screen</td><td>Open every admin and tenant page on a phone → no page scrolls sideways; wide tables scroll inside their card.</td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+
+  <tr class="sec"><td colspan="6">G. Additional scenarios chosen by the expert tester</td></tr>
+  <tr><td class="id">ET-34</td><td class="blank"></td><td></td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr><td class="id">ET-35</td><td class="blank"></td><td></td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr><td class="id">ET-36</td><td class="blank"></td><td></td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr><td class="id">ET-37</td><td class="blank"></td><td></td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+</table>
+
+<table style="width:60%;font-size:9pt" class="keep">
+  <thead><tr><th>Part I summary</th><th class="c" style="width:22%">Count</th></tr></thead>
+  <tr><td>Scenarios performed</td><td></td></tr>
+  <tr><td>Passed</td><td></td></tr>
+  <tr><td>Failed</td><td></td></tr>
+  <tr><td>Pass rate (Passed ÷ Performed × 100)</td><td class="c">%</td></tr>
+</table>
+
+<!-- ======================= PART II ======================= -->
+<h2 class="pb">Part II. Software quality evaluation (ISO/IEC 25010)</h2>
+<p style="font-size:9.5pt">Rate how well the system meets each criterion. Check one box per row.</p>
+<table style="font-size:8.8pt;margin-bottom:6px">
+  <thead><tr><th class="c">5</th><th class="c">4</th><th class="c">3</th><th class="c">2</th><th class="c">1</th><th class="c">N/A</th></tr></thead>
+  <tr><td class="c">Excellent</td><td class="c">Very good</td><td class="c">Good</td><td class="c">Fair</td><td class="c">Poor</td><td class="c">Not assessed</td></tr>
+</table>
+
+<table class="iso">
+  <thead><tr><th style="width:4%">#</th><th>Criterion</th><th class="c">5</th><th class="c">4</th><th class="c">3</th><th class="c">2</th><th class="c">1</th><th class="c">N/A</th></tr></thead>
+
+  <tr class="sec"><td colspan="8">1. Functional suitability</td></tr>
+  <tr><td>1</td><td><b>Completeness:</b> the system provides all the functions needed to manage units, tenants, payments, maintenance and reports.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+  <tr><td>2</td><td><b>Correctness:</b> balances, late fees, totals and reports are computed correctly.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+  <tr><td>3</td><td><b>Appropriateness:</b> the functions make the property manager's and tenants' tasks easier to complete.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+
+  <tr class="sec"><td colspan="8">2. Performance efficiency</td></tr>
+  <tr><td>4</td><td><b>Time behaviour:</b> pages, searches and reports load within an acceptable time.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+  <tr><td>5</td><td><b>Resource use:</b> the system runs smoothly in a normal browser without slowing the device down.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+  <tr><td>6</td><td><b>Capacity:</b> the system handles all units, tenants and months of records without slowing down.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+
+  <tr class="sec"><td colspan="8">3. Compatibility</td></tr>
+  <tr><td>7</td><td><b>Co-existence:</b> the system works properly while other applications and browser tabs are open.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+  <tr><td>8</td><td><b>Interoperability:</b> exported files (CSV, printable pages / PDF) open correctly in other software such as Excel and PDF readers.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+
+  <tr class="sec"><td colspan="8">4. Usability</td></tr>
+  <tr><td>9</td><td><b>Recognizability:</b> it is easy to tell what the system is for and what each page does.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+  <tr><td>10</td><td><b>Learnability:</b> a new user can learn the main functions without training.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+  <tr><td>11</td><td><b>Operability:</b> forms, buttons and menus are easy to use and control.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+  <tr><td>12</td><td><b>User error protection:</b> the system prevents or clearly explains invalid input (empty fields, duplicates, future dates).</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+  <tr><td>13</td><td><b>Interface aesthetics:</b> the interface is pleasing, consistent and well organized.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+  <tr><td>14</td><td><b>Accessibility:</b> the system is usable on phones, tablets and computers, with readable text and keyboard support.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+
+  <tr class="sec"><td colspan="8">5. Reliability</td></tr>
+  <tr><td>15</td><td><b>Maturity:</b> the system works without errors or crashes during normal use.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+  <tr><td>16</td><td><b>Availability:</b> the system is accessible and working whenever it is needed.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+  <tr><td>17</td><td><b>Fault tolerance:</b> the system keeps working and shows clear messages when something goes wrong (lost connection, invalid file).</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+  <tr><td>18</td><td><b>Recoverability:</b> data stays consistent after an interrupted action, and records can be exported or backed up.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+
+  <tr class="sec"><td colspan="8">6. Security</td></tr>
+  <tr><td>19</td><td><b>Confidentiality:</b> tenants see only their own records; admin pages can't be opened without an admin sign-in.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+  <tr><td>20</td><td><b>Integrity:</b> data can't be changed by unauthorized users.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+  <tr><td>21</td><td><b>Non-repudiation:</b> payments and important actions are recorded with who did them and when (receipts, activity log).</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+  <tr><td>22</td><td><b>Accountability:</b> each action can be traced to the account that performed it.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+  <tr><td>23</td><td><b>Authenticity:</b> users are properly verified (passwords, sign-in lockout after failed attempts, auto sign-out).</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+
+  <tr class="sec"><td colspan="8">7. Maintainability <span style="font-weight:normal">(may be rated from the source code and documentation; use N/A if not reviewed)</span></td></tr>
+  <tr><td>24</td><td><b>Modularity:</b> the system is divided into separate parts that can be changed independently.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+  <tr><td>25</td><td><b>Reusability:</b> shared components (interface, API functions) are reused instead of repeated.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+  <tr><td>26</td><td><b>Analysability:</b> problems are easy to diagnose (clear error messages, logs, health check).</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+  <tr><td>27</td><td><b>Modifiability:</b> settings (billing rules, buildings, payment methods) can be changed without changing code.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+  <tr><td>28</td><td><b>Testability:</b> each function has a clear expected result and can be tested.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+
+  <tr class="sec"><td colspan="8">8. Portability</td></tr>
+  <tr><td>29</td><td><b>Adaptability:</b> the system works across browsers (Chrome, Edge, Firefox, Safari) and screen sizes.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+  <tr><td>30</td><td><b>Installability:</b> the system can be installed or deployed by following the documentation (XAMPP or Vercel).</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+  <tr><td>31</td><td><b>Replaceability:</b> the system can replace the current manual or spreadsheet-based process.</td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td></tr>
+</table>
+
+<!-- ======================= PART III ======================= -->
+<h2 class="pb">Part III. Defect and issue log</h2>
+<p style="font-size:9.5pt"><b>Severity:</b> <b>Critical</b>, data loss, security hole, or the system can't be used ·
+<b>Major</b>, a main function fails with no workaround · <b>Minor</b>, it fails but has a workaround ·
+<b>Cosmetic</b>, wording, layout or appearance only.</p>
+<table style="font-size:8.8pt">
+  <thead><tr>
+    <th style="width:6%">No.</th><th style="width:16%">Page / scenario (ET-##)</th><th>What happened, and how to reproduce it</th>
+    <th style="width:13%">Severity</th><th style="width:13%">Screenshot / file</th>
+  </tr></thead>
+  <tr><td>1</td><td class="tall"></td><td></td><td></td><td></td></tr>
+  <tr><td>2</td><td class="tall"></td><td></td><td></td><td></td></tr>
+  <tr><td>3</td><td class="tall"></td><td></td><td></td><td></td></tr>
+  <tr><td>4</td><td class="tall"></td><td></td><td></td><td></td></tr>
+  <tr><td>5</td><td class="tall"></td><td></td><td></td><td></td></tr>
+  <tr><td>6</td><td class="tall"></td><td></td><td></td><td></td></tr>
+  <tr><td>7</td><td class="tall"></td><td></td><td></td><td></td></tr>
+  <tr><td>8</td><td class="tall"></td><td></td><td></td><td></td></tr>
+  <tr><td>9</td><td class="tall"></td><td></td><td></td><td></td></tr>
+  <tr><td>10</td><td class="tall"></td><td></td><td></td><td></td></tr>
+  <tr><td>11</td><td class="tall"></td><td></td><td></td><td></td></tr>
+  <tr><td>12</td><td class="tall"></td><td></td><td></td><td></td></tr>
+</table>
+<p class="muted" style="font-size:8.5pt">Use additional sheets if needed.</p>
+
+<!-- ======================= PART IV ======================= -->
+<h2 class="pb">Part IV. Overall assessment</h2>
+<h3>Strengths of the system</h3>
+<div class="lines"><div></div><div></div><div></div></div>
+<h3>Recommendations for improvement</h3>
+<div class="lines"><div></div><div></div><div></div><div></div></div>
+
+<div class="keep">
+<h3>Verdict</h3>
+<div class="checks" style="flex-direction:column;gap:4px">
+  <span><span class="box"></span><b>Accepted:</b> the system is ready for use as it is.</span>
+  <span><span class="box"></span><b>Accepted with minor revisions:</b> ready once the issues in Part III are fixed.</span>
+  <span><span class="box"></span><b>Major revisions required:</b> must be fixed and tested again before acceptance.</span>
+</div>
+
+<p style="margin-top:10px">I performed the tests above personally on the date stated, and the results and ratings reflect
+my independent professional judgment.</p>
+
+<div class="sign">
+  <div><div style="height:30px"></div><div class="line">Signature over printed name of the expert tester</div></div>
+  <div><div style="height:30px"></div><div class="line">Position and company</div></div>
+</div>
+<div class="sign" style="margin-top:20px">
+  <div><div style="height:22px"></div><div class="line">Date</div></div>
+  <div><div style="height:22px"></div><div class="line">Noted by: adviser / professor</div></div>
+</div>
+</div>
+
+<!-- ======================= PART V ======================= -->
+<h2 class="pb">Part V. Summary of results <span style="font-weight:normal">(for the proponents to complete)</span></h2>
+<p style="font-size:9.5pt">For each characteristic, average the ratings of its criteria, leaving out N/A items:
+<b>mean = sum of ratings ÷ number of rated items</b>. With several expert testers, use the weighted mean of all their
+ratings: <b>x̄ = Σ(f·x) ÷ N</b>, where <i>f</i> is how many testers gave rating <i>x</i> and <i>N</i> is the total number of
+ratings.</p>
+
+<div style="display:grid;grid-template-columns:1.6fr 1fr;gap:14px;align-items:start">
+<table>
+  <thead><tr><th>Characteristic</th><th class="c" style="width:18%">Items</th><th class="c" style="width:18%">Mean</th><th style="width:28%">Interpretation</th></tr></thead>
+  <tr><td>1. Functional suitability</td><td class="c">1–3</td><td></td><td></td></tr>
+  <tr><td>2. Performance efficiency</td><td class="c">4–6</td><td></td><td></td></tr>
+  <tr><td>3. Compatibility</td><td class="c">7–8</td><td></td><td></td></tr>
+  <tr><td>4. Usability</td><td class="c">9–14</td><td></td><td></td></tr>
+  <tr><td>5. Reliability</td><td class="c">15–18</td><td></td><td></td></tr>
+  <tr><td>6. Security</td><td class="c">19–23</td><td></td><td></td></tr>
+  <tr><td>7. Maintainability</td><td class="c">24–28</td><td></td><td></td></tr>
+  <tr><td>8. Portability</td><td class="c">29–31</td><td></td><td></td></tr>
+  <tr class="sec"><td>Overall mean</td><td class="c">1–31</td><td></td><td></td></tr>
+</table>
+<table>
+  <thead><tr><th class="c">Mean range</th><th>Interpretation</th></tr></thead>
+  <tr><td class="c">4.21 – 5.00</td><td>Excellent</td></tr>
+  <tr><td class="c">3.41 – 4.20</td><td>Very good</td></tr>
+  <tr><td class="c">2.61 – 3.40</td><td>Good</td></tr>
+  <tr><td class="c">1.81 – 2.60</td><td>Fair</td></tr>
+  <tr><td class="c">1.00 – 1.80</td><td>Poor</td></tr>
+</table>
+</div>
+
+<h3>Functional testing (Part I)</h3>
+<table style="width:70%">
+  <thead><tr><th>Expert tester</th><th class="c" style="width:18%">Performed</th><th class="c" style="width:16%">Passed</th><th class="c" style="width:18%">Pass rate</th></tr></thead>
+  <tr><td class="blank"></td><td></td><td></td><td class="c">%</td></tr>
+  <tr><td class="blank"></td><td></td><td></td><td class="c">%</td></tr>
+  <tr><td class="blank"></td><td></td><td></td><td class="c">%</td></tr>
+</table>
+
+<h3>Defects raised and how they were resolved</h3>
+<table style="font-size:8.8pt">
+  <thead><tr><th style="width:12%">Defect no.</th><th style="width:13%">Severity</th><th>Fix applied</th><th class="c" style="width:14%">Date fixed</th><th class="c" style="width:14%">Re-tested</th></tr></thead>
+  <tr><td class="blank"></td><td></td><td></td><td></td><td class="c"><span class="box"></span> Pass</td></tr>
+  <tr><td class="blank"></td><td></td><td></td><td></td><td class="c"><span class="box"></span> Pass</td></tr>
+  <tr><td class="blank"></td><td></td><td></td><td></td><td class="c"><span class="box"></span> Pass</td></tr>
+  <tr><td class="blank"></td><td></td><td></td><td></td><td class="c"><span class="box"></span> Pass</td></tr>
+</table>
+
+</body>
+</html>

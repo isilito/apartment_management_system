@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Expert Assessment Form</title>
+<link rel="stylesheet" href="print.css">
+<style>
+  table.mod td, table.mod th { font-size: 8.8pt; padding: 3px 5px; }
+  table.mod td.r { width: 5.2%; text-align: center; }
+  table.mod td.m b { color: var(--navy); }
+  table.mod td.m small { display: block; color: var(--muted); }
+  td.blank { height: 26px; }
+  td.tall { height: 40px; }
+  .cert { border: 3px double var(--navy); padding: 26px 34px 22px; margin-top: 4px; }
+  .cert h1 { text-align: center; color: var(--navy); font-size: 20pt; letter-spacing: .06em; margin: 4px 0 2px; }
+  .cert .tag { text-align: center; color: var(--muted); font-size: 9pt; margin-bottom: 18px; }
+  .cert p { font-size: 11pt; line-height: 1.9; text-align: left; margin: 0 0 12px; }
+  .u { display: inline-block; border-bottom: 1px solid #44505e; min-width: 150px; height: 1.25em; vertical-align: bottom; }
+  .u.w { min-width: 260px; } .u.s { min-width: 70px; }
+  .seal { width: 1.3in; height: 1.3in; border: 1px dashed #8796a8; border-radius: 50%; display: flex;
+          align-items: center; justify-content: center; text-align: center; font-size: 7.5pt; color: var(--muted); }
+</style>
+<style>@page { @bottom-center { content: "Saraza's Apartment — Expert Assessment Form (ET-03) · Page " counter(page) " of " counter(pages); } }</style>
+</head>
+<body>
+
+<div class="head">
+  <div>
+    <h1>Expert Assessment Form</h1>
+    <div class="sub">Saraza's Apartment — Property Management System · Expert's findings and recommendation</div>
+  </div>
+  <div class="meta">Form ET-03<br>Completed after Form ET-02 (Evaluation)</div>
+</div>
+
+<div class="fields">
+  <div class="f s8"><span class="l">Expert (full name)</span><div class="v"></div></div>
+  <div class="f s4"><span class="l">ET-01 control no.</span><div class="v"></div></div>
+  <div class="f s8"><span class="l">Position and company</span><div class="v"></div></div>
+  <div class="f s4"><span class="l">Date of assessment</span><div class="v"></div></div>
+</div>
+
+<div class="note" style="font-size:9pt">This form records your <b>professional judgment</b> of the system as a whole, based on the
+tests and ratings in Form ET-02. Rate each module, say whether the project meets its objectives, list the revisions you
+require, and give your final recommendation. The last page is a certificate for the proponents' documentation.</div>
+
+<!-- ======================= A ======================= -->
+<h2>Part A. Assessment by module</h2>
+<p style="font-size:9pt;margin-bottom:2px"><b>5</b> Excellent · <b>4</b> Very good · <b>3</b> Good · <b>2</b> Fair · <b>1</b> Poor</p>
+<table class="mod">
+  <thead><tr><th style="width:36%">Module (what to consider)</th><th class="c">5</th><th class="c">4</th><th class="c">3</th><th class="c">2</th><th class="c">1</th><th>Findings and comments</th></tr></thead>
+  <tr><td class="m"><b>1. Login and access control</b><small>Sign-in for admins and tenants, wrong-password handling, lockout, logout, auto sign-out</small></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td></td></tr>
+  <tr><td class="m"><b>2. Dashboard</b><small>Occupancy, income, balances and repairs shown accurately; updates without reloading</small></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td></td></tr>
+  <tr><td class="m"><b>3. Unit and tenant management</b><small>Adding and editing units and tenants, portal logins, move-out, password reset</small></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td></td></tr>
+  <tr><td class="m"><b>4. Payments and balances</b><small>Recording, confirming and rejecting payments; late fees; credits; receipts</small></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td></td></tr>
+  <tr><td class="m"><b>5. Maintenance requests</b><small>Submitting with photos, assigning crew, scheduling, status tracking, rating</small></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td></td></tr>
+  <tr><td class="m"><b>6. Reports and analytics</b><small>Rent roll, collections, aging, income statement; printable and CSV output</small></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td></td></tr>
+  <tr><td class="m"><b>7. Settings and administration</b><small>Billing rules, buildings, payment methods, staff accounts, activity log, export</small></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td></td></tr>
+  <tr><td class="m"><b>8. Tenant portal</b><small>Balance and history, paying with proof, requests, lease documents, messages</small></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td></td></tr>
+  <tr><td class="m"><b>9. Interface and mobile use</b><small>Layout, consistency, readability, phone and tablet support</small></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td></td></tr>
+  <tr><td class="m"><b>10. Security and data protection</b><small>Role separation, tenant data privacy, password storage, protected uploads</small></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td></td></tr>
+  <tr><td class="m"><b>11. Deployment and documentation</b><small>Setup tutorial, online deployment (Vercel), user guidance and help page</small></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td class="r"><span class="box"></span></td><td></td></tr>
+</table>
+
+<!-- ======================= B ======================= -->
+<h2>Part B. Attainment of the project objectives</h2>
+<p style="font-size:9pt" class="muted">Proponents: write your study's specific objectives below before giving this form to the expert.</p>
+<table style="font-size:8.8pt">
+  <thead><tr><th style="width:4%">#</th><th>Objective</th><th class="c" style="width:7%">Met</th><th class="c" style="width:9%">Partly met</th><th class="c" style="width:8%">Not met</th><th style="width:24%">Basis / remarks</th></tr></thead>
+  <tr><td>1</td><td class="tall"></td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr><td>2</td><td class="tall"></td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr><td>3</td><td class="tall"></td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr><td>4</td><td class="tall"></td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+  <tr><td>5</td><td class="tall"></td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td class="c"><span class="box"></span></td><td></td></tr>
+</table>
+
+<!-- ======================= C ======================= -->
+<h2>Part C. Required revisions</h2>
+<p style="font-size:9pt"><b>Priority:</b> <b>A</b>, must be fixed before acceptance · <b>B</b>, should be fixed ·
+<b>C</b>, suggestion for future versions. The proponents fill in the last two columns; the expert initials each fix after
+checking it.</p>
+<table style="font-size:8.8pt">
+  <thead><tr><th style="width:4%">#</th><th>Revision required (expert)</th><th class="c" style="width:8%">Priority</th><th style="width:28%">Action taken (proponents)</th><th class="c" style="width:13%">Checked by expert (initials, date)</th></tr></thead>
+  <tr><td>1</td><td class="tall"></td><td></td><td></td><td></td></tr>
+  <tr><td>2</td><td class="tall"></td><td></td><td></td><td></td></tr>
+  <tr><td>3</td><td class="tall"></td><td></td><td></td><td></td></tr>
+  <tr><td>4</td><td class="tall"></td><td></td><td></td><td></td></tr>
+  <tr><td>5</td><td class="tall"></td><td></td><td></td><td></td></tr>
+  <tr><td>6</td><td class="tall"></td><td></td><td></td><td></td></tr>
+</table>
+
+<!-- ======================= D ======================= -->
+<h2 class="pb">Part D. Overall assessment and recommendation</h2>
+<div class="fields">
+  <div class="f s6"><span class="l">Functional tests passed (from ET-02, Part I)</span><div class="v"></div></div>
+  <div class="f s6"><span class="l">Overall ISO/IEC 25010 mean and interpretation (ET-02, Part V)</span><div class="v"></div></div>
+</div>
+<h3>Expert's overall assessment</h3>
+<div class="lines"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+
+<div class="keep">
+<h3>Recommendation</h3>
+<div class="checks" style="flex-direction:column;gap:4px">
+  <span><span class="box"></span><b>Recommended for implementation:</b> the system is ready for actual use.</span>
+  <span><span class="box"></span><b>Recommended after revisions:</b> ready once the Priority A revisions in Part C are completed and checked.</span>
+  <span><span class="box"></span><b>Not yet recommended:</b> major revisions and a new evaluation are required.</span>
+</div>
+<div class="sign">
+  <div><div style="height:30px"></div><div class="line">Signature over printed name of the expert</div></div>
+  <div><div style="height:30px"></div><div class="line">Date</div></div>
+</div>
+</div>
+
+<!-- ======================= CERTIFICATE ======================= -->
+<div class="pb"></div>
+<div class="cert">
+  <div class="tag">Saraza's Apartment — Property Management System</div>
+  <h1>CERTIFICATE OF EXPERT EVALUATION</h1>
+  <div class="tag" style="margin-bottom:26px">Issued in support of Forms ET-01, ET-02 and ET-03</div>
+
+  <p>This is to certify that I, <span class="u w"></span>, <span class="u"></span> (position) of
+  <span class="u w"></span> (company / organization), have personally tested and evaluated the system entitled
+  <b>"Saraza's Apartment — Property Management System"</b>, developed by
+  <span class="u w"></span> (proponents) of <span class="u w"></span> (institution), on
+  <span class="u"></span> (date).</p>
+
+  <p>The evaluation covered functional testing of <span class="u s"></span> scenarios, of which
+  <span class="u s"></span> passed, and a software quality assessment based on ISO/IEC 25010, with an overall mean
+  rating of <span class="u s"></span>, interpreted as <span class="u"></span>.</p>
+
+  <p>Based on this evaluation, I find the system:
+  <span style="white-space:nowrap"><span class="box"></span>recommended for implementation</span> &nbsp;
+  <span style="white-space:nowrap"><span class="box"></span>recommended after the revisions listed in Form ET-03 are completed.</span></p>
+
+  <p>I have no personal or financial interest in the outcome of this study. This certification is issued upon the request
+  of the proponents for <span class="u w"></span> (purpose, e.g. capstone project requirement) and for no other
+  purpose.</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1.3in;gap:24px;align-items:end;margin-top:34px">
+    <div>
+      <div style="height:34px"></div>
+      <div class="line" style="border-top:1px solid #44505e;padding-top:3px;text-align:center;font-size:9pt;color:var(--muted)">
+        Signature over printed name of the expert</div>
+      <div class="fields" style="margin-top:10px">
+        <div class="f s6"><span class="l">Position</span><div class="v"></div></div>
+        <div class="f s6"><span class="l">Company / organization</span><div class="v"></div></div>
+        <div class="f s6"><span class="l">Contact number / email</span><div class="v"></div></div>
+        <div class="f s6"><span class="l">Date issued</span><div class="v"></div></div>
+      </div>
+    </div>
+    <div class="seal">Company seal<br>or stamp<br>(if available)</div>
+  </div>
+
+  <div class="sign" style="margin-top:30px">
+    <div><div style="height:26px"></div><div class="line">Noted by: adviser / professor</div></div>
+    <div><div style="height:26px"></div><div class="line">Date</div></div>
+  </div>
+</div>
+
+</body>
+</html>

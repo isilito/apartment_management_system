@@ -1,0 +1,22 @@
+# Local secrets (copy .env.example and fill it in; never commit the real one)
+.env
+.env.*
+!.env.example
+
+# Vercel CLI link folder
+.vercel/
+
+# Files uploaded while running on XAMPP (keep the folder's .htaccess)
+api/uploads/*
+!api/uploads/.htaccess
+
+# OS / editor clutter
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.log
+
+# Local secrets for XAMPP (Gemini API key, DB password)
+api/config.local.php

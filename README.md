@@ -4,6 +4,11 @@ Admin console + tenant portal for a 20-unit apartment, backed by **PHP 8 + MySQL
 Runs on a stock **XAMPP** install, or on **Vercel** with a hosted MySQL database.
 No build step, no Composer, no npm.
 
+> **Setting up the database?** Follow the step-by-step guide in
+> [`docs/DATABASE_SETUP.md`](docs/DATABASE_SETUP.md). It covers XAMPP, TiDB Cloud, and Aiven,
+> with a health check and troubleshooting. A printable PDF version is in
+> [`docs/expert-testing/`](docs/expert-testing/), together with the expert testing forms.
+
 ## Setup (XAMPP, about 5 minutes)
 
 1. **Copy the folder** into `C:\xampp\htdocs\`, e.g. `C:\xampp\htdocs\saraza\`.
@@ -11,7 +16,8 @@ No build step, no Composer, no npm.
 3. **Import the database.** Open <http://localhost/phpmyadmin> → **Import** → choose
    `database/saraza_apartment.sql` → **Go**. It creates the `saraza_apartment` database with
    all tables and demo data. (Re-importing resets everything back to the demo data.)
-4. Open <http://localhost/saraza/> and sign in.
+4. Open <http://localhost/saraza/api/health.php>. It should say `"ok":true`.
+5. Open <http://localhost/saraza/> and sign in.
 
 If your MySQL user or password is not the XAMPP default (`root`, empty password), edit
 `api/config.php`.
@@ -22,11 +28,12 @@ If your MySQL user or password is not the XAMPP default (`root`, empty password)
 ## Deploy to Vercel
 
 Vercel serves the HTML/CSS/JS as static files and runs each `api/*.php` file as a serverless
-function through the community [`vercel-php`](https://github.com/juicyfx/vercel-php) runtime
+function through the community [`vercel-php`](https://github.com/vercel-community/php) runtime
 (PHP 8.5, set in `vercel.json`). Vercel has no database of its own, so you need a hosted MySQL.
+[`docs/DATABASE_SETUP.md`](docs/DATABASE_SETUP.md) walks through steps 1, 2, and 4 in detail.
 
 1. **Create a MySQL database** with any hosted MySQL-compatible provider, for example
-   TiDB Cloud Serverless or Aiven for MySQL (both have free tiers). Pick a region near
+   TiDB Cloud Starter (formerly Serverless) or Aiven for MySQL (both have free tiers). Pick a region near
    Singapore if you can; `vercel.json` runs the functions in `sin1` (Singapore). If your
    database is elsewhere, change `regions` to the closest
    [Vercel region](https://vercel.com/docs/edge-network/regions).
@@ -49,8 +56,12 @@ function through the community [`vercel-php`](https://github.com/juicyfx/vercel-
    | `SARAZA_DB_PASS` | database password |
    | `SARAZA_DB_SSL` | `1`. Hosted databases require TLS |
    | `SARAZA_DB_SSL_CA_PEM` | *only if the provider uses its own CA (e.g. Aiven)*: paste the CA certificate |
+   | `GEMINI_API_KEY` | *optional*: turns on the AI assistant (see below) |
 
-5. **Deploy**, open the site, sign in, and **change every demo password** (Settings → Security).
+   `.env.example` lists the same variables.
+5. **Deploy**, then open `https://<your-project>.vercel.app/api/health.php`. It should say
+   `"ok":true`; if not, it says what to fix. Then sign in and **change every demo password**
+   (Settings → Security).
 
 If the build fails with a Node.js version error, set Project → Settings → General →
 Node.js Version to **22.x**.
@@ -61,8 +72,38 @@ How it differs from XAMPP (all automatic when Vercel's `VERCEL=1` variable is pr
   request may run on a different server and the filesystem is read-only.
 - **Uploads are limited to 4 MB per file and 4.4 MB per request.** Vercel rejects request
   bodies over 4.5 MB. The tenant portal checks this before sending.
-- `.vercelignore` keeps `database/`, this README, and the design files off the site, and
+- `.vercelignore` keeps `database/`, `docs/`, and this README off the site, and
   `api/php.ini` holds the PHP settings (XAMPP ignores it).
+
+## AI assistant (Gemini)
+
+The **Saraza Assistant** chat (bottom-right button in the admin console) answers questions about
+the live records, such as "who is late on rent?", "ilang unit ang bakante?", or "summarize this
+month's collections". It works in two modes:
+
+- **Without a key** it answers the common questions (overdue tenants, vacancies, pending payments,
+  repairs, collections, leases) from built-in rules.
+- **With a Google Gemini API key** it understands free-form questions and follow-ups in English,
+  Tagalog, or Taglish. The chat header then reads "AI assistant · powered by Gemini".
+
+**Setup**
+
+1. Create a free API key at <https://aistudio.google.com/apikey>.
+2. Give it to the app. Never paste the key into the code or commit it to Git.
+   - **XAMPP:** copy `api/config.local.example.php` to `api/config.local.php` and paste the key into
+     `'gemini_api_key' => '...'`. That file is git-ignored and blocked from the web.
+   - **Vercel:** add the environment variable `GEMINI_API_KEY`, then redeploy.
+3. Open the chat. If the key is wrong or Gemini is unavailable, the assistant says why and gives
+   its built-in answer instead.
+
+The model is `gemini-3.5-flash-lite` by default; set `GEMINI_MODEL` (or `gemini_model` in
+`config.local.php`) to use another. The key stays on the server: the browser calls
+`api/assistant.php`, which is admin-only and limited to 20 questions per minute.
+
+**Privacy:** each question sends Google a snapshot of the records the admin can see: unit, tenant
+name, balance, payment and repair details (no emails or phone numbers). Mention this in your data
+privacy notice, and use a paid Gemini plan for real tenant data, because Google may use free-tier
+prompts to improve its products.
 
 ## Logins
 
@@ -107,7 +148,7 @@ password shown on screen. Change the admin password under **Settings → Securit
 - Settings: property profile, buildings, house rules, billing rules, payment-method details,
   staff & crew (extra admin logins), notification preferences, password, auto sign-out,
   activity log, JSON export, CSV tenant import, delete-all
-- Bell notifications, global search, built-in assistant
+- Bell notifications, global search, AI assistant (Gemini, with built-in answers as a fallback)
 
 **Tenant portal** (`tenant-portal/`)
 - Balance and due dates, payment history, printable receipts and statement of account
@@ -137,6 +178,9 @@ api/                       PHP backend (JSON)
   receipt.php              Printable receipt
   document.php             Lease, house rules, deposit receipt, statement
   file.php                 Serves uploads after a permission check
+  health.php               Database check: connection, tables, admin account (no login needed)
+  assistant.php            AI assistant: forwards questions to Google Gemini (admin only)
+  config.local.example.php Template for local secrets such as the Gemini key (copy to config.local.php)
   uploads/                 Proofs of payment and request photos (direct access blocked)
 
 database/saraza_apartment.sql   Schema + demo data
@@ -144,6 +188,12 @@ database/cloud-tables.sql       Adds the Vercel tables to an older database
 
 vercel.json                Vercel functions (PHP runtime), region, headers
 .vercelignore              Files kept off the Vercel deployment
+.env.example               The environment variables Vercel needs
+
+docs/DATABASE_SETUP.md     Database setup tutorial (XAMPP, TiDB Cloud, Aiven)
+docs/expert-testing/       Printable kit: setup tutorial PDF, expert tester profile and
+                           evaluation and assessment forms (HTML sources and build script in source/)
+docs/                      Test cases (PDF) and the dashboard design mock-up
 
 assets/js/api.js           fetch wrapper (sends you to login when the session ends)
 assets/js/data.js          Loads api/admin.php into window.DB

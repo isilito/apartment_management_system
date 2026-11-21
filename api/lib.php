@@ -110,7 +110,8 @@ final class DbSessionHandler implements SessionHandlerInterface
     }
 }
 
-if (PHP_SAPI !== 'cli') {
+/* endpoints that need no login (health.php) define SARAZA_NO_SESSION before including this file */
+if (PHP_SAPI !== 'cli' && !defined('SARAZA_NO_SESSION')) {
     if ($CONFIG['session_store'] === 'db') {
         ini_set('session.gc_probability', '1');
         ini_set('session.gc_divisor', '100');

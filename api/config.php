@@ -21,7 +21,7 @@ return (function (): array {
        fresh server, so sessions and uploads have to live in the database. */
     $onVercel = getenv('VERCEL') === '1';
 
-    return [
+    $cfg = [
         'db_host'    => $env('SARAZA_DB_HOST', '127.0.0.1'),
         'db_port'    => (int) $env('SARAZA_DB_PORT', 3306),
         'db_name'    => $env('SARAZA_DB_NAME', 'saraza_apartment'),
@@ -51,6 +51,21 @@ return (function (): array {
            (all attached files together) has to stay under that. */
         'max_upload_mb'  => (float) $env('SARAZA_MAX_UPLOAD_MB', $onVercel ? 4 : 25),
         'max_request_mb' => (float) $env('SARAZA_MAX_REQUEST_MB', $onVercel ? 4.4 : 120),
+
+        /* AI assistant (Google Gemini). Without a key the assistant still
+           answers the common questions from built-in rules. Get a key at
+           https://aistudio.google.com/apikey — never commit it to Git:
+           on Vercel set GEMINI_API_KEY; on XAMPP put it in config.local.php. */
+        'gemini_api_key' => $env('GEMINI_API_KEY', ''),
+        'gemini_model'   => $env('GEMINI_MODEL', 'gemini-3.5-flash-lite'),
     ];
+
+    /* Local overrides that stay out of Git (see config.local.example.php). */
+    $local = __DIR__ . '/config.local.php';
+    if (is_file($local)) {
+        $extra = require $local;
+        if (is_array($extra)) $cfg = array_merge($cfg, array_filter($extra, fn($v) => $v !== '' && $v !== null));
+    }
+    return $cfg;
 
 })();

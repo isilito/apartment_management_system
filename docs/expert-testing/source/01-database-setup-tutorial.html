@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Database Setup Tutorial</title>
+<link rel="stylesheet" href="print.css">
+<style>
+  .toc { columns: 2; font-size: 9.5pt; }
+  .step { display: flex; gap: 8px; margin: 6px 0; break-inside: avoid; }
+  .step .n { flex: none; width: 20px; height: 20px; border-radius: 50%; background: var(--blue); color: #fff;
+             font: bold 9pt/20px "Segoe UI", Arial, sans-serif; text-align: center; }
+  .step .b { flex: 1; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+</style>
+<style>@page { @bottom-center { content: "Saraza's Apartment — Database Setup Tutorial · Page " counter(page) " of " counter(pages); } }</style>
+</head>
+<body>
+
+<div class="head">
+  <div>
+    <h1 class="doctitle">Database Setup Tutorial</h1>
+    <div class="sub">Saraza's Apartment — Property Management System</div>
+  </div>
+  <div class="meta">Version 1.0 · November 2026<br>For XAMPP (local) and Vercel (online)</div>
+</div>
+
+<p>The system keeps all of its records in one MySQL/MariaDB database named <code>saraza_apartment</code>.
+Choose the part that matches what you need:</p>
+
+<table>
+  <thead><tr><th style="width:42%">You want to…</th><th>Follow</th><th style="width:16%">Time</th></tr></thead>
+  <tr><td>Run the system on your own computer</td><td><b>Part A</b>: Local database (XAMPP)</td><td>about 5 minutes</td></tr>
+  <tr><td>Put the system online with Vercel</td><td><b>Part B</b>: Cloud database for Vercel</td><td>about 15 minutes</td></tr>
+</table>
+
+<p>Both parts use the same file from the project folder: <b><code>database/saraza_apartment.sql</code></b>. It creates the
+database, all 20 tables, and the demo data (20 units, 17 tenants, payments, maintenance requests, and so on).</p>
+
+<div class="warn"><b>Importing the file deletes and recreates the <code>saraza_apartment</code> database.</b>
+Re-import it any time you want to reset to the demo data, but never on a database with real records you want to keep.
+See <i>Back up before re-importing</i> at the end of this guide.</div>
+
+<h3>Demo accounts (after import)</h3>
+<table>
+  <thead><tr><th>Role</th><th>Email</th><th>Password</th></tr></thead>
+  <tr><td>Administrator (Micheal Saraza)</td><td><code>michael.saraza@gmail.com</code></td><td><code>admin123</code></td></tr>
+  <tr><td>Tenant (Jose Ramirez, Unit 201)</td><td><code>jose.ramirez@gmail.com</code></td><td><code>tenant123</code></td></tr>
+  <tr><td>Any other demo tenant</td><td>their email (see Renter Information)</td><td><code>tenant123</code></td></tr>
+</table>
+
+<!-- ======================= PART A ======================= -->
+<h2>Part A: Local database (XAMPP)</h2>
+
+<div class="step"><div class="n">1</div><div class="b"><b>Start MySQL.</b> Open the <b>XAMPP Control Panel</b> and click
+<b>Start</b> next to <b>Apache</b> and <b>MySQL</b>. Both rows should turn green.</div></div>
+
+<div class="step"><div class="n">2</div><div class="b"><b>Import the SQL file.</b>
+<p style="margin-top:4px"><b>Option 1: phpMyAdmin (easiest)</b></p>
+<ol>
+  <li>Go to <code>http://localhost/phpmyadmin</code>.</li>
+  <li>Click the <b>Import</b> tab at the top. Don't select a database first; the file creates its own.</li>
+  <li>Under <i>File to import</i>, click <b>Choose File</b> and pick <code>database/saraza_apartment.sql</code>.</li>
+  <li>Leave the other options at their defaults and click <b>Import</b> (or <b>Go</b>) at the bottom.</li>
+  <li>You should see <i>"Import has been successfully finished"</i>, and <code>saraza_apartment</code> appears in the left
+      sidebar with 20 tables.</li>
+</ol>
+<p><b>Option 2: command line.</b> In PowerShell or Command Prompt, from the project folder:</p>
+<pre>C:\xampp\mysql\bin\mysql.exe -u root -e "source database/saraza_apartment.sql"</pre>
+<p class="muted">Add <code>-p</code> if your MySQL root user has a password.</p>
+</div></div>
+
+<div class="step"><div class="n">3</div><div class="b"><b>Check the connection settings.</b> The defaults in
+<code>api/config.php</code> match a fresh XAMPP install:
+<pre>'db_host' =&gt; '127.0.0.1',  'db_port' =&gt; 3306,
+'db_name' =&gt; 'saraza_apartment',
+'db_user' =&gt; 'root',       'db_pass' =&gt; '',</pre>
+If you changed your MySQL password or port, edit those values.</div></div>
+
+<div class="step"><div class="n">4</div><div class="b"><b>Test it.</b> Open
+<code>http://localhost/saraza/api/health.php</code> (replace <code>saraza</code> with your folder name in
+<code>htdocs</code>). You should see:
+<pre>{"ok":true,"database":"connected","tables":20,"session_store":"files","upload_store":"disk"}</pre>
+Then open <code>http://localhost/saraza/</code> and sign in as the administrator. If something is wrong, the health check
+says what. See <i>Troubleshooting</i>.</div></div>
+
+<!-- ======================= PART B ======================= -->
+<h2>Part B: Cloud database for Vercel</h2>
+
+<p>Vercel runs the PHP code but <b>has no database of its own</b>, so you need a hosted MySQL. Any MySQL-compatible host that
+accepts encrypted (TLS) connections from the internet works. Two hosts with free tiers are covered here:</p>
+
+<table>
+  <thead><tr><th></th><th>TiDB Cloud Starter (recommended)</th><th>Aiven for MySQL</th></tr></thead>
+  <tr><td><b>Free tier</b></td><td>Yes, no card needed</td><td>Yes (one free service)</td></tr>
+  <tr><td><b>Singapore region</b></td><td>Yes (AWS <code>ap-southeast-1</code>)</td><td>Free plan has limited regions</td></tr>
+  <tr><td><b>Port</b></td><td><code>4000</code></td><td>Random, e.g. <code>12691</code></td></tr>
+  <tr><td><b>Needs a CA certificate</b></td><td>No</td><td><b>Yes</b> (<code>SARAZA_DB_SSL_CA_PEM</code>)</td></tr>
+</table>
+
+<div class="note">Vercel runs this project's functions in Singapore (<code>"regions": ["sin1"]</code> in
+<code>vercel.json</code>). A database in the same region keeps pages fast. If yours is elsewhere, change
+<code>regions</code> to the nearest Vercel region.</div>
+
+<h3>B1. Create the database server</h3>
+
+<div class="two">
+<div class="keep">
+<p><b>Option 1: TiDB Cloud Starter</b></p>
+<ol>
+  <li>Sign up at <code>https://tidbcloud.com</code>.</li>
+  <li>Click <b>Create Cluster</b> and choose <b>Starter</b> (older screens call it <b>Serverless</b>).</li>
+  <li>Provider <b>AWS</b>, region <b>Singapore (ap-southeast-1)</b>. Name it, e.g. <code>saraza</code>, and click
+      <b>Create</b>. It is ready in under a minute.</li>
+  <li>Open the cluster and click <b>Connect</b>. Choose connection type <b>Public</b>, connect with <b>General</b>.</li>
+  <li>Click <b>Generate Password</b> and <b>copy it now</b>. It is shown only once.</li>
+  <li>Note the host, port, username and password (see the table below).</li>
+</ol>
+<p class="muted">TiDB's certificate is publicly trusted, so you don't need a CA file.</p>
+</div>
+<div class="keep">
+<p><b>Option 2: Aiven for MySQL</b></p>
+<ol>
+  <li>Sign up at <code>https://console.aiven.io</code>.</li>
+  <li><b>Create service</b> → <b>MySQL</b> → plan <b>Free</b> → pick the region closest to Singapore that the free plan
+      offers → <b>Create service</b>.</li>
+  <li>Wait until the status says <b>Running</b> (a few minutes).</li>
+  <li>On the <b>Overview</b> page, under <i>Connection information</i>, note the host, port, user
+      (<code>avnadmin</code>) and password.</li>
+  <li>Next to <b>CA certificate</b>, click <b>Download</b> and save it as <code>ca.pem</code>.</li>
+  <li>Leave <i>Allowed IP addresses</i> at <code>0.0.0.0/0</code>. Vercel doesn't use fixed IP addresses.</li>
+</ol>
+</div>
+</div>
+
+<table>
+  <thead><tr><th style="width:18%">Value</th><th>TiDB Cloud example</th><th>Aiven example</th><th style="width:22%">Goes into</th></tr></thead>
+  <tr><td>Host</td><td><code>gateway01.ap-southeast-1.prod.aws.tidbcloud.com</code></td><td><code>mysql-saraza-yourname.aivencloud.com</code></td><td><code>SARAZA_DB_HOST</code></td></tr>
+  <tr><td>Port</td><td><code>4000</code></td><td><code>12691</code></td><td><code>SARAZA_DB_PORT</code></td></tr>
+  <tr><td>User</td><td><code>3xYzAbCd1234567.root</code> (keep the prefix)</td><td><code>avnadmin</code></td><td><code>SARAZA_DB_USER</code></td></tr>
+  <tr><td>Password</td><td>the generated password</td><td>click the eye icon to show it</td><td><code>SARAZA_DB_PASS</code></td></tr>
+</table>
+
+<h3>B2. Import the SQL file into the cloud database</h3>
+<p>The simplest tool is the MySQL client that comes with XAMPP. Open <b>PowerShell</b> in the project folder and run the
+command for your host. Replace <code>HOST</code>, <code>PORT</code> and <code>USER</code> with your values. It asks for the
+password.</p>
+
+<div class="keep"><p><b>TiDB Cloud:</b></p>
+<pre>C:\xampp\mysql\bin\mysql.exe --host=HOST --port=4000 --user=USER --password `
+  --ssl --ssl-verify-server-cert --tls-version=TLSv1.2 `
+  -e "source database/saraza_apartment.sql"</pre>
+<p class="muted"><code>--tls-version=TLSv1.2</code> is needed with XAMPP's MySQL client, which fails TiDB's TLS 1.3
+handshake with <code>SEC_E_DECRYPT_FAILURE</code>. The connection is still encrypted and the certificate is still checked.</p></div>
+
+<div class="keep"><p><b>Aiven</b> (point <code>--ssl-ca</code> at the <code>ca.pem</code> you downloaded):</p>
+<pre>C:\xampp\mysql\bin\mysql.exe --host=HOST --port=PORT --user=avnadmin --password `
+  --ssl-ca=C:\Users\YOU\Downloads\ca.pem --ssl-verify-server-cert `
+  -e "source database/saraza_apartment.sql"</pre></div>
+
+<p class="muted">In Command Prompt (cmd.exe), put everything on one line and drop the backtick ( ` ). On macOS/Linux, use the
+<code>mysql</code> client and <code>\</code> for line breaks.</p>
+
+<div class="keep"><p>The import takes 10–60 seconds and prints nothing when it succeeds. To check it:</p>
+<pre>C:\xampp\mysql\bin\mysql.exe --host=HOST --port=PORT --user=USER --password --ssl --tls-version=TLSv1.2 `
+  -e "SELECT COUNT(*) AS units FROM saraza_apartment.units"</pre></div>
+<p>It should print <code>20</code>.</p>
+
+<p><b>Prefer a GUI?</b> In MySQL Workbench, DBeaver or HeidiSQL, create a connection with the same host, port, user and
+password (turn on SSL/TLS), then open <code>database/saraza_apartment.sql</code> and run the whole script.</p>
+
+<div class="note keep"><b>If your host doesn't let you create databases</b> (it gives you one fixed database such as
+<code>defaultdb</code>):
+<ol style="margin-bottom:0">
+  <li>Make a copy of <code>database/saraza_apartment.sql</code>.</li>
+  <li>In the copy, delete the <code>DROP DATABASE</code>, <code>CREATE DATABASE</code> and <code>USE</code> lines near the top.</li>
+  <li>Import the copy into the database you were given (add <code>--database=defaultdb</code> to the command).</li>
+  <li>In step B3, set <code>SARAZA_DB_NAME</code> to that database's name.</li>
+</ol></div>
+
+<div class="note keep"><b>If you already have a database from an older version of the app:</b> don't re-import (that wipes
+your data). Run <code>database/cloud-tables.sql</code> instead. It only adds the two tables Vercel needs
+(<code>sessions</code> and <code>uploads</code>) and is safe to run twice:
+<pre style="margin-bottom:0">C:\xampp\mysql\bin\mysql.exe --host=HOST --port=PORT --user=USER --password --ssl `
+  --database=saraza_apartment -e "source database/cloud-tables.sql"</pre></div>
+
+<h3>B3. Add the connection to Vercel</h3>
+<p>In Vercel, open your project → <b>Settings</b> → <b>Environment Variables</b> and add these. The file
+<code>.env.example</code> in the project folder has the same list.</p>
+<table>
+  <thead><tr><th style="width:30%">Key</th><th>Value</th></tr></thead>
+  <tr><td><code>SARAZA_DB_HOST</code></td><td>host from B1</td></tr>
+  <tr><td><code>SARAZA_DB_PORT</code></td><td><code>4000</code> (TiDB) or Aiven's port</td></tr>
+  <tr><td><code>SARAZA_DB_NAME</code></td><td><code>saraza_apartment</code></td></tr>
+  <tr><td><code>SARAZA_DB_USER</code></td><td>user from B1 (TiDB: include the <code>xxxx.</code> prefix)</td></tr>
+  <tr><td><code>SARAZA_DB_PASS</code></td><td>password from B1</td></tr>
+  <tr><td><code>SARAZA_DB_SSL</code></td><td><code>1</code></td></tr>
+  <tr><td><code>SARAZA_DB_SSL_CA_PEM</code></td><td><b>Aiven only:</b> open <code>ca.pem</code> in Notepad and paste all of it,
+      including the <code>-----BEGIN CERTIFICATE-----</code> and <code>-----END CERTIFICATE-----</code> lines</td></tr>
+</table>
+<p>Leave the environments as <b>Production, Preview, and Development</b>. Environment variables only apply to
+<b>new</b> deployments. After adding or changing them, go to <b>Deployments</b> → the latest one → <b>⋯</b> →
+<b>Redeploy</b>.</p>
+
+<h3>B4. Test it</h3>
+<p>Open <code>https://YOUR-PROJECT.vercel.app/api/health.php</code>. You should see:</p>
+<pre>{"ok":true,"database":"connected","tables":20,"session_store":"db","upload_store":"db"}</pre>
+<p><code>"session_store":"db"</code> and <code>"upload_store":"db"</code> confirm that the app detected Vercel and keeps
+sign-ins and uploaded files in the database (Vercel's disk is read-only).</p>
+<p>Then open the site, sign in as the administrator, and <b>change every demo password right away</b>
+(Settings → Security). The demo passwords are public in the project's repository.</p>
+
+<!-- ======================= TROUBLESHOOTING ======================= -->
+<h2>Troubleshooting</h2>
+<p>Start with <code>/api/health.php</code>. It names the problem without showing your password or host.</p>
+<table>
+  <thead><tr><th style="width:28%">"problem" says</th><th>What to do</th></tr></thead>
+  <tr><td><b>Access denied</b></td><td>Wrong user or password. On TiDB the user must include the prefix
+      (<code>3xYz….root</code>). If you lost the password, generate a new one in the Connect dialog and update
+      <code>SARAZA_DB_PASS</code>.</td></tr>
+  <tr><td><b>Database not found</b></td><td>The import didn't run or went into a different database. Re-run B2, or set
+      <code>SARAZA_DB_NAME</code> to the name you used.</td></tr>
+  <tr><td><b>Cannot reach the database server</b></td><td>Check <code>SARAZA_DB_HOST</code> and <code>SARAZA_DB_PORT</code>
+      for typos and extra spaces. Make sure the cluster is running (free tiers can pause) and allows connections from
+      <code>0.0.0.0/0</code>. On XAMPP, make sure MySQL is started.</td></tr>
+  <tr><td><b>TLS problem</b></td><td>Set <code>SARAZA_DB_SSL</code> to <code>1</code>. On Aiven, paste the full CA into
+      <code>SARAZA_DB_SSL_CA_PEM</code>.</td></tr>
+  <tr><td><b>Missing tables: sessions, uploads</b></td><td>The database predates the Vercel version. Run
+      <code>database/cloud-tables.sql</code> (see B2).</td></tr>
+  <tr><td><b>Missing tables: …</b> (others)</td><td>The import stopped partway. Re-run B2 and watch for an error message.</td></tr>
+  <tr><td><b>No admin account</b></td><td>The <code>users</code> table is empty or the admin is disabled. Re-import, or
+      re-enable the admin in the <code>users</code> table.</td></tr>
+  <tr><td><b>Database connection failed</b></td><td>Something else. In Vercel, open <b>Logs</b> and look for a line starting
+      with <code>[saraza] health:</code>.</td></tr>
+</table>
+
+<h3>Other common problems</h3>
+<table>
+  <thead><tr><th style="width:40%">Problem</th><th>Fix</th></tr></thead>
+  <tr><td>I changed an environment variable but nothing changed.</td><td>Redeploy. Variables only apply to new deployments.</td></tr>
+  <tr><td>The import command says <code>'&lt;' operator is reserved</code>.</td><td>PowerShell doesn't support
+      <code>&lt; file</code>. Use <code>-e "source database/saraza_apartment.sql"</code> as shown above.</td></tr>
+  <tr><td>The import says <code>TLS/SSL error … SEC_E_DECRYPT_FAILURE</code>.</td><td>Add
+      <code>--tls-version=TLSv1.2</code> to the command (XAMPP's client can't do TiDB's TLS 1.3 handshake).</td></tr>
+  <tr><td>Pages are slow when XAMPP uses the cloud database.</td><td>Expected: each query travels to Singapore and back.
+      On Vercel the app and database share a region, so it's fast. Use the local database on your PC.</td></tr>
+  <tr><td>The import fails with <code>Unknown collation</code> / <code>utf8mb4_unicode_ci</code>.</td><td>The server is too
+      old. Use MySQL 5.7+, MariaDB 10.3+ or TiDB.</td></tr>
+  <tr><td>Signing in works, but I'm signed out on the next click (Vercel).</td><td>The <code>sessions</code> table is missing.
+      The health check shows this; run <code>database/cloud-tables.sql</code>.</td></tr>
+  <tr><td>Uploads fail with "too large" on Vercel.</td><td>Expected above 4 MB per file. Vercel rejects request bodies over
+      4.5 MB.</td></tr>
+  <tr><td>Opening an <code>.html</code> file by double-clicking shows no data.</td><td>Pages must be opened through
+      <code>http://localhost/...</code> (or the Vercel address), not as a <code>file://</code> address.</td></tr>
+</table>
+
+<h2>Back up before re-importing</h2>
+<div class="keep"><p>Before re-importing or making big changes, save a copy of the current data:</p>
+<pre># local XAMPP
+C:\xampp\mysql\bin\mysqldump.exe -u root saraza_apartment &gt; backup.sql
+
+# cloud (add --ssl-ca=... for Aiven)
+C:\xampp\mysql\bin\mysqldump.exe --host=HOST --port=PORT --user=USER --password --ssl `
+  --single-transaction saraza_apartment &gt; backup.sql</pre></div>
+<p>To restore, import <code>backup.sql</code> the same way as in Part A step 2 or B2 (add
+<code>--database=saraza_apartment</code>). Don't share or commit backups: they contain tenants' personal details and
+password hashes. Administrators can also download a JSON export from <b>Settings → Data &amp; backup → Export
+everything</b> inside the app.</p>
+
+<h2>What's in the database</h2>
+<table>
+  <thead><tr><th style="width:26%">Group</th><th>Tables</th></tr></thead>
+  <tr><td>Property</td><td><code>buildings</code>, <code>unit_types</code>, <code>units</code></td></tr>
+  <tr><td>People and logins</td><td><code>tenants</code>, <code>users</code>, <code>staff</code></td></tr>
+  <tr><td>Money</td><td><code>charges</code>, <code>payments</code>, <code>payment_methods</code>, <code>expenses</code>, <code>categories</code></td></tr>
+  <tr><td>Maintenance</td><td><code>maintenance_requests</code>, <code>maintenance_media</code></td></tr>
+  <tr><td>Messages</td><td><code>notifications</code>, <code>messages</code></td></tr>
+  <tr><td>Records</td><td><code>activity_log</code>, <code>report_log</code>, <code>settings</code></td></tr>
+  <tr><td>Vercel only</td><td><code>sessions</code> (sign-ins), <code>uploads</code> (payment proofs, request photos)</td></tr>
+</table>
+<p class="muted">Times are stored in Philippine time (+08:00). The app sets this on every connection, so the database
+server's own time zone doesn't matter.</p>
+
+</body>
+</html>

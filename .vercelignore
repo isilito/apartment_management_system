@@ -9,8 +9,15 @@ api/uploads/
 .htaccess
 **/.htaccess
 
-# project documents, not part of the site
+# project documents and repo config, not part of the site
+docs/
 README.md
 *.pdf
 *.png
 .gitattributes
+.gitignore
+.env*
+
+# local secrets and templates (Vercel uses environment variables)
+api/config.local.php
+api/config.local.example.php

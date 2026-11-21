@@ -93,7 +93,7 @@
         '<section class="chat-panel" id="chatPanel" hidden>' +
           '<header class="chat-head">' +
             '<div class="chat-head-id"><span class="chat-avatar">' + icon('bot') + '</span>' +
-              '<div><strong>Saraza Assistant</strong><span>Ask about tenants, rent, or repairs</span></div></div>' +
+              '<div><strong>Saraza Assistant</strong><span id="chatSub">Ask about tenants, rent, or repairs</span></div></div>' +
             '<button class="icon-btn sm" id="chatClose" aria-label="Close">' + icon('close') + '</button>' +
           '</header>' +
           '<div class="chat-log" id="chatLog"></div>' +
@@ -896,12 +896,115 @@
       'Try asking &ldquo;who is late on rent?&rdquo; or &ldquo;what repairs are urgent?&rdquo;';
   }
 
+  /* ---------- Gemini (api/assistant.php); falls back to answer() above ---------- */
+  var aiMode = null;          /* null = not checked yet, true = Gemini key configured, false = built-in answers */
+  var aiCheck = null;
+  var chatHistory = [];       /* [{role: 'user'|'model', text}] sent with each question for follow-ups */
+  var chatBusy = false;
+
+  function checkAI() {
+    if (!aiCheck) {
+      aiCheck = API.get('assistant.php', 'status').then(function (r) { aiMode = !!r.ai; },
+                                                        function () { aiMode = false; })
+        .then(function () {
+          var sub = document.getElementById('chatSub');
+          if (sub) sub.textContent = aiMode ? 'AI assistant · powered by Gemini' : 'Ask about tenants, rent, or repairs';
+        });
+    }
+    return aiCheck;
+  }
+
+  function isoDay(d) {
+    if (!(d instanceof Date) || isNaN(d)) return d || null;
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  /* Compact snapshot of the records on screen; contact details are left out on purpose. */
+  function buildContext() {
+    var s = DB.stats, st = DB.settings || {};
+    var bName = function (id) { return id ? DB.building(id).name : null; };
+    var tenantName = function (id) { var t = id && DB.tenant(id); return t ? t.name : null; };
+    var settings = {};
+    ['property_name', 'owner_name', 'address', 'rent_due_day', 'grace_days', 'late_fee', 'deposit_months',
+     'advance_months', 'monthly_target', 'inclusions', 'exclusions', 'house_rules'].forEach(function (k) {
+      if (st[k] !== undefined && st[k] !== null) settings[k] = String(st[k]).slice(0, 600);
+    });
+
+    return {
+      today: isoDay(DB.today),
+      settings: settings,
+      summary: {
+        totalUnits: s.totalUnits, occupied: s.occupied, vacant: s.vacant, underRepair: s.repair,
+        occupancyPct: s.occupancyPct, buildings: s.buildingsCount, tenants: s.tenantCount,
+        collectedThisMonth: s.incomeThisMonth, collectedLastMonth: s.incomeLastMonth,
+        billedThisMonth: s.expectedThisMonth, monthlyTarget: DB.money && DB.money.target,
+        outstandingTotal: s.outstanding, tenantsWithBalance: s.overdueTenants.length,
+        paymentsToConfirm: s.pendingCount, paymentsToConfirmAmount: s.pendingAmount,
+        openRepairs: s.openRepairs, urgentRepairs: s.urgentRepairs, oldestOpenRepairDays: s.oldestRepairDays
+      },
+      buildings: DB.buildings.map(function (b) { return { name: b.name, address: b.address, floors: b.floors }; }),
+      units: DB.units.map(function (u) {
+        return { unit: u.no, building: bName(u.buildingId), floor: u.floor, type: u.type, rent: u.rent,
+                 status: u.status, tenant: tenantName(u.tenantId), vacantSince: isoDay(u.vacantSince) };
+      }),
+      tenants: DB.tenants.map(function (t) {
+        return { name: t.name, unit: t.unitNo, status: t.status, rent: t.rent, balance: t.balance,
+                 overdueDays: t.overdueDays, deposit: t.deposit, moveIn: isoDay(t.moveIn), leaseEnd: isoDay(t.leaseEnd),
+                 occupants: t.occupants, hasPortalLogin: t.hasLogin };
+      }),
+      paymentsToConfirm: DB.payments.filter(function (p) { return p.status === 'pending'; }).map(function (p) {
+        return { tenant: p.fullName, unit: p.unitNo, amount: p.amount, method: p.method, datePaid: isoDay(p.date),
+                 reference: p.reference, covers: p.covers };
+      }),
+      recentPayments: DB.payments.filter(function (p) { return p.status === 'cleared'; })
+        .sort(function (a, b) { return b.date - a.date; }).slice(0, 20).map(function (p) {
+          return { tenant: p.fullName, unit: p.unitNo, amount: p.amount, method: p.method, datePaid: isoDay(p.date), covers: p.covers };
+        }),
+      openRepairs: DB.tickets.filter(function (t) { return t.status !== 'done'; }).map(function (t) {
+        return { id: t.id, title: t.title, unit: t.unitNo, category: t.categoryLabel, priority: t.priority,
+                 status: t.status, ageDays: t.ageDays, assignedTo: t.assignee || null, visitDate: isoDay(t.scheduledFor) };
+      }),
+      monthlyCollections: (DB.monthly12 || []).map(function (m) {
+        return { month: m.month + ' ' + String(m.start).slice(0, 4), billed: m.expected, collected: m.collected };
+      }),
+      monthlyExpenses: DB.expenseTrend12 || [],
+      crew: DB.crew || [],
+      paymentMethods: DB.methods || []
+    };
+  }
+
+  /* Gemini replies in light Markdown; escape everything, then allow bold, italics, and lists. */
+  function mdToHtml(text) {
+    var inline = function (s) {
+      return UI.esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<i>$2</i>');
+    };
+    var out = '', list = null, prevText = false;
+    String(text).replace(/\r/g, '').split('\n').forEach(function (line) {
+      var ul = /^\s*[-*•]\s+(.*)$/.exec(line), ol = /^\s*\d+[.)]\s+(.*)$/.exec(line);
+      var want = ul ? 'ul' : ol ? 'ol' : null;
+      if (list && list !== want) { out += '</' + list + '>'; list = null; }
+      if (want) {
+        if (!list) { out += '<' + want + '>'; list = want; }
+        out += '<li>' + inline((ul || ol)[1]) + '</li>';
+        prevText = false;
+      } else if (line.trim()) {
+        out += (prevText === 'gap' ? '<br><br>' : prevText ? '<br>' : '') + inline(line.replace(/^#+\s*/, ''));
+        prevText = true;
+      } else if (prevText) {
+        prevText = 'gap';     /* blank line between paragraphs */
+      }
+    });
+    if (list) out += '</' + list + '>';
+    return out;
+  }
+
   function bubble(html, who) {
     var time = new Date().toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' });
     return '<div class="bubble ' + who + '">' + html + '<span class="stamp">' + time + '</span></div>';
   }
 
   function seedChat() {
+    checkAI();
     if (chatSeeded) return;
     chatSeeded = true;
     UI.fill('chatLog', bubble('Kumusta, ' + UI.esc(DB.me.name.split(' ')[0]) +
@@ -925,18 +1028,35 @@
   }
 
   function send(text) {
-    if (!text.trim()) return;
+    text = String(text || '').trim();
+    if (!text || chatBusy) return;
+    chatBusy = true;
     var log = document.getElementById('chatLog');
     log.insertAdjacentHTML('beforeend', bubble(UI.esc(text), 'me'));
     log.insertAdjacentHTML('beforeend', '<div class="bubble bot typing" id="typing"><i></i><i></i><i></i></div>');
     log.scrollTop = log.scrollHeight;
 
-    setTimeout(function () {
+    function reply(html) {
       var t = document.getElementById('typing');
       if (t) t.remove();
-      log.insertAdjacentHTML('beforeend', bubble(answer(text), 'bot'));
+      log.insertAdjacentHTML('beforeend', bubble(html, 'bot'));
       log.scrollTop = log.scrollHeight;
-    }, 620);
+      chatBusy = false;
+    }
+
+    checkAI().then(function () {
+      if (!aiMode) { setTimeout(function () { reply(answer(text)); }, 620); return; }
+
+      API.post('assistant.php', 'ask', { message: text, history: chatHistory.slice(-10), context: buildContext() })
+        .then(function (r) {
+          chatHistory.push({ role: 'user', text: text }, { role: 'model', text: r.reply });
+          reply(mdToHtml(r.reply));
+        }, function (err) {
+          /* Gemini unavailable: answer from the built-in rules and say why */
+          reply(answer(text) + '<div class="u-xs u-muted" style="margin-top:6px">AI unavailable: ' +
+                UI.esc(err.message) + ' Showing a built-in answer.</div>');
+        });
+    });
   }
 
   function askAssistant(q) {
