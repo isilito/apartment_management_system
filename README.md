@@ -74,6 +74,10 @@ How it differs from XAMPP (all automatic when Vercel's `VERCEL=1` variable is pr
   bodies over 4.5 MB. The tenant portal checks this before sending.
 - `.vercelignore` keeps `database/`, `docs/`, and this README off the site, and
   `api/php.ini` holds the PHP settings (XAMPP ignores it).
+- **The Hobby plan allows at most 12 functions per deployment**, and every `api/*.php` file
+  (including `config.php` and `lib.php`) counts as one. There are exactly 12 now, so
+  `api/photos.php` is left out in `.vercelignore`. A new endpoint must replace one or be added to
+  `.vercelignore`, or the deploy fails at "Deploying outputs…".
 
 ## AI assistant (Gemini)
 

@@ -6,6 +6,11 @@ database/
 
 # local-only (XAMPP) upload folder and Apache rules; Vercel stores uploads in the database
 api/uploads/
+
+# Hobby plan allows 12 functions and every api/*.php is one. photos.php only
+# works where it can read the folders (XAMPP); on Vercel the browser checks
+# for assets/img/units/<unit>/1.jpg, 2.jpg … itself (assets/js/unit-photos.js)
+api/photos.php
 .htaccess
 **/.htaccess
 

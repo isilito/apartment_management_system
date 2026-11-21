@@ -7,9 +7,10 @@
                        buildings: { "B1": "B1.jpg" } }
 
    Unit photos are public files anyway, so no sign-in is needed.
-   When the folder is not readable from here (a Vercel function
-   only bundles its own code) it answers listed:false and the
-   browser checks for 1.jpg, 2.jpg … itself (assets/js/unit-photos.js).
+   XAMPP only: .vercelignore leaves it out of Vercel (the Hobby plan
+   allows 12 functions). Without it, or when the folder is not
+   readable, the browser checks for 1.jpg, 2.jpg … itself
+   (assets/js/unit-photos.js).
    ============================================================ */
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
