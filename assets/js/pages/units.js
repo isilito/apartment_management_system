@@ -18,29 +18,42 @@
     });
   }
 
+  var TAG = {
+    occupied: ['s-occupied', 'Occupied'],
+    vacant:   ['s-vacant',   'Available to rent'],
+    repair:   ['s-repair',   'Under repair']
+  };
+
   function unitCard(u) {
     var t = DB.tenantOfUnit(u.id);
-    var body;
+    var b = DB.building(u.buildingId);
+    var tag = TAG[u.status] || ['', u.status];
+    var who;
 
     if (t) {
-      body = '<div class="uc-body">' + UI.avatar(t.initials) +
-             '<div style="min-width:0"><b style="font-size:13.5px;display:block">' + UI.esc(t.name) + '</b>' +
-             '<span class="u-xs u-muted">Since ' + UI.fmtDate(t.moveIn) + '</span></div></div>';
+      who = UI.avatar(t.initials) +
+        '<div style="min-width:0"><b>' + UI.esc(t.name) + '</b>' +
+        '<span>Living here since ' + UI.fmtMonthYear(t.moveIn) + '</span></div>' +
+        (t.balance ? '<div class="owes"><b>' + UI.peso(t.balance) + '</b><span>unpaid</span></div>' : '');
     } else if (u.status === 'repair') {
-      body = '<div class="uc-vacant"><span class="ph">' + icon('wrench') + '</span>' +
-             '<span>Under repair &middot; not rentable</span></div>';
+      who = '<span class="ph repair">' + icon('wrench') + '</span>' +
+        '<div><b>Being repaired</b><span>Not for rent until it is fixed</span></div>';
     } else {
-      body = '<div class="uc-vacant"><span class="ph">' + icon('doorOpen') + '</span>' +
-             '<span>Available to rent now</span></div>';
+      who = '<span class="ph vacant">' + icon('doorOpen') + '</span>' +
+        '<div><b>Nobody lives here</b><span>' +
+        (u.vacantSince ? 'Empty since ' + UI.fmtDate(u.vacantSince) : 'Ready for a new tenant') + '</span></div>';
     }
 
-    return '<article class="unit-card" data-unit="' + UI.esc(u.id) + '" tabindex="0">' +
-      '<div class="uc-top"><div><div class="uc-no">' + UI.esc(u.no) + '</div>' +
-        '<div class="uc-type">' + UI.esc(u.type) + ' &middot; ' + u.size + ' sqm</div></div>' +
-        UI.statusBadge(u.status) + '</div>' +
-      body +
-      '<div class="uc-foot"><div class="uc-rent">' + UI.peso(u.rent) + '<span> /mo</span></div>' +
-        '<span class="u-xs u-muted">' + UI.esc(DB.building(u.buildingId).name) + '</span></div>' +
+    return '<article class="unit-card" data-unit="' + UI.esc(u.id) + '" tabindex="0" ' +
+        'aria-label="Unit ' + UI.esc(u.no) + ', ' + tag[1] + '">' +
+      '<div class="photo">' + UnitPhotos.cover(u) +
+        '<span class="photo-tag ' + tag[0] + '"><i></i><span>' + tag[1] + '</span></span></div>' +
+      '<div class="uc-info">' +
+        '<div class="uc-head"><div class="uc-no">Unit ' + UI.esc(u.no) + '</div>' +
+          '<div class="uc-rent">' + UI.peso(u.rent) + '<span> /month</span></div></div>' +
+        '<div class="uc-type">' + UI.esc(u.type) + ' &middot; ' + u.size + ' sqm &middot; ' + UI.esc(b.name) + '</div>' +
+        '<div class="uc-who">' + who + '</div>' +
+      '</div>' +
     '</article>';
   }
 
@@ -70,12 +83,19 @@
   function renderBuildings() {
     UI.fill('buildingStrip', DB.buildings.map(function (b) {
       var us = DB.units.filter(function (u) { return u.buildingId === b.id; });
-      var occ = us.filter(function (u) { return u.status === 'occupied'; }).length;
-      return UI.card('<div class="bld"><span class="b-ico">' + icon('building') + '</span>' +
-        '<div style="flex:1;min-width:0"><b>' + UI.esc(b.name) + '</b>' +
-        '<span>' + occ + ' of ' + us.length + ' units occupied</span></div>' +
-        '<b class="u-teal" style="font-size:16px">' + (us.length ? Math.round(occ / us.length * 100) : 0) + '%</b></div>');
+      var n = function (st) { return us.filter(function (u) { return u.status === st; }).length; };
+      return '<section class="card bld-tile">' +
+        '<div class="bt-photo">' + UnitPhotos.building(b.id, b.name) + '</div>' +
+        '<div class="bt-body"><b>' + UI.esc(b.name) + '</b>' +
+          (b.address ? '<span class="addr">' + UI.esc(b.address) + '</span>' : '') +
+          '<div class="bt-count">' +
+            '<span><strong>' + n('occupied') + '</strong> occupied</span>' +
+            '<span class="u-teal"><strong>' + n('vacant') + '</strong> available</span>' +
+            (n('repair') ? '<span class="u-amber"><strong>' + n('repair') + '</strong> under repair</span>' : '') +
+          '</div></div>' +
+      '</section>';
     }).join(''));
+    UnitPhotos.hydrateBuildings(document.getElementById('buildingStrip'));
   }
 
   function renderList() {
@@ -89,6 +109,7 @@
     UI.fill('unitList', state.mode === 'grid'
       ? '<div class="unit-grid">' + list.map(unitCard).join('') + '</div>'
       : unitTable(list));
+    if (state.mode === 'grid') UnitPhotos.hydrate(document.getElementById('unitList'));
   }
 
   function openUnit(id) {
@@ -106,7 +127,8 @@
       '</div></div>';
 
     var body =
-      '<div class="u-row u-mb" style="gap:8px">' + UI.statusBadge(u.status) +
+      UnitPhotos.gallery(u) +
+      '<div class="u-row u-mb u-mt" style="gap:8px">' + UI.statusBadge(u.status) +
         UI.badge(UI.peso(u.rent) + ' / month', 'teal') + UI.badge(u.size + ' sqm', 'outline') + '</div>' +
 
       (t ?
@@ -126,9 +148,9 @@
           '</div></div>')
         : UI.card(UI.emptyState('doorOpen', 'This unit is empty',
             u.status === 'repair' ? 'It is flagged for repair and is not listed for rent.'
-                                  : 'Ready for a new tenant — assign one to start the lease.',
+                                  : 'Ready for a new tenant. Add one to start the lease.',
             u.status === 'repair' ? '' :
-              '<button class="btn btn-primary btn-sm" data-act="assign">' + icon('plus') + 'Assign tenant</button>'))) +
+              '<button class="btn btn-primary btn-sm" data-act="assign">' + icon('plus') + 'Add a tenant to this unit</button>'))) +
 
       '<h4 class="u-b u-mt-lg u-mb">Lease &amp; terms</h4>' +
       UI.card('<div class="card-pad"><dl class="kv">' +
@@ -192,7 +214,7 @@
     UI.bind({
       unitCount:     DB.stats.totalUnits + ' units',
       occupiedCount: DB.stats.occupied + ' occupied',
-      vacantCount:   DB.stats.vacant + ' vacant',
+      vacantCount:   DB.stats.vacant + ' available',
       repairCount:   DB.stats.repair + ' under repair'
     });
     renderBuildings();
@@ -207,6 +229,10 @@
       DB.buildings.map(function (b) { return '<option value="' + b.id + '">' + UI.esc(b.name) + '</option>'; }).join('');
     document.getElementById('ut').innerHTML = '<option value="all">All types</option>' +
       DB.unitTypes.map(function (t) { return '<option value="' + t.key + '">' + UI.esc(t.label) + '</option>'; }).join('');
+
+    /* ?status=vacant shows only those units (used by the dashboard) */
+    var st = UI.query('status');
+    if (st && /^(occupied|vacant|repair)$/.test(st)) { state.status = st; document.getElementById('us').value = st; }
 
     refresh();
 

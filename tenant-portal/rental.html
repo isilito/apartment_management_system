@@ -3,15 +3,16 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>My Rental Info — Saraza's Apartment Tenant Portal</title>
+<title>My Unit — Saraza's Apartment Tenant Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="assets/css/base.css" />
 <link rel="stylesheet" href="assets/css/components.css" />
 <link rel="stylesheet" href="assets/css/views.css" />
+<link rel="stylesheet" href="../assets/css/photos.css" />
 </head>
-<body data-page="rental" data-title="My Rental Info" data-sub="Your unit, lease and house rules">
+<body data-page="rental" data-title="My Unit" data-sub="Your unit, lease and house rules">
 
 <div class="app">
   <aside class="sidebar" data-shell="sidebar"></aside>
@@ -24,7 +25,8 @@
 
       <div class="page-head">
         <div>
-          <h1>My Rental Info</h1>
+          <h1>My Unit</h1>
+          <p class="page-lead">Photos of your unit, your lease, the house rules and who to call.</p>
           <div class="crumbs">
             <span data-bind="contractNo"></span><span class="sep">&middot;</span>
             <span data-bind="address"></span>
@@ -38,18 +40,21 @@
         </div>
       </div>
 
-      <!-- ============ UNIT HERO ============ -->
-      <div class="rental-hero">
-        <div class="rh-unit" data-bind="unitNo"></div>
-        <div class="rh-meta">
-          <h2 data-bind="unitTitle"></h2>
-          <p data-bind="unitSub"></p>
-        </div>
-        <div class="rh-facts">
-          <div><b data-bind="rent"></b><span>Monthly rent</span></div>
-          <div><b data-bind="dueDay"></b><span>Due each month</span></div>
-          <div><b data-bind="deposit"></b><span>Deposit held</span></div>
-        </div>
+      <!-- ============ YOUR UNIT: photos + the key facts ============ -->
+      <div class="unit-show">
+        <section class="card card-pad" id="unitGallery"></section>
+        <section class="card us-facts">
+          <div>
+            <h2 data-bind="unitTitle"></h2>
+            <p data-bind="unitSub"></p>
+          </div>
+          <div class="us-grid">
+            <div><b data-bind="rent"></b><span>Rent each month</span></div>
+            <div><b data-bind="dueDay"></b><span>Rent is due</span></div>
+            <div><b data-bind="deposit"></b><span>Deposit the office holds</span></div>
+            <div><b data-bind="leaseEndShort"></b><span>Your lease ends</span></div>
+          </div>
+        </section>
       </div>
 
       <div class="grid g-3">
@@ -155,6 +160,11 @@
 
       </div>
 
+      <p class="photo-credit" id="photoCredit" hidden>
+        Sample photos from Wikimedia Commons, shown until photos of your unit are added.
+        <a href="../assets/img/units/placeholders/credits.html" target="_blank" rel="noopener">Photo credits</a>
+      </p>
+
     </main>
   </div>
 </div>
@@ -164,6 +174,7 @@
 <script src="assets/js/data.js"></script>
 <script src="assets/js/ui.js"></script>
 <script src="assets/js/charts.js"></script>
+<script src="../assets/js/unit-photos.js"></script>
 <script src="assets/js/shell.js"></script>
 <script src="assets/js/pages/rental.js"></script>
 </body>

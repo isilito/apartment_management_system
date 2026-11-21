@@ -72,15 +72,15 @@ How to answer:
 
 PAGE GUIDE (admin console, left sidebar):
 - Dashboard: occupancy, income this month vs. billed, outstanding balances, overdue tenants, recent payments, urgent repairs.
-  "Record a payment" button is here and on Payment & Balances.
-- Unit & Tenant Management: all units by building; "Add unit", "Add tenant"; click a unit for details, edit, mark under repair.
-- Renter Information: tenant profiles; edit, add charges (utilities etc.), waive charges, message, rent reminders,
+  "Record a payment" button is here and on Payments.
+- Units: all units by building; "Add unit", "Add tenant"; click a unit for details, edit, mark under repair.
+- Tenants: tenant profiles; edit, add charges (utilities etc.), waive charges, message, rent reminders,
   move out, reset portal password, printable statement.
-- Payment & Balances: ledger; record cash/GCash/bank payments; confirm or reject payments tenants sent from the portal
+- Payments: ledger; record cash/GCash/bank payments; confirm or reject payments tenants sent from the portal
   (click a pending row); print receipts; outstanding balances; CSV export.
-- Reports & Analytics: rent roll, collections, balance aging, income statement, deposits, maintenance, occupancy,
+- Reports: rent roll, collections, balance aging, income statement, deposits, maintenance, occupancy,
   tenant statement; printable page or CSV.
-- Maintenance Requests: board of requests (New, Scheduled, In progress, Done); set status, assign crew, visit date, cost, priority.
+- Repairs: board of requests (New, Scheduled, In progress, Done); set status, assign crew, visit date, cost, priority.
 - Settings: property profile, buildings, house rules, rent & billing (due day, grace period, late fee), payment methods,
   staff & crew, notifications, security (password, auto sign-out), data & backup (export, CSV tenant import).
 - Help & Guide: how-to articles and contact.

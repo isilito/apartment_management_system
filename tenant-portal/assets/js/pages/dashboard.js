@@ -1,5 +1,8 @@
 /* ============================================================
    pages/dashboard.js — the tenant's home screen
+
+   Written for someone who opens it once a month: the first thing
+   on screen says how much to pay and by when, in one sentence.
    ============================================================ */
 (function (global) {
 
@@ -9,48 +12,85 @@
     return part + ', ' + UI.esc(DB.tenant.name.split(' ')[0]);
   }
 
-  /* A ring showing how close the next due date is */
-  function dueRing() {
-    var s = DB.stats;
-    if (!s.nextCharge) {
-      return Charts.donut([{ label: 'Clear', value: 1, color: Charts.colors.green }],
-                          '0', 'nothing due', 168);
-    }
-    var days = s.nextDueInDays;
-    var span = 30;                                   // a month-long runway
-    var elapsed = Math.max(0, Math.min(span, span - days));
-    var tone = days < 0 ? Charts.colors.red
-             : (days <= 3 ? Charts.colors.amber : Charts.colors.teal);
-
-    return Charts.donut(
-      [{ label: 'Elapsed', value: elapsed, color: tone },
-       { label: 'Remaining', value: Math.max(0, span - elapsed), color: '#EEF2F5' }],
-      days < 0 ? Math.abs(days) + 'd' : days + 'd',
-      days < 0 ? 'overdue' : 'until due',
-      168
-    );
+  function lateWords(days) {
+    if (days < 0) return Math.abs(days) + ' day' + (days === -1 ? '' : 's') + ' late';
+    if (days === 0) return 'due today';
+    if (days === 1) return 'due tomorrow';
+    return 'due in ' + days + ' days';
   }
 
-  function renderUpcoming() {
+  /* Bills split into "pay now" (due today or late) and "coming up".
+     A bill with a payment already being checked is neither. */
+  function buckets() {
     var unpaid = DB.charges.filter(function (c) { return c.status !== 'paid'; })
                            .sort(function (a, b) { return a.due - b.due; });
+    var now = [], later = [], checking = [];
+    unpaid.forEach(function (c) {
+      if (c.status === 'pending') checking.push(c);
+      else if (DB.daysFrom(c.due) <= 0) now.push(c);
+      else later.push(c);
+    });
+    return { now: now, later: later, checking: checking, all: unpaid };
+  }
 
-    if (!unpaid.length) {
+  function andList(parts) {
+    return parts.length < 2 ? parts.join('') : parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1];
+  }
+
+  function sum(list) { return list.reduce(function (s, c) { return s + c.amount; }, 0); }
+
+  function balanceText(b) {
+    if (b.now.length) {
+      return {
+        label: 'You need to pay now',
+        amount: UI.peso(sum(b.now)),
+        note: andList(b.now.map(function (c) {
+          return UI.esc(c.label) + ' (' + lateWords(DB.daysFrom(c.due)) + ')';
+        })) + '.' +
+          (b.checking.length ? ' We are also checking ' + b.checking.length + ' payment' +
+            (b.checking.length > 1 ? 's' : '') + ' you sent.' : ''),
+        pay: 'Pay ' + UI.peso(sum(b.now))
+      };
+    }
+    if (b.later.length) {
+      var n = b.later[0];
+      return {
+        label: 'Nothing to pay right now',
+        amount: UI.peso(0),
+        note: 'Your next bill is ' + UI.esc(n.label) + ' for ' + UI.peso(n.amount) + ', due on ' +
+              UI.fmtDate(n.due) + ' (in ' + DB.daysFrom(n.due) + ' days).' +
+              (b.checking.length ? ' We are checking the payment you sent.' : ''),
+        pay: 'Pay early'
+      };
+    }
+    if (b.checking.length) {
+      return {
+        label: 'Payment being checked',
+        amount: UI.peso(sum(b.checking)),
+        note: 'The office is confirming the payment you sent. You will get a notification when it is done.',
+        pay: 'Pay a bill'
+      };
+    }
+    return { label: 'You are all paid up', amount: UI.peso(0), note: 'Thank you. There is nothing to pay right now.', pay: 'Pay a bill' };
+  }
+
+  function renderBills(b) {
+    if (!b.all.length) {
       UI.fill('upcomingCharges',
         '<div class="u-row" style="gap:10px;padding:8px 0">' +
-          '<span class="badge badge-green">' + icon('check') + 'All settled</span>' +
-          '<span class="u-sm u-muted">Nothing is due right now.</span></div>');
+          '<span class="badge badge-green">' + icon('check') + 'All paid</span>' +
+          '<span class="u-sm u-muted">You have no bills right now.</span></div>');
       return;
     }
 
-    UI.fill('upcomingCharges', unpaid.map(function (c) {
+    UI.fill('upcomingCharges', b.all.map(function (c) {
       var days = DB.daysFrom(c.due);
       var tone = c.status === 'pending' ? 'teal' : (days < 0 ? 'red' : (days <= 3 ? 'amber' : 'slate'));
-      var when = c.status === 'pending' ? 'Awaiting confirmation'
-               : (days < 0 ? Math.abs(days) + ' days late' : (days === 0 ? 'Due today' : 'in ' + days + ' days'));
+      var when = c.status === 'pending' ? 'We are checking your payment'
+               : (days < 0 ? Math.abs(days) + ' days late' : (days === 0 ? 'Due today' : 'Due in ' + days + ' days'));
       return '<div class="row">' +
         '<div class="row-main"><b>' + UI.esc(c.label) + '</b>' +
-          '<span>' + UI.fmtDate(c.due) + ' &middot; ' + UI.esc(c.detail) + '</span></div>' +
+          '<span>Due ' + UI.fmtDate(c.due) + ' &middot; ' + UI.esc(c.detail) + '</span></div>' +
         '<div class="row-end"><b>' + UI.peso(c.amount) + '</b>' +
           UI.badge(when, tone) + '</div></div>';
     }).join(''));
@@ -61,9 +101,9 @@
 
     if (!open.length) {
       UI.fill('openRequests', UI.emptyState('check', 'Nothing needs fixing',
-        'You have no open maintenance requests.',
+        'If something in your unit breaks, report it here and add a photo.',
         '<button class="btn btn-outline btn-sm" data-shell-act="new-request">' +
-        icon('plus') + 'Report a problem</button>'));
+        icon('plus') + 'Report something broken</button>'));
       return;
     }
 
@@ -78,13 +118,12 @@
           '<p>' + UI.esc(r.detail) + '</p>' +
           '<div class="rq-foot">' +
             '<span>' + icon('calendar') + 'Sent ' + UI.relative(r.submitted) + '</span>' +
-            (r.assignee ? '<span>' + icon('user') + UI.esc(r.assignee) + '</span>' : '') +
-            (r.scheduledFor ? '<span>' + icon('clock') + 'Visit ' + UI.fmtDate(r.scheduledFor) + '</span>' : '') +
-            (r.media.length ? '<span>' + icon('eye') + r.media.length + ' attachment' +
+            (r.assignee ? '<span>' + icon('user') + UI.esc(r.assignee) + ' is handling it</span>' : '') +
+            (r.scheduledFor ? '<span>' + icon('clock') + 'Visit on ' + UI.fmtDate(r.scheduledFor) + '</span>' : '') +
+            (r.media.length ? '<span>' + icon('eye') + r.media.length + ' photo' +
               (r.media.length > 1 ? 's' : '') + '</span>' : '') +
           '</div>' +
         '</div>' +
-        '<div class="rq-end">' + UI.statusBadge(r.priority) + '</div>' +
       '</article>';
     }).join('') + '</div>');
   }
@@ -100,7 +139,8 @@
                p.date.getFullYear() === m.getFullYear() &&
                p.date.getMonth() === m.getMonth();
       });
-      out.push('<div class="bc-dot' + (paid ? ' paid' : '') + '">' +
+      out.push('<div class="bc-dot' + (paid ? ' paid' : '') + '" title="' + UI.MONTHS[m.getMonth()] +
+        (paid ? ': paid' : ': not paid yet') + '">' +
         '<i>' + icon(paid ? 'check' : 'clock') + '</i>' +
         '<span>' + UI.MONTHS[m.getMonth()] + '</span></div>');
     }
@@ -110,37 +150,52 @@
   function renderRecentPayments() {
     if (!DB.payments.length) { UI.fill('recentPayments', '<p class="u-sm u-muted">No payments yet.</p>'); return; }
     UI.fill('recentPayments', DB.payments.slice(0, 4).map(function (p) {
-      return '<div class="row" data-receipt="' + p.id + '" style="cursor:pointer"><div class="row-main"><b>' + UI.peso(p.amount) + '</b>' +
+      return '<div class="row" data-receipt="' + p.id + '" style="cursor:pointer" tabindex="0"><div class="row-main"><b>' + UI.peso(p.amount) + '</b>' +
         '<span>' + UI.esc(p.covers) + ' &middot; ' + UI.esc(p.method) + '</span></div>' +
         '<div class="row-end"><span class="u-xs u-muted">' + UI.fmtDate(p.date) + '</span>' +
         '<div style="margin-top:4px">' + UI.statusBadge(p.status) + '</div></div></div>';
     }).join(''));
   }
 
+  function renderHome() {
+    var r = DB.rental;
+    var el = document.getElementById('homePhoto');
+    if (el && !el.firstChild) {
+      el.innerHTML = UnitPhotos.cover(r, { large: true, eager: true });
+      UnitPhotos.hydrate(el);
+    }
+  }
+
   function refresh() {
     var s = DB.stats;
-    var owed = s.totalDue;
+    var b = buckets();
+    var bal = balanceText(b);
+    var r = DB.rental;
+    var next = b.later[0];
 
     UI.bind({
       greeting:     greeting(),
+      lead:         b.now.length
+                      ? 'You have ' + b.now.length + ' bill' + (b.now.length > 1 ? 's' : '') + ' to pay. Everything else is below.'
+                      : 'You are up to date. Here is everything about your unit.',
       today:        UI.fmtDateLong(DB.today),
-      unitLine:     'Unit ' + DB.rental.unitNo + ' · ' + DB.rental.building,
-      tenure:       s.monthsStayed + ' months here',
+      tenure:       'Living here for ' + s.monthsStayed + ' month' + (s.monthsStayed === 1 ? '' : 's'),
 
-      balanceLabel: s.overdueCount ? 'Overdue balance' : 'Total coming up',
-      balanceAmount: UI.peso(owed),
-      balanceNote:  s.overdueCount
-                      ? s.overdueCount + ' charge' + (s.overdueCount > 1 ? 's are' : ' is') + ' past due'
-                      : (s.nextCharge
-                          ? 'Nothing overdue — next payment in ' + s.nextDueInDays + ' days'
-                          : 'You are fully paid up'),
-      nextDueDate:  s.nextCharge ? UI.fmtDate(s.nextCharge.due) : '—',
+      balanceLabel: bal.label,
+      balanceAmount: bal.amount,
+      balanceNote:  bal.note,
+      payLabel:     bal.pay,
+      nextDueDate:  next ? UI.peso(next.amount) + ' on ' + UI.fmtDate(next.due) : 'None yet',
+      nextDueLabel: next ? 'Next bill: ' + UI.esc(next.label) : 'Next bill',
       paidThisYear: UI.peso(s.paidThisYear),
-      onTimeStreak: s.onTimeStreak + ' in a row',
+
+      homeTitle:    'Unit ' + UI.esc(r.unitNo) + ' &middot; ' + UI.esc(r.building),
+      homeSub:      UI.esc(r.type) + ' &middot; ' + r.size + ' sqm &middot; ' + UI.peso(r.rent) + ' a month, due every ' +
+                    r.dueDay + (r.dueDay === 1 ? 'st' : r.dueDay === 2 ? 'nd' : r.dueDay === 3 ? 'rd' : 'th'),
 
       openRequestsNote: s.openRequests
-                          ? s.openRequests + ' open right now'
-                          : 'Nothing open',
+                          ? s.openRequests + ' repair' + (s.openRequests > 1 ? 's' : '') + ' in progress'
+                          : 'Nothing open right now',
 
       noticeTitle:  DB.notices[0] ? UI.esc(DB.notices[0].title) : '',
       noticeBody:   DB.notices[0] ? UI.esc(DB.notices[0].body) : ''
@@ -149,8 +204,8 @@
     var notice = document.getElementById('topNotice');
     if (notice) notice.hidden = !(DB.notices[0] && DB.notices[0].unread);
 
-    UI.fill('dueRing', dueRing());
-    renderUpcoming();
+    renderHome();
+    renderBills(b);
     renderPayRecord();
     renderOpenRequests();
     renderRecentPayments();
@@ -160,17 +215,20 @@
   function init() {
     refresh();
 
-    document.querySelector('.content').addEventListener('click', function (e) {
+    var content = document.querySelector('.content');
+    content.addEventListener('click', function (e) {
       var r = e.target.closest('[data-request]');
       if (r) location.href = 'maintenance.html?request=' + r.dataset.request;
       var p = e.target.closest('[data-receipt]');
       if (p) location.href = 'payments.html?receipt=' + p.dataset.receipt;
     });
 
-    document.querySelector('.content').addEventListener('keydown', function (e) {
+    content.addEventListener('keydown', function (e) {
       if (e.key !== 'Enter') return;
       var r = e.target.closest('[data-request]');
       if (r) location.href = 'maintenance.html?request=' + r.dataset.request;
+      var p = e.target.closest('[data-receipt]');
+      if (p) location.href = 'payments.html?receipt=' + p.dataset.receipt;
     });
   }
 

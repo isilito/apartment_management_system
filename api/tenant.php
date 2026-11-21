@@ -124,6 +124,7 @@ function tenant_bootstrap(array $me, array $t): array
         ],
         'rental' => [
             'unitNo' => $t['unit_id'] ?: '—', 'building' => $u['building'] ?? '—',
+            'typeKey' => $u['type_key'] ?? '', 'buildingId' => $u['building_id'] ?? '',
             'address' => $u['baddress'] ?? setting('address', ''), 'floor' => (int) ($u['floor'] ?? 0),
             'type' => $u['type_label'] ?? '—', 'size' => (float) ($u['size_sqm'] ?? 0), 'bedrooms' => (int) ($u['beds'] ?? 0),
             'bathrooms' => (int) ($u['bathrooms'] ?? 1), 'furnishing' => $u['furnishing'] ?? '—',

@@ -1,5 +1,5 @@
 /* ============================================================
-   pages/rental.js — My Rental Info (unit & lease details)
+   pages/rental.js — My Unit (unit & lease details)
    ============================================================ */
 (function (global) {
 
@@ -76,10 +76,11 @@
       address:      r.address,
       unitNo:       r.unitNo,
       unitTitle:    r.type + ' · Unit ' + r.unitNo,
-      unitSub:      r.building + ' · Floor ' + r.floor + ' · ' + r.size + ' sqm · ' + r.furnishing,
+      unitSub:      r.building + ' · Floor ' + r.floor + ' · ' + r.size + ' sqm · ' + r.furnishing + '. ' + r.address,
       rent:         UI.peso(r.rent),
       dueDay:       ordinal(r.dueDay),
       deposit:      UI.peso(r.deposit),
+      leaseEndShort: UI.fmtDate(r.leaseEnd),
 
       kvContract:   r.contractNo,
       kvStart:      UI.fmtDate(r.leaseStart),
@@ -102,6 +103,15 @@
     UI.fill('leaseBadge', daysLeft < 60
       ? UI.badge('Ends in ' + daysLeft + ' days', 'amber')
       : UI.badge('Active', 'green'));
+
+    var gal = document.getElementById('unitGallery');
+    if (gal && !gal.firstChild) {
+      gal.innerHTML = UnitPhotos.gallery(r);
+      UnitPhotos.photos(r).then(function (list) {
+        var c = document.getElementById('photoCredit');
+        if (c) c.hidden = !!(list[0] && list[0].real);
+      });
+    }
 
     renderSpecs();
     renderInclusions();

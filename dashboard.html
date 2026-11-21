@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="assets/css/base.css" />
 <link rel="stylesheet" href="assets/css/components.css" />
 <link rel="stylesheet" href="assets/css/views.css" />
+<link rel="stylesheet" href="assets/css/photos.css" />
 </head>
 <body data-page="dashboard">
 
@@ -25,7 +26,8 @@
       <!-- ============ PAGE HEADER ============ -->
       <div class="page-head">
         <div>
-          <h1>Dashboard</h1>
+          <h1 data-bind="greeting">Dashboard</h1>
+          <p class="page-lead">Here is how your apartments are doing today. Start with the list below.</p>
           <div class="crumbs">
             <span data-bind="today"></span><span class="sep">&middot;</span>
             <span data-bind="unitCount"></span><span class="sep">&middot;</span>
@@ -40,11 +42,16 @@
         </div>
       </div>
 
-      <a class="notice-bar u-mb-lg" id="pendingNotice" href="payments.html?status=pending" hidden>
-        <span data-icon="receipt"></span>
-        <div><b>Payments to confirm</b><span data-bind="pendingNote"></span></div>
-        <span class="nb-go" data-icon="arrowRight"></span>
-      </a>
+      <!-- ============ TO DO: plain sentences, one action each ============ -->
+      <section class="card todo u-mb-lg">
+        <header class="card-head">
+          <div>
+            <h3>What needs your attention</h3>
+            <p class="sub">The most important things first. Each line takes you straight to it.</p>
+          </div>
+        </header>
+        <div class="todo-list" id="todoList"></div>
+      </section>
 
       <div class="dash">
 
@@ -54,7 +61,7 @@
         <section class="card stat-card">
           <div class="stat">
             <div class="stat-top">
-              <span class="stat-label">Occupied units</span>
+              <span class="stat-label">Units with tenants</span>
               <span class="stat-icon i-teal" data-icon="chart"></span>
             </div>
             <div class="stat-value">
@@ -69,12 +76,12 @@
         <section class="card stat-card">
           <div class="stat">
             <div class="stat-top">
-              <span class="stat-label">Income this month</span>
+              <span class="stat-label">Money received this month</span>
               <span class="stat-icon i-green" data-icon="peso"></span>
             </div>
             <div class="stat-value">
               <b data-bind="income"></b>
-              <span class="badge badge-green" data-bind="incomeDelta"></span>
+              <span class="badge badge-green" id="incomeDeltaBadge" data-bind="incomeDelta"></span>
             </div>
             <div class="meter"><i class="m-green" data-bind-width="incomeBar"></i></div>
             <p class="stat-note" data-bind="incomeNote"></p>
@@ -84,7 +91,7 @@
         <section class="card stat-card">
           <div class="stat">
             <div class="stat-top">
-              <span class="stat-label">Outstanding balance</span>
+              <span class="stat-label">Unpaid rent</span>
               <span class="stat-icon i-amber" data-icon="clock"></span>
             </div>
             <div class="stat-value">
@@ -99,7 +106,7 @@
         <section class="card stat-card">
           <div class="stat">
             <div class="stat-top">
-              <span class="stat-label">Open repairs</span>
+              <span class="stat-label">Repairs not finished</span>
               <span class="stat-icon i-red" data-icon="wrench"></span>
             </div>
             <div class="stat-value">
@@ -117,8 +124,8 @@
         <section class="card c-rent">
           <header class="card-head no-rule">
             <div>
-              <h3>Rent collected vs. expected</h3>
-              <p class="sub">How much of the expected rent actually came in</p>
+              <h3>Rent received each month</h3>
+              <p class="sub">Teal is what tenants paid. Grey is what they should have paid.</p>
             </div>
             <div class="card-head-actions">
               <div class="segment" id="rentRange">
@@ -129,8 +136,8 @@
           </header>
           <div class="card-body" style="padding-top:10px">
             <div class="legend-inline chart-legend">
-              <span><i class="dot-mark" style="background:#0B6E8C"></i>Collected</span>
-              <span><i class="dot-mark" style="background:#D7E0E5"></i>Expected</span>
+              <span><i class="dot-mark" style="background:#0B6E8C"></i>Received</span>
+              <span><i class="dot-mark" style="background:#D7E0E5"></i>Should have received</span>
             </div>
             <div class="chart-frame" id="rentChart"></div>
           </div>
@@ -140,7 +147,7 @@
         <section class="card c-occ">
           <header class="card-head no-rule">
             <div>
-              <h3>Unit occupancy</h3>
+              <h3>Units right now</h3>
               <p class="sub" data-bind="occupancySub"></p>
             </div>
           </header>
@@ -156,7 +163,7 @@
           <section class="card">
             <header class="card-head no-rule">
               <div>
-                <h3>Rent collection</h3>
+                <h3>Rent for this month</h3>
                 <p class="sub" data-bind="monthYear"></p>
               </div>
             </header>
@@ -173,7 +180,7 @@
 
               <div class="u-rule"></div>
 
-              <h4 class="u-b" style="font-size:13.5px;margin-bottom:4px">Overdue tenants</h4>
+              <h4 class="u-b" style="font-size:13.5px;margin-bottom:4px">Late on rent</h4>
               <div class="rows" id="overdueRows"></div>
 
               <button class="btn btn-outline btn-block u-mt" data-act="remind-all">
@@ -183,20 +190,32 @@
           </section>
 
           <section class="card">
+            <header class="card-head no-rule">
+              <div>
+                <h3>Empty units</h3>
+                <p class="sub" data-bind="emptySub"></p>
+              </div>
+              <div class="card-head-actions">
+                <a class="btn btn-quiet btn-sm" href="units.html">All units<span data-icon="arrowRight"></span></a>
+              </div>
+            </header>
+            <div class="card-body" style="padding-top:4px">
+              <div id="emptyUnits"></div>
+            </div>
+          </section>
+
+          <section class="card">
             <div class="card-pad">
-              <div class="u-row" style="margin-bottom:12px">
+              <div class="u-row" style="margin-bottom:10px">
                 <span class="stat-icon i-teal" data-icon="bot"></span>
                 <div>
                   <b style="font-size:14.5px">Saraza Assistant</b>
-                  <div class="u-xs u-muted">Ask anything about your property</div>
+                  <div class="u-xs u-muted">Ask a question in English or Tagalog</div>
                 </div>
               </div>
-              <p class="u-sm u-muted" style="line-height:1.6">
-                Get a quick read on collections, vacancies, or repairs without digging through tabs.
-              </p>
-              <div class="chat-chips" style="padding:14px 0 0;background:none">
+              <div class="chat-chips" style="padding:6px 0 0;background:none">
                 <button data-shell-act="ask" data-ask="Who is late on rent?">Who is late on rent?</button>
-                <button data-shell-act="ask" data-ask="Which units are vacant?">Vacant units</button>
+                <button data-shell-act="ask" data-ask="Which units are vacant?">Which units are empty?</button>
                 <button data-shell-act="ask" data-ask="What repairs are urgent?">Urgent repairs</button>
               </div>
             </div>
@@ -209,7 +228,7 @@
           <header class="card-head">
             <div>
               <h3>Recent payments</h3>
-              <p class="sub">The last 5 payments recorded</p>
+              <p class="sub">The last 5 payments, newest first</p>
             </div>
             <div class="card-head-actions">
               <select class="select" id="unitFilter">
@@ -223,7 +242,7 @@
               <thead>
                 <tr>
                   <th>Tenant</th><th>Unit</th><th>Date paid</th><th>Method</th>
-                  <th>Covers</th><th class="num">Amount</th><th>Status</th>
+                  <th>For</th><th class="num">Amount</th><th>Status</th>
                 </tr>
               </thead>
               <tbody id="recentPaymentRows"></tbody>
@@ -241,6 +260,7 @@
 <script src="assets/js/data.js"></script>
 <script src="assets/js/ui.js"></script>
 <script src="assets/js/charts.js"></script>
+<script src="assets/js/unit-photos.js"></script>
 <script src="assets/js/shell.js"></script>
 <script src="assets/js/pages/dashboard.js"></script>
 </body>

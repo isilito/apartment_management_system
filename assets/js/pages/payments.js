@@ -179,6 +179,11 @@
 
     UI.wireTabs(document, function (tab) { state.limit = 12; renderLedger(); showPane(tab); });
 
+    /* ?tab=outstanding opens that tab (used by the dashboard's to-do list) */
+    var tab = UI.query('tab');
+    var tb = tab && document.querySelector('.tabs button[data-tab="' + tab.replace(/[^a-z]/g, '') + '"]');
+    if (tb) tb.click();
+
     document.getElementById('pq').addEventListener('input', function (e) {
       state.q = e.target.value; state.limit = 12; renderLedger();
     });

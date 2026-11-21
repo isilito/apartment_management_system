@@ -52,7 +52,7 @@
           <p>Set up your buildings, add units, and move your first tenants in.</p>
           <template>
             <li>Add your buildings in Settings &rarr; Property profile.</li>
-            <li>Create units under Unit &amp; Tenant Management — set the type, size, and monthly rent.</li>
+            <li>Create units on the Units page — set the type, size, and monthly rent.</li>
             <li>Assign a tenant to each occupied unit, with their move-in date and deposit.</li>
             <li>Record any rent already paid this month so your dashboard starts accurate.</li>
           </template>
@@ -75,7 +75,7 @@
           <b>Managing tenants</b>
           <p>Move-ins, move-outs, deposits, and lease renewals.</p>
           <template>
-            <li>Add a tenant from Renter Information or straight from a vacant unit.</li>
+            <li>Add a tenant from the Tenants page or straight from a vacant unit.</li>
             <li>Record the deposit amount so it shows in the deposit register.</li>
             <li>When a lease nears its end you get a bell alert 60 days ahead; open the renter to extend the lease or send a message.</li>
             <li>On move-out, end the lease and the unit becomes available again.</li>
@@ -87,7 +87,7 @@
           <b>Handling repairs</b>
           <p>Log a request, assign crew, and close it out with a cost.</p>
           <template>
-            <li>Log a request from Maintenance Requests &rarr; Log a request.</li>
+            <li>Log a request from Repairs &rarr; Log a request.</li>
             <li>Set the priority — urgent items surface on the dashboard immediately.</li>
             <li>Assign a crew member; the request moves to Scheduled.</li>
             <li>Mark it Resolved and enter the cost so it lands in your maintenance spend.</li>
@@ -99,7 +99,7 @@
           <b>Reports &amp; exports</b>
           <p>Produce a rent roll, aging report, or monthly statement.</p>
           <template>
-            <li>Open Reports &amp; Analytics and pick a template from the library.</li>
+            <li>Open Reports and pick a template from the library.</li>
             <li>Choose the period, the building, and the output format.</li>
             <li>Generate — the report fills itself from your live records.</li>
             <li>Recently generated reports stay listed so you can download them again.</li>
@@ -134,7 +134,7 @@
             <div class="acc-item">
               <button class="acc-head"><span>How do I record a payment that covers two months?</span>
                 <span class="chev" data-icon="chevDown"></span></button>
-              <div class="acc-body">Open <b>Payment &amp; Balances</b> and click <b>Record a payment</b>.
+              <div class="acc-body">Open <b>Payments</b> and click <b>Record a payment</b>.
                 Enter the full amount the tenant handed over, then set <b>Covers</b> to the months it settles —
                 for example "Aug balance + Sep". The system applies the oldest balance first and carries the
                 remainder forward.</div>
@@ -151,8 +151,8 @@
             <div class="acc-item">
               <button class="acc-head"><span>How do I mark a unit as vacant?</span>
                 <span class="chev" data-icon="chevDown"></span></button>
-              <div class="acc-body">Open the tenant in <b>Renter Information</b> and choose <b>Move out</b>. The unit flips to
-                <b>Vacant</b>, future rent charges are cancelled, and the tenant's portal login is turned off.
+              <div class="acc-body">Open the tenant on the <b>Tenants</b> page and choose <b>Move out</b>. The unit flips to
+                <b>Available</b>, future rent charges are cancelled, and the tenant's portal login is turned off.
                 To take an empty unit off the market, edit the unit and set it to <b>Under repair</b>.</div>
             </div>
 
@@ -168,7 +168,7 @@
               <button class="acc-head"><span>How do tenants pay through the portal?</span>
                 <span class="chev" data-icon="chevDown"></span></button>
               <div class="acc-body">Tenants pick a charge, send the money by GCash, Maya, bank, or cash, and upload
-                a screenshot with the reference number. It appears as <b>Pending</b> in Payment &amp; Balances.
+                a screenshot with the reference number. It appears as <b>Pending</b> in Payments.
                 Open it, check the reference, and click <b>Confirm payment</b> — the charge is marked paid and the
                 tenant is notified. <b>Reject</b> tells them it could not be matched.</div>
             </div>
@@ -179,6 +179,19 @@
               <div class="acc-body">Only administrators can sign in to this console, and they see everything. Tenants sign in
                 to the tenant portal and see only their own unit, charges, payments, and requests.
                 Caretakers and crew are contacts you assign repairs to. Manage them in Settings &rarr; Staff &amp; crew.</div>
+            </div>
+
+            <div class="acc-item">
+              <button class="acc-head"><span>How do I add photos of a unit?</span>
+                <span class="chev" data-icon="chevDown"></span></button>
+              <div class="acc-body">Until you add your own, every unit shows sample photos of its type.
+                <ol>
+                  <li>In the app folder, open <b>assets/img/units</b>.</li>
+                  <li>Make a folder named after the unit number, for example <b>201</b> or <b>J203</b>.</li>
+                  <li>Save the photos in it as <b>1.jpg</b>, <b>2.jpg</b>, <b>3.jpg</b>. Photo 1 is the cover, so start with the living room.</li>
+                  <li>Reload the page. Tenants see the same photos on their Home and My Unit pages.</li>
+                </ol>
+                Building photos go in <b>assets/img/units/buildings</b> as <b>B1.jpg</b>, <b>B2.jpg</b>.</div>
             </div>
 
             <div class="acc-item">
@@ -207,7 +220,7 @@
                   <div class="row-end"><span class="badge badge-outline kbd">G then D</span></div></div>
                 <div class="row"><div class="row-main"><b>Go to Payments</b></div>
                   <div class="row-end"><span class="badge badge-outline kbd">G then P</span></div></div>
-                <div class="row"><div class="row-main"><b>Go to Maintenance</b></div>
+                <div class="row"><div class="row-main"><b>Go to Repairs</b></div>
                   <div class="row-end"><span class="badge badge-outline kbd">G then M</span></div></div>
                 <div class="row"><div class="row-main"><b>Record a new payment</b></div>
                   <div class="row-end"><span class="badge badge-outline kbd">N</span></div></div>
@@ -233,6 +246,21 @@
                 <button class="btn btn-outline btn-block" data-act="contact">
                   <span data-icon="phone"></span>Property contacts</button>
               </div>
+            </div>
+          </section>
+
+          <div style="height:20px"></div>
+
+          <section class="card" id="photo-credits">
+            <header class="card-head">
+              <div><h3>Photo credits</h3><p class="sub">The sample unit and building photos, until the real ones are added</p></div>
+            </header>
+            <div class="card-body u-sm u-muted" style="line-height:1.7">
+              Sample photos from Wikimedia Commons by Home2home (public domain), Paikan06 (CC0), Dr Salvus (CC BY-SA 4.0),
+              Shixart1985 (CC BY 2.0), Chris Light (CC BY-SA 4.0), Chevsapher (CC0), KPNO/NOIRLab/NSF/AURA/P. Delligati (CC BY 4.0),
+              Lo (CC0), Cerevisae (CC BY-SA 4.0), Packer1028 (CC0), F ASTILY (CC BY-SA 4.0), Sgroey (CC BY 4.0),
+              Aigars Mahinovs (CC BY 2.0), PaulGorduiz106 (CC BY-SA 4.0) and Joris Roovers (CC0).
+              <a href="assets/img/units/placeholders/credits.html" target="_blank" rel="noopener">Each photo, its licence and source</a>.
             </div>
           </section>
         </div>

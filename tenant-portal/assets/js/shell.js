@@ -13,16 +13,12 @@
   var PAGE = document.body.dataset.page || 'dashboard';
 
   var NAV = [
-    { label: 'My home', items: [
-      { key: 'dashboard',   href: 'dashboard.html',   label: 'Dashboard',          icon: 'dashboard' },
-      { key: 'rental',      href: 'rental.html',      label: 'My Rental Info',     icon: 'home' }
-    ]},
-    { label: 'Requests', items: [
-      { key: 'maintenance', href: 'maintenance.html', label: 'Maintenance Requests', icon: 'wrench',
-        count: function () { return DB.stats.openRequests; } }
-    ]},
-    { label: 'Money', items: [
-      { key: 'payments',    href: 'payments.html',    label: 'Payment & Balance',  icon: 'peso' }
+    { label: 'Menu', items: [
+      { key: 'dashboard',   href: 'dashboard.html',   label: 'Home',          icon: 'dashboard' },
+      { key: 'payments',    href: 'payments.html',    label: 'Payments',      icon: 'peso' },
+      { key: 'maintenance', href: 'maintenance.html', label: 'Repairs',       icon: 'wrench',
+        count: function () { return DB.stats.openRequests; } },
+      { key: 'rental',      href: 'rental.html',      label: 'My Unit',       icon: 'home' }
     ]}
   ];
 

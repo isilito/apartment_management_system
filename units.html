@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Unit &amp; Tenant Management — Saraza's Apartment</title>
+<title>Units — Saraza's Apartment</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="assets/css/base.css" />
 <link rel="stylesheet" href="assets/css/components.css" />
 <link rel="stylesheet" href="assets/css/views.css" />
+<link rel="stylesheet" href="assets/css/photos.css" />
 </head>
 <body data-page="units">
 
@@ -24,7 +25,8 @@
 
       <div class="page-head">
         <div>
-          <h1>Unit &amp; Tenant Management</h1>
+          <h1>Units</h1>
+          <p class="page-lead">Every room you rent out. Click a unit to see its photos, who lives there and what they owe.</p>
           <div class="crumbs">
             <span data-bind="unitCount"></span><span class="sep">&middot;</span>
             <span data-bind="occupiedCount"></span><span class="sep">&middot;</span>
@@ -38,27 +40,27 @@
         </div>
       </div>
 
-      <!-- Per-building summary -->
+      <!-- Per-building summary, with a photo of each building -->
       <div class="bld-strip" id="buildingStrip"></div>
 
       <!-- Filters -->
       <div class="toolbar">
         <label class="field">
           <span data-icon="search"></span>
-          <input class="input" id="uq" style="width:280px" placeholder="Search unit or tenant..." />
+          <input class="input" id="uq" style="width:280px" placeholder="Unit number or tenant" aria-label="Search units" />
         </label>
-        <select class="select" id="ub"><option value="all">All buildings</option></select>
-        <select class="select" id="us">
-          <option value="all">All statuses</option>
+        <select class="select" id="ub" aria-label="Building"><option value="all">All buildings</option></select>
+        <select class="select" id="us" aria-label="Status">
+          <option value="all">Any status</option>
           <option value="occupied">Occupied</option>
-          <option value="vacant">Vacant</option>
+          <option value="vacant">Available to rent</option>
           <option value="repair">Under repair</option>
         </select>
-        <select class="select" id="ut"><option value="all">All types</option></select>
+        <select class="select" id="ut" aria-label="Unit type"><option value="all">All types</option></select>
         <div class="spacer"></div>
         <div class="segment" id="viewMode">
-          <button data-val="grid" class="on">Cards</button>
-          <button data-val="table">Table</button>
+          <button data-val="grid" class="on">Photos</button>
+          <button data-val="table">List</button>
         </div>
       </div>
 
@@ -74,6 +76,7 @@
 <script src="assets/js/data.js"></script>
 <script src="assets/js/ui.js"></script>
 <script src="assets/js/charts.js"></script>
+<script src="assets/js/unit-photos.js"></script>
 <script src="assets/js/shell.js"></script>
 <script src="assets/js/pages/units.js"></script>
 </body>

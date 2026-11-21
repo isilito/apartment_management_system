@@ -19,16 +19,16 @@
   var NAV = [
     { label: 'Main', items: [
       { key: 'dashboard', href: 'dashboard.html',   label: 'Dashboard',                icon: 'dashboard' },
-      { key: 'units',     href: 'units.html',       label: 'Unit & Tenant Management', icon: 'building' },
-      { key: 'renters',   href: 'renters.html',     label: 'Renter Information',       icon: 'user' }
+      { key: 'units',     href: 'units.html',       label: 'Units', icon: 'building' },
+      { key: 'renters',   href: 'renters.html',     label: 'Tenants',       icon: 'user' }
     ]},
     { label: 'Money', items: [
-      { key: 'payments',  href: 'payments.html',    label: 'Payment & Balances',       icon: 'card',
+      { key: 'payments',  href: 'payments.html',    label: 'Payments',       icon: 'card',
         count: function () { return DB.stats.pendingCount; } },
-      { key: 'reports',   href: 'reports.html',     label: 'Reports & Analytics',      icon: 'chart' }
+      { key: 'reports',   href: 'reports.html',     label: 'Reports',      icon: 'chart' }
     ]},
     { label: 'Property', items: [
-      { key: 'maintenance', href: 'maintenance.html', label: 'Maintenance Requests',   icon: 'wrench',
+      { key: 'maintenance', href: 'maintenance.html', label: 'Repairs',   icon: 'wrench',
         count: function () { return DB.stats.openRepairs; } }
     ]}
   ];
@@ -539,7 +539,7 @@
         (u.status !== 'occupied' ? '<div class="u-rule"></div><button class="btn btn-ghost btn-sm u-red" data-act="del-unit">' +
           icon('trash') + 'Delete this unit</button>' : '') +
         (u.status === 'occupied' ? '<p class="u-xs u-muted u-mt">Changing the rent here does not change the current tenant\'s lease. ' +
-          'Edit the tenant in Renter Information for that.</p>' : ''),
+          'Edit the tenant on the Tenants page for that.</p>' : ''),
       confirmText: 'Save unit',
       onOpen: function (box) {
         var del = box.querySelector('[data-act="del-unit"]');
@@ -835,7 +835,7 @@
         ? '<b>' + pend.length + ' payment' + (pend.length > 1 ? 's' : '') + '</b> sent from the tenant portal need confirming:<ul>' +
           pend.slice(0, 5).map(function (p) {
             return '<li>' + UI.esc(p.fullName) + ' — ' + UI.peso(p.amount) + ' via ' + UI.esc(p.method) + '</li>';
-          }).join('') + '</ul>Open <b>Payment &amp; Balances</b> and click a pending row to confirm it.'
+          }).join('') + '</ul>Open <b>Payments</b> and click a pending row to confirm it.'
         : 'No payments are waiting for confirmation.';
     }
     if (/late|overdue|owe|balance|utang/.test(k)) {
@@ -877,7 +877,7 @@
     }
     if (/partial|part pay|hulog/.test(k)) {
       return 'Record exactly what the tenant handed over. It is applied to the oldest unpaid charge first; the remainder ' +
-        'stays as an outstanding balance in <b>Payment &amp; Balances → Outstanding</b>.';
+        'stays as an outstanding balance in <b>Payments → Outstanding</b>.';
     }
     if (/lease|expir|renew|contract/.test(k)) {
       var soon = DB.tenants.filter(function (t) {
@@ -887,7 +887,7 @@
       return '<b>' + soon.length + ' lease' + (soon.length === 1 ? '' : 's') + '</b> end within the next 90 days.' +
         (soon.length ? '<ul>' + soon.map(function (t) {
           return '<li>' + UI.esc(t.name) + ' — Unit ' + UI.esc(t.unitNo) + ', ends ' + UI.fmtDate(t.leaseEnd) + '</li>';
-        }).join('') + '</ul>Open the tenant in <b>Renter Information</b> to extend the lease or send a message.' : '');
+        }).join('') + '</ul>Open the tenant on the <b>Tenants</b> page to extend the lease or send a message.' : '');
     }
     if (/hello|hi|kumusta|hey/.test(k)) {
       return 'Kumusta! I can pull up collections, vacancies, overdue tenants, pending payments, or repair status. What would you like to know?';

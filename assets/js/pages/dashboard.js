@@ -13,6 +13,7 @@
   function values() {
     var s = DB.stats;
     return {
+      greeting:         greeting(),
       today:            UI.fmtDateLong(DB.today),
       unitCount:        s.totalUnits + ' units',
       buildingCount:    s.buildingsCount + ' buildings',
@@ -20,37 +21,42 @@
       occupied:         s.occupied + ' / ' + s.totalUnits,
       occupancyPct:     s.occupancyPct + '%',
       occupancyBar:     s.occupancyPct,
-      occupancyNote:    s.vacant + ' vacant · ' + s.repair + ' under repair right now',
+      occupancyNote:    s.vacant + ' empty · ' + s.repair + ' being repaired',
       occupancySub:     'Where all ' + s.totalUnits + ' units stand today',
 
       income:           UI.peso(s.incomeThisMonth),
-      incomeDelta:      icon(s.incomeDelta < 0 ? 'trendDown' : 'trendUp') + Math.abs(s.incomeDelta) + '%',
+      incomeDelta:      s.incomeLastMonth
+                          ? icon(s.incomeDelta < 0 ? 'trendDown' : 'trendUp') + Math.abs(s.incomeDelta) + '% vs last month'
+                          : '',
       incomeBar:        pct(s.incomeThisMonth, s.incomeTarget),
       incomeNote:       pct(s.incomeThisMonth, s.incomeTarget) +
-                        '% of the ' + UI.peso(s.incomeTarget) + ' monthly target' +
+                        '% of the ' + UI.peso(s.incomeTarget) + ' you expect each month' +
                         (s.earlierDated ? ' · ' + UI.peso(s.earlierDated) +
                           ' confirmed this month counts under its earlier date paid' : ''),
 
       outstanding:      UI.peso(s.outstanding),
-      outstandingCount: s.overdueTenants.length + ' tenants',
+      outstandingCount: plural(s.overdueTenants.length, 'tenant'),
       outstandingBar:   pct(s.outstanding, s.expectedThisMonth),
       outstandingNote:  s.overdueTenants.length
-                          ? 'Longest unpaid: ' + s.overdueTenants[0].overdueDays + ' days'
+                          ? 'The latest payer is ' + s.overdueTenants[0].overdueDays + ' days late'
                           : 'Everyone is paid up',
 
       repairs:          String(s.openRepairs),
       repairsUrgent:    s.urgentRepairs + ' urgent',
       repairsBar:       Math.min(100, s.openRepairs / 12 * 100),
-      repairsNote:      s.openRepairs ? 'Oldest request is ' + s.oldestRepairDays + ' days old' : 'No open requests',
+      repairsNote:      s.openRepairs ? 'The oldest was reported ' + s.oldestRepairDays + ' days ago' : 'Nothing needs fixing',
 
       monthYear:        UI.fmtMonthYear(DB.today),
       collected:        UI.peso(s.incomeThisMonth),
       collectedOf:      'of ' + UI.peso(s.expectedThisMonth),
       collectedBar:     pct(s.incomeThisMonth, s.expectedThisMonth),
-      collectedPct:     pct(s.incomeThisMonth, s.expectedThisMonth) + '% collected',
-      outstandingLabel: UI.peso(s.outstanding) + ' outstanding',
+      collectedPct:     pct(s.incomeThisMonth, s.expectedThisMonth) + '% received',
+      outstandingLabel: UI.peso(s.outstanding) + ' still unpaid',
+      emptySub:         s.vacant
+                          ? plural(s.vacant, 'unit') + ' ready for a new tenant' + (s.repair ? ', ' + s.repair + ' being repaired' : '')
+                          : (s.repair ? s.repair + ' being repaired' : 'Every unit has a tenant'),
       remindAllLabel:   s.overdueTenants.length
-                          ? 'Send reminder to all ' + s.overdueTenants.length + ' tenants'
+                          ? 'Remind all ' + s.overdueTenants.length + ' late tenants'
                           : 'No reminders needed',
       pendingNote:      s.pendingCount
                           ? s.pendingCount + ' portal payment' + (s.pendingCount > 1 ? 's' : '') + ' (' +
@@ -60,6 +66,116 @@
   }
 
   function pct(a, b) { return b ? Math.min(100, Math.round(a / b * 100)) : 0; }
+
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : (many || one + 's')); }
+
+  function greeting() {
+    var h = new Date().getHours();
+    var me = (DB.me && DB.me.name) || '';
+    return (h < 12 ? 'Good morning' : (h < 18 ? 'Good afternoon' : 'Good evening')) +
+      (me ? ', ' + UI.esc(me.split(' ')[0]) : '');
+  }
+
+  /* ---------- "What needs your attention": plain sentences, most urgent first ---------- */
+  function todoItems() {
+    var s = DB.stats, out = [];
+
+    if (s.pendingCount) out.push({
+      tone: 'teal', ico: 'receipt',
+      text: '<b>' + plural(s.pendingCount, 'payment') + ' from tenants ' + (s.pendingCount === 1 ? 'is' : 'are') +
+            ' waiting for you to check</b> (' + UI.peso(s.pendingAmount) + '). Confirm them once the money is in your account.',
+      btn: 'Check payments', href: 'payments.html?status=pending'
+    });
+
+    if (s.overdueTenants.length) {
+      var worst = s.overdueTenants[0];
+      out.push({
+        tone: 'red', ico: 'clock',
+        text: '<b>' + plural(s.overdueTenants.length, 'tenant') + ' owe' + (s.overdueTenants.length === 1 ? 's' : '') +
+              ' rent</b>, ' + UI.peso(s.outstanding) + ' in total. ' + UI.esc(worst.name) + ' (Unit ' +
+              UI.esc(worst.unitNo) + ') is the furthest behind at ' + worst.overdueDays + ' days.',
+        btn: 'See who owes', href: 'payments.html?tab=outstanding'
+      });
+    }
+
+    var urgent = DB.tickets.filter(function (t) { return t.status !== 'done' && t.priority === 'urgent'; });
+    var fresh  = DB.tickets.filter(function (t) { return t.status === 'new'; });
+    if (urgent.length) out.push({
+      tone: 'red', ico: 'wrench',
+      text: '<b>' + plural(urgent.length, 'urgent repair') + ' still open:</b> ' +
+            urgent.slice(0, 2).map(function (t) { return UI.esc(t.title) + ' (Unit ' + UI.esc(t.unitId) + ')'; }).join(', ') +
+            (urgent.length > 2 ? ' and more' : '') + '.',
+      btn: 'Open repairs', href: 'maintenance.html'
+    });
+    if (fresh.length) out.push({
+      tone: 'amber', ico: 'wrench',
+      text: '<b>' + plural(fresh.length, 'new repair request') + '</b> ' + (fresh.length === 1 ? 'has' : 'have') +
+            ' nobody assigned yet. Pick a crew member and a visit date.',
+      btn: 'Assign repairs', href: 'maintenance.html'
+    });
+
+    var soon = DB.tenants.filter(function (t) {
+      var d = t.leaseEnd ? Math.round((t.leaseEnd - DB.today) / 86400000) : 999;
+      return t.status !== 'moved_out' && d >= -30 && d <= 60;
+    }).sort(function (a, b) { return a.leaseEnd - b.leaseEnd; });
+    if (soon.length) out.push({
+      tone: 'amber', ico: 'calendar',
+      text: '<b>' + plural(soon.length, 'lease') + (soon.length === 1 ? ' is' : ' are') + ' ending or just ended.</b> ' +
+            UI.esc(soon[0].name) + ' (Unit ' + UI.esc(soon[0].unitNo) + ') ' +
+            (soon[0].leaseEnd < DB.today ? 'ended on ' : 'ends on ') + UI.fmtDate(soon[0].leaseEnd) +
+            '. Ask if they will renew.',
+      btn: 'Open tenant', href: 'renters.html?tenant=' + encodeURIComponent(soon[0].id)
+    });
+
+    if (s.vacant) {
+      var empty = DB.units.filter(function (u) { return u.status === 'vacant'; });
+      var lost = empty.reduce(function (n, u) { return n + u.rent; }, 0);
+      out.push({
+        tone: 'slate', ico: 'doorOpen',
+        text: '<b>' + plural(s.vacant, 'unit is', 'units are') + ' empty:</b> ' +
+              empty.map(function (u) { return UI.esc(u.no); }).join(', ') + '. Renting ' +
+              (s.vacant === 1 ? 'it' : 'them') + ' out adds ' + UI.peso(lost) + ' a month.',
+        btn: 'See empty units', href: 'units.html?status=vacant'
+      });
+    }
+    return out;
+  }
+
+  function renderTodo() {
+    var items = todoItems();
+    if (!items.length) {
+      UI.fill('todoList', '<div class="todo-item"><span class="todo-ico i-green">' + icon('check') + '</span>' +
+        '<p><b>You are all caught up.</b> Nobody owes rent, no repairs are waiting and every unit has a tenant.</p></div>');
+      return;
+    }
+    UI.fill('todoList', items.map(function (it, i) {
+      return '<div class="todo-item">' +
+        '<span class="todo-no">' + (i + 1) + '</span>' +
+        '<span class="todo-ico i-' + it.tone + '">' + icon(it.ico) + '</span>' +
+        '<p>' + it.text + '</p>' +
+        '<a class="btn btn-outline btn-sm" href="' + it.href + '">' + it.btn + icon('arrowRight') + '</a>' +
+      '</div>';
+    }).join(''));
+  }
+
+  /* Units nobody lives in, with their photo */
+  function renderEmptyUnits() {
+    var list = DB.units.filter(function (u) { return u.status !== 'occupied'; })
+      .sort(function (a, b) { return (a.status === 'vacant' ? 0 : 1) - (b.status === 'vacant' ? 0 : 1); });
+    if (!list.length) {
+      UI.fill('emptyUnits', '<p class="u-sm u-muted" style="padding:6px 0">Every unit has a tenant.</p>');
+      return;
+    }
+    UI.fill('emptyUnits', list.slice(0, 4).map(function (u) {
+      return '<a class="photo-row" href="units.html?unit=' + encodeURIComponent(u.id) + '">' +
+        '<span class="pr-img">' + UnitPhotos.cover(u) + '</span>' +
+        '<span class="pr-main"><b>Unit ' + UI.esc(u.no) + '</b>' +
+          '<span>' + UI.esc(u.type) + ' &middot; ' + (u.status === 'repair' ? 'being repaired' : 'ready to rent') + '</span></span>' +
+        '<span class="pr-end">' + UI.peso(u.rent) + '<span>a month</span></span>' +
+      '</a>';
+    }).join(''));
+    UnitPhotos.hydrate(document.getElementById('emptyUnits'));
+  }
 
   /* ---------- mount points ---------- */
   var chartRange = '6';
@@ -73,7 +189,7 @@
     var s = DB.stats;
     var segs = [
       { label: 'Occupied',     value: s.occupied, color: Charts.colors.teal },
-      { label: 'Vacant',       value: s.vacant,   color: Charts.colors.ring },
+      { label: 'Available',    value: s.vacant,   color: Charts.colors.ring },
       { label: 'Under repair', value: s.repair,   color: Charts.colors.amber }
     ];
     UI.fill('occupancyDonut', Charts.donut(segs, s.occupancyPct + '%', 'occupied', 210));
@@ -148,8 +264,13 @@
     renderOccupancy();
     renderOverdue();
     renderPayments(els.filter ? els.filter.value : 'all');
-    var pn = document.getElementById('pendingNotice');
-    if (pn) pn.hidden = !DB.stats.pendingCount;
+    renderTodo();
+    renderEmptyUnits();
+    var db = document.getElementById('incomeDeltaBadge');
+    if (db) {
+      db.hidden = !DB.stats.incomeLastMonth;
+      db.className = 'badge ' + (DB.stats.incomeDelta < 0 ? 'badge-amber' : 'badge-green');
+    }
     UI.animateMeters(document);
   }
 
