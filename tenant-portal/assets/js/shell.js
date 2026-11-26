@@ -173,6 +173,17 @@
     });
   }
 
+  /* Mirrors phone_clean() in api/lib.php: PH mobile (0917 123 4567,
+     +63 917 123 4567) or, when landlines are allowed, (02) 8123 4567. */
+  function phoneOk(v, allowLandline) {
+    if (!v) return true;
+    if (v.length > 20 || !/^\+?[\d\s\-().]+$/.test(v)) return false;
+    var d = v.replace(/\D/g, '');
+    return /^(?:63|0)?9\d{9}$/.test(d) || (!!allowLandline && /^(?:63|0)[2-8]\d{7,8}$/.test(d));
+  }
+  var PHONE_MSG = 'Enter a valid PH mobile number, e.g. 0917 123 4567';
+  var EM_PHONE_MSG = 'Enter a valid emergency number, e.g. 0917 123 4567 or (02) 8123 4567';
+
   function isoDate(d) {
     d = d || DB.today;
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -182,22 +193,24 @@
   function openPay(chargeId) {
     /* Soonest due first, so the default selection matches the "next due"
        date shown on the dashboard and the balance card. */
-    var unpaid = DB.charges.filter(function (c) { return c.kind === 'rent' && c.status !== 'paid' && c.status !== 'pending'; })
+    /* Every open charge on the account (rent, deposit, late fee, or a charge
+       the office added) can be paid here, so "Pay now" always matches the
+       balance shown on the dashboard. */
+    var unpaid = DB.charges.filter(function (c) { return c.status !== 'paid' && c.status !== 'pending'; })
                            .sort(function (a, b) { return a.due - b.due; });
     if (!unpaid.length) {
-      UI.toast(DB.stats.pendingCount ? 'Your payment is waiting for confirmation' : 'You have no rent due right now', 'info');
+      UI.toast(DB.stats.pendingCount ? 'Your payment is waiting for confirmation' : 'You have nothing due right now', 'info');
       return;
     }
     var picked = chargeId ? DB.charge(chargeId) : unpaid[0];
     if (picked && picked.status === 'pending') { UI.toast('You already sent a payment for this. It is waiting for confirmation.', 'info'); return; }
-    if (picked && picked.kind !== 'rent') { UI.toast('Only rent can be paid here. Please settle this with the office.', 'info'); return; }
 
     UI.modal({
       title: 'Pay ' + (picked ? picked.label.toLowerCase() : 'rent'),
       sub: 'Send your payment, then upload the proof so it can be confirmed',
       body:
         '<div class="form-grid">' +
-          '<div class="form-row full"><label>Which rent are you paying?</label>' +
+          '<div class="form-row full"><label>Which charge are you paying?</label>' +
             '<select class="select" id="payCharge">' + unpaid.map(function (c) {
               return '<option value="' + c.id + '"' + (picked && c.id === picked.id ? ' selected' : '') + '>' +
                      UI.esc(c.label) + ' — ' + UI.peso(c.amount) + ' (due ' + UI.fmtDate(c.due) + ')</option>';
@@ -406,15 +419,17 @@
       sub: 'The office is notified when you change these',
       body:
         '<div class="form-grid">' +
-          '<div class="form-row full"><label>Mobile number</label><input class="input" id="cPhone" value="' + UI.esc(t.phone) + '"/></div>' +
+          '<div class="form-row full"><label>Mobile number</label><input class="input" id="cPhone" type="tel" inputmode="tel" maxlength="20" placeholder="+63 9XX XXX XXXX" value="' + UI.esc(t.phone) + '"/></div>' +
           '<div class="form-row"><label>Emergency contact</label><input class="input" id="cEmName" value="' + UI.esc(e.name === '—' ? '' : e.name) + '"/></div>' +
           '<div class="form-row"><label>Relation</label><input class="input" id="cEmRel" value="' + UI.esc(e.relation === '—' ? '' : e.relation) + '"/></div>' +
-          '<div class="form-row full"><label>Their number</label><input class="input" id="cEmPhone" value="' + UI.esc(e.phone === '—' ? '' : e.phone) + '"/></div>' +
+          '<div class="form-row full"><label>Their number</label><input class="input" id="cEmPhone" type="tel" inputmode="tel" maxlength="20" placeholder="+63 9XX XXX XXXX" value="' + UI.esc(e.phone === '—' ? '' : e.phone) + '"/></div>' +
         '</div>',
       confirmText: 'Save',
       onConfirm: function (box) {
         var v = function (id) { return box.querySelector(id).value.trim(); };
         if (!v('#cPhone')) { UI.toast('Enter your mobile number', 'warn'); return false; }
+        if (!phoneOk(v('#cPhone'))) { UI.toast(PHONE_MSG, 'warn'); return false; }
+        if (!phoneOk(v('#cEmPhone'), true)) { UI.toast(EM_PHONE_MSG, 'warn'); return false; }
         return save('update_contact', { phone: v('#cPhone'), emergencyName: v('#cEmName'),
           emergencyRelation: v('#cEmRel'), emergencyPhone: v('#cEmPhone') }, 'Contact details saved');
       }

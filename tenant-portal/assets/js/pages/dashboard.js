@@ -157,13 +157,18 @@
     }).join(''));
   }
 
+  /* Key facts about the tenant's own unit */
   function renderHome() {
     var r = DB.rental;
-    var el = document.getElementById('homePhoto');
-    if (el && !el.firstChild) {
-      el.innerHTML = UnitPhotos.cover(r, { large: true, eager: true });
-      UnitPhotos.hydrate(el);
-    }
+    var facts = [
+      { v: r.size + ' sqm',  l: 'Floor area' },
+      { v: 'Floor ' + r.floor, l: 'Location' },
+      { v: r.furnishing,     l: 'Furnishing' },
+      { v: r.leaseEnd ? UI.fmtDate(r.leaseEnd) : '—', l: 'Lease ends' }
+    ];
+    UI.fill('homeFacts', facts.map(function (f) {
+      return '<div><b>' + UI.esc(f.v) + '</b><span>' + UI.esc(f.l) + '</span></div>';
+    }).join(''));
   }
 
   function refresh() {

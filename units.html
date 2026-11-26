@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="assets/css/base.css" />
 <link rel="stylesheet" href="assets/css/components.css" />
 <link rel="stylesheet" href="assets/css/views.css" />
-<link rel="stylesheet" href="assets/css/photos.css" />
+<link rel="stylesheet" href="assets/css/units.css" />
 </head>
 <body data-page="units">
 
@@ -26,7 +26,7 @@
       <div class="page-head">
         <div>
           <h1>Units</h1>
-          <p class="page-lead">Every room you rent out. Click a unit to see its photos, who lives there and what they owe.</p>
+          <p class="page-lead">Every room you rent out. Click a unit to see who lives there and what they owe.</p>
           <div class="crumbs">
             <span data-bind="unitCount"></span><span class="sep">&middot;</span>
             <span data-bind="occupiedCount"></span><span class="sep">&middot;</span>
@@ -40,7 +40,7 @@
         </div>
       </div>
 
-      <!-- Per-building summary, with a photo of each building -->
+      <!-- Per-building summary -->
       <div class="bld-strip" id="buildingStrip"></div>
 
       <!-- Filters -->
@@ -59,7 +59,7 @@
         <select class="select" id="ut" aria-label="Unit type"><option value="all">All types</option></select>
         <div class="spacer"></div>
         <div class="segment" id="viewMode">
-          <button data-val="grid" class="on">Photos</button>
+          <button data-val="grid" class="on">Cards</button>
           <button data-val="table">List</button>
         </div>
       </div>
@@ -76,7 +76,6 @@
 <script src="assets/js/data.js"></script>
 <script src="assets/js/ui.js"></script>
 <script src="assets/js/charts.js"></script>
-<script src="assets/js/unit-photos.js"></script>
 <script src="assets/js/shell.js"></script>
 <script src="assets/js/pages/units.js"></script>
 </body>

@@ -80,20 +80,21 @@
 .bc-split div b{ display:block; font-size:17px; font-weight:700; letter-spacing:-.02em; }
 .bc-split div span{ display:block; font-size:11.5px; color:#BDD8E2; margin-top:2px; }
 
-/* "Your home": the tenant's own unit, photo first */
+/* "Your home": the tenant's own unit and its key facts */
 .home-card{
   display:flex; flex-direction:column; overflow:hidden;
   color:inherit;
   transition:box-shadow .16s var(--ease), transform .16s var(--ease), border-color .16s var(--ease);
 }
 .home-card:hover{ box-shadow:var(--sh-3); transform:translateY(-2px); border-color:#C9D6DD; }
-.home-card:hover .photo > img{ transform:scale(1.03); }
-.home-card .photo{ flex:1; min-height:220px; aspect-ratio:auto; }
-.hc-body{ display:flex; flex-direction:column; gap:12px; padding:18px 20px 20px; }
+.hc-body{ display:flex; flex-direction:column; gap:16px; padding:22px 22px 20px; flex:1; }
+.hc-head{ display:flex; align-items:flex-start; gap:12px; }
+.hc-head .stat-icon{ flex:none; display:grid; margin:0; }
+.hc-body .us-grid{ flex:1; align-content:start; }
 .hc-body b{ display:block; font-size:17px; font-weight:800; letter-spacing:-.02em; }
 .hc-body span{ display:block; font-size:13px; color:var(--muted); margin-top:3px; }
 .hc-body .hc-go{
-  display:inline-flex; align-items:center; gap:6px; margin:0;
+  display:inline-flex; align-items:center; gap:6px; margin:0; margin-top:auto;
   font-size:13.5px; font-weight:600; color:var(--teal);
 }
 .hc-body .hc-go span{ display:flex; margin:0; color:inherit; transition:transform .15s var(--ease); }
@@ -158,18 +159,16 @@
 .rental-hero .rh-facts div b{ display:block; font-size:16px; font-weight:700; letter-spacing:-.02em; }
 .rental-hero .rh-facts div span{ display:block; font-size:11.5px; color:var(--muted); margin-top:2px; }
 
-.unit-show{
-  display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);
-  gap:20px; margin-bottom:20px; align-items:start;
-}
+.unit-show{ margin-bottom:20px; }
 .unit-show .us-facts{ padding:24px 26px; display:flex; flex-direction:column; gap:18px; }
 .unit-show .us-facts h2{ font-size:24px; font-weight:800; letter-spacing:-.025em; }
 .unit-show .us-facts p{ font-size:14px; color:var(--muted); margin-top:4px; }
 .us-grid{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 18px; }
+.unit-show .us-grid{ grid-template-columns:repeat(4,minmax(0,1fr)); }
 .us-grid div{ padding:12px 14px; border-radius:var(--r); background:var(--surface-2); }
 .us-grid b{ display:block; font-size:16px; font-weight:800; letter-spacing:-.02em; }
 .us-grid span{ display:block; font-size:12px; color:var(--muted); margin-top:2px; }
-@media (max-width:1024px){ .unit-show{ grid-template-columns:1fr; } }
+@media (max-width:1024px){ .unit-show .us-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
 
 .lease-bar{ margin-top:16px; }
 .lease-bar .lb-ends{ display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-top:7px; }
@@ -395,7 +394,6 @@
 }
 @media (max-width:1240px){
   .tenant-hero{ grid-template-columns:1fr; }
-  .home-card .photo{ aspect-ratio:16 / 9; flex:none; min-height:0; }
   .g-3{ grid-template-columns:repeat(2,minmax(0,1fr)); }
   .g-3 > .span-2{ grid-column:span 2; }
 }

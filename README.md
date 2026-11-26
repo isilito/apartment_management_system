@@ -75,9 +75,9 @@ How it differs from XAMPP (all automatic when Vercel's `VERCEL=1` variable is pr
 - `.vercelignore` keeps `database/`, `docs/`, and this README off the site, and
   `api/php.ini` holds the PHP settings (XAMPP ignores it).
 - **The Hobby plan allows at most 12 functions per deployment**, and every `api/*.php` file
-  (including `config.php` and `lib.php`) counts as one. There are exactly 12 now, so
-  `api/photos.php` is left out in `.vercelignore`. A new endpoint must replace one or be added to
-  `.vercelignore`, or the deploy fails at "Deploying outputs…".
+  (including `config.php` and `lib.php`) counts as one. There are exactly 12 now, so a new
+  endpoint must replace one or be added to `.vercelignore`, or the deploy fails at
+  "Deploying outputs…".
 
 ## AI assistant (Gemini)
 
@@ -108,29 +108,6 @@ The model is `gemini-3.5-flash-lite` by default; set `GEMINI_MODEL` (or `gemini_
 name, balance, payment and repair details (no emails or phone numbers). Mention this in your data
 privacy notice, and use a paid Gemini plan for real tenant data, because Google may use free-tier
 prompts to improve its products.
-
-## Unit photos
-
-Every unit shows photos: on the Units page, in the unit's drawer, on the dashboard's "Empty units"
-card, and on the tenant's Home and My Unit pages. Until the real ones are added, each unit shows
-sample photos for its type (Studio, 1-Bedroom, 2-Bedroom, Bedspace).
-
-**To add the real photos of a unit,** make a folder named after the unit number in
-`assets/img/units/` and save the photos in it as `1.jpg`, `2.jpg`, `3.jpg` … Photo 1 is the cover.
-
-```
-assets/img/units/201/1.jpg       cover (living room works best)
-assets/img/units/201/2.jpg
-assets/img/units/J203/1.jpg
-assets/img/units/buildings/B1.jpg   building photo (by building id)
-```
-
-Reload the page and they appear; no code or database change is needed. On XAMPP any `.jpg`, `.png`
-or `.webp` name works (`api/photos.php` lists the folders); on Vercel use `1.jpg`, `2.jpg` … up to 8
-per unit. Details: [`assets/img/units/README.md`](assets/img/units/README.md).
-
-The sample photos are from Wikimedia Commons; their credits are in Help & Guide and in
-`assets/img/units/placeholders/credits.html`. Remove them once every unit has its own photos.
 
 ## Logins
 
@@ -166,8 +143,8 @@ password shown on screen. Change the admin password under **Settings → Securit
 - Dashboard with live occupancy, collections, balances, repairs, and charts; it refreshes itself
   within 15 seconds of a change. "Income this month" follows each payment's date paid, so confirming
   a payment dated last month updates last month's total (the dashboard notes this when it happens)
-- Units: photo cards, building photos, add, edit, mark under repair, delete (if no history);
-  per-unit drawer with a photo gallery
+- Units: unit cards, building summary, add, edit, mark under repair, delete (if no history);
+  per-unit drawer
 - Tenants: add (with portal login), edit, add charges (utilities, etc.), waive charges,
   message, rent reminders, move-out, reset portal password, printable statement
 - Payments: record cash/GCash/bank payments, **confirm or reject** payments tenants send from
@@ -182,8 +159,8 @@ password shown on screen. Change the admin password under **Settings → Securit
 - Bell notifications, global search, AI assistant (Gemini, with built-in answers as a fallback)
 
 **Tenant portal** (`tenant-portal/`)
-- Home says in one sentence what to pay now and when the next bill is, beside a photo of the unit
-- My Unit: photo gallery of the unit, lease, house rules, contacts
+- Home says in one sentence what to pay now and when the next bill is, beside the unit's key facts
+- My Unit: unit details, lease, house rules, contacts
 - Balance and due dates, payment history, printable receipts and statement of account
 - Pay a charge: choose method, enter reference, upload proof → admin confirms
 - Maintenance requests with up to 5 photos/videos, 5-step status tracker, follow-ups, 1–5 rating
@@ -212,7 +189,6 @@ api/                       PHP backend (JSON)
   document.php             Lease, house rules, deposit receipt, statement
   file.php                 Serves uploads after a permission check
   health.php               Database check: connection, tables, admin account (no login needed)
-  photos.php               Lists the unit photo folders (no login needed; photos are public files)
   assistant.php            AI assistant: forwards questions to Google Gemini (admin only)
   config.local.example.php Template for local secrets such as the Gemini key (copy to config.local.php)
   uploads/                 Proofs of payment and request photos (direct access blocked)
@@ -229,9 +205,7 @@ docs/expert-testing/       Printable kit: setup tutorial PDF, expert tester prof
                            evaluation and assessment forms (HTML sources and build script in source/)
 docs/                      Test cases (PDF) and the dashboard design mock-up
 
-assets/js/unit-photos.js   Unit and building photos (admin and tenant portal share this file)
-assets/css/photos.css      Photo cards, gallery (shared by both, like unit-photos.js)
-assets/img/units/          Real unit photos (one folder per unit) and placeholders/
+assets/css/units.css       Unit cards and building tiles (admin Units page and dashboard)
 assets/js/api.js           fetch wrapper (sends you to login when the session ends)
 assets/js/data.js          Loads api/admin.php into window.DB
 assets/js/shell.js         Sidebar, topbar, shared dialogs

@@ -124,7 +124,6 @@ function tenant_bootstrap(array $me, array $t): array
         ],
         'rental' => [
             'unitNo' => $t['unit_id'] ?: '—', 'building' => $u['building'] ?? '—',
-            'typeKey' => $u['type_key'] ?? '', 'buildingId' => $u['building_id'] ?? '',
             'address' => $u['baddress'] ?? setting('address', ''), 'floor' => (int) ($u['floor'] ?? 0),
             'type' => $u['type_label'] ?? '—', 'size' => (float) ($u['size_sqm'] ?? 0), 'bedrooms' => (int) ($u['beds'] ?? 0),
             'bathrooms' => (int) ($u['bathrooms'] ?? 1), 'furnishing' => $u['furnishing'] ?? '—',
@@ -161,7 +160,7 @@ function act_submit_payment(array $me, array $t): array
     $chargeId = (int) preg_replace('/\D/', '', (string) (input()['chargeId'] ?? ''));
     $charge = $chargeId ? one('SELECT * FROM charges WHERE id=? AND tenant_id=?', [$chargeId, $t['id']]) : null;
     if ($chargeId && !$charge) fail('That charge could not be found.');
-    if ($charge && $charge['kind'] !== 'rent') fail('Only rent can be paid through the portal.');
+    if ($charge && $charge['kind'] === 'utility') fail('Utilities are paid directly to the provider, not through the portal.');
     if ($charge && $charge['status'] === 'paid') fail('That charge is already paid.');
     if ($charge && val("SELECT 1 FROM payments WHERE charge_id=? AND status='pending'", [$charge['id']])) {
         fail('You already sent a payment for this charge. It is waiting for confirmation.');
@@ -262,9 +261,9 @@ function act_mark_notices_read(array $me, array $t): array
 
 function act_update_contact(array $me, array $t): array
 {
-    $phone = str_in('phone', 40, true, 'Mobile number');
+    $phone = phone_in('phone', 'Mobile number', true);
     q('UPDATE tenants SET phone=?, emergency_name=?, emergency_relation=?, emergency_phone=? WHERE id=?',
-      [$phone, str_in('emergencyName', 120), str_in('emergencyRelation', 40), str_in('emergencyPhone', 40), $t['id']]);
+      [$phone, str_in('emergencyName', 120), str_in('emergencyRelation', 40), phone_in('emergencyPhone', 'Emergency number', false, false), $t['id']]);
     notify_admins('', 'teal', 'user', $t['name'] . ' updated their contact details', 'Unit ' . $t['unit_id'], 'renters.html?tenant=' . $t['id']);
     return [];
 }

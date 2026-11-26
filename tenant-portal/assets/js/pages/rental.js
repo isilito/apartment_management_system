@@ -104,15 +104,6 @@
       ? UI.badge('Ends in ' + daysLeft + ' days', 'amber')
       : UI.badge('Active', 'green'));
 
-    var gal = document.getElementById('unitGallery');
-    if (gal && !gal.firstChild) {
-      gal.innerHTML = UnitPhotos.gallery(r);
-      UnitPhotos.photos(r).then(function (list) {
-        var c = document.getElementById('photoCredit');
-        if (c) c.hidden = !!(list[0] && list[0].real);
-      });
-    }
-
     renderSpecs();
     renderInclusions();
     renderRules();

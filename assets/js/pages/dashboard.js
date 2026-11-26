@@ -158,7 +158,7 @@
     }).join(''));
   }
 
-  /* Units nobody lives in, with their photo */
+  /* Units nobody lives in */
   function renderEmptyUnits() {
     var list = DB.units.filter(function (u) { return u.status !== 'occupied'; })
       .sort(function (a, b) { return (a.status === 'vacant' ? 0 : 1) - (b.status === 'vacant' ? 0 : 1); });
@@ -167,14 +167,14 @@
       return;
     }
     UI.fill('emptyUnits', list.slice(0, 4).map(function (u) {
-      return '<a class="photo-row" href="units.html?unit=' + encodeURIComponent(u.id) + '">' +
-        '<span class="pr-img">' + UnitPhotos.cover(u) + '</span>' +
+      return '<a class="unit-row" href="units.html?unit=' + encodeURIComponent(u.id) + '">' +
+        '<span class="pr-ico stat-icon ' + (u.status === 'repair' ? 'i-amber' : 'i-teal') + '">' +
+          icon(u.status === 'repair' ? 'wrench' : 'doorOpen') + '</span>' +
         '<span class="pr-main"><b>Unit ' + UI.esc(u.no) + '</b>' +
           '<span>' + UI.esc(u.type) + ' &middot; ' + (u.status === 'repair' ? 'being repaired' : 'ready to rent') + '</span></span>' +
         '<span class="pr-end">' + UI.peso(u.rent) + '<span>a month</span></span>' +
       '</a>';
     }).join(''));
-    UnitPhotos.hydrate(document.getElementById('emptyUnits'));
   }
 
   /* ---------- mount points ---------- */

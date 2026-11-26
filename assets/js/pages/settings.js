@@ -106,7 +106,7 @@
               return '<option' + (s.role === r ? ' selected' : '') + '>' + r + '</option>';
             }).join('')) + '</select></div>' +
           '<div class="form-row"><label>Email</label><input class="input" id="sEmail" type="email" value="' + UI.esc(s.email) + '"' + (owner ? ' disabled' : '') + '/></div>' +
-          '<div class="form-row"><label>Phone</label><input class="input" id="sPhone" value="' + UI.esc(s.phone) + '"/></div>' +
+          '<div class="form-row"><label>Phone</label><input class="input" id="sPhone" type="tel" inputmode="tel" maxlength="20" value="' + UI.esc(s.phone) + '"/></div>' +
         '</div>',
       confirmText: id ? 'Save' : 'Add person',
       onConfirm: function (box) {

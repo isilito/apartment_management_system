@@ -419,12 +419,12 @@ function act_add_tenant(array $me): array
 {
     $d = [
         'name' => str_in('name', 120, true, 'Full name'),
-        'phone' => str_in('phone', 40), 'email' => str_in('email', 160), 'occupation' => str_in('occupation', 80),
+        'phone' => phone_in('phone', 'Mobile number'), 'email' => str_in('email', 160), 'occupation' => str_in('occupation', 80),
         'unit_id' => str_in('unitId', 12, true, 'Unit'), 'occupants' => max(1, min(10, int_in('occupants', 1))),
         'move_in' => date_in('moveIn', today()), 'lease_months' => max(1, min(60, int_in('leaseMonths', 12))),
         'rent' => num_in('rent'), 'deposit' => num_in('deposit', -1),
         'emergency_name' => str_in('emergencyName', 120), 'emergency_relation' => str_in('emergencyRelation', 40),
-        'emergency_phone' => str_in('emergencyPhone', 40),
+        'emergency_phone' => phone_in('emergencyPhone', 'Emergency number', false, false),
         'login' => !empty(input()['createLogin']), 'password' => str_in('password', 80),
         'bill_deposit' => !empty(input()['billDeposit']),
     ];
@@ -440,13 +440,13 @@ function act_update_tenant(array $me): array
     $in = input();
     $f = [
         'name' => str_in('name', 120) ?: $t['name'],
-        'phone' => array_key_exists('phone', $in) ? str_in('phone', 40) : $t['phone'],
+        'phone' => array_key_exists('phone', $in) ? phone_in('phone', 'Mobile number') : $t['phone'],
         'email' => array_key_exists('email', $in) ? strtolower(str_in('email', 160)) : $t['email'],
         'occupation' => array_key_exists('occupation', $in) ? str_in('occupation', 80) : $t['occupation'],
         'occupants' => array_key_exists('occupants', $in) ? max(1, int_in('occupants', 1)) : (int) $t['occupants'],
         'emergency_name' => array_key_exists('emergencyName', $in) ? str_in('emergencyName', 120) : $t['emergency_name'],
         'emergency_relation' => array_key_exists('emergencyRelation', $in) ? str_in('emergencyRelation', 40) : $t['emergency_relation'],
-        'emergency_phone' => array_key_exists('emergencyPhone', $in) ? str_in('emergencyPhone', 40) : $t['emergency_phone'],
+        'emergency_phone' => array_key_exists('emergencyPhone', $in) ? phone_in('emergencyPhone', 'Emergency number', false, false) : $t['emergency_phone'],
         'rent' => num_in('rent', (float) $t['rent']),
         'deposit' => num_in('deposit', (float) $t['deposit']),
         'lease_end' => date_in('leaseEnd', $t['lease_end']),
@@ -531,6 +531,11 @@ function act_import_tenants(array $me): array
             'login' => trim($r['email'] ?? '') !== '', 'password' => '', 'bill_deposit' => false,
         ];
         if ($d['name'] === '') { $skipped[] = "Line $line: missing name"; continue; }
+        $phone = phone_clean($d['phone']);
+        if ($phone === null) { $skipped[] = "Line $line: phone {$d['phone']} is not a valid PH mobile number"; continue; }
+        $emPhone = phone_clean($d['emergency_phone'], false);
+        if ($emPhone === null) { $skipped[] = "Line $line: emergency phone {$d['emergency_phone']} is not a valid PH number"; continue; }
+        $d['phone'] = $phone; $d['emergency_phone'] = $emPhone;
         try {
             /* create_tenant() calls fail() on bad rows; catch by checking first */
             $u = one('SELECT status FROM units WHERE id=?', [$d['unit_id']]);
@@ -807,7 +812,7 @@ function act_add_staff(array $me): array
         $userId = (int) db()->lastInsertId();
     }
     q('INSERT INTO staff (user_id, name, role, email, phone, is_crew) VALUES (?,?,?,?,?,?)',
-      [$userId, $name, $role, $email, str_in('phone', 40), $crew ? 1 : 0]);
+      [$userId, $name, $role, $email, phone_in('phone', 'Phone', false, false), $crew ? 1 : 0]);
     log_activity($me, 'Added staff', $name . ' (' . $role . ')');
     return ['tempPassword' => $pass, 'email' => $email];
 }
@@ -819,7 +824,7 @@ function act_update_staff(array $me): array
     $role = $s['role'] === 'Owner' ? 'Owner' : enum_in('role', ['Administrator', 'Caretaker', 'Maintenance', 'Contractor'], $s['role']);
     $email = array_key_exists('email', input()) ? strtolower(str_in('email', 160)) : $s['email'];
     q('UPDATE staff SET name=?, role=?, email=?, phone=?, is_crew=? WHERE id=?',
-      [str_in('name', 120) ?: $s['name'], $role, $email, str_in('phone', 40),
+      [str_in('name', 120) ?: $s['name'], $role, $email, phone_in('phone', 'Phone', false, false),
        $role === 'Owner' ? (int) $s['is_crew'] : (!empty(input()['isCrew']) || $role !== 'Administrator' ? 1 : 0), $s['id']]);
     if ($s['user_id']) q('UPDATE users SET name=? WHERE id=?', [str_in('name', 120) ?: $s['name'], $s['user_id']]);
     log_activity($me, 'Updated staff', $s['name']);

@@ -9,8 +9,10 @@ if (get_included_files()[0] === __FILE__) { http_response_code(404); exit; }
 function h($s): string { return htmlspecialchars((string) $s, ENT_QUOTES, 'UTF-8'); }
 function fdate(?string $d): string { return $d ? date('d M Y', strtotime($d)) : '—'; }
 
-function print_page(string $title, string $subtitle, string $body): void
+/** $wide gives table-heavy reports a wider sheet so every column fits on screen. */
+function print_page(string $title, string $subtitle, string $body, bool $wide = false): void
 {
+    $bodyClass = $wide ? ' class="wide"' : '';
     $prop = h(setting('property_name', "Saraza's Apartment"));
     $addr = h(setting('address', ''));
     $phone = h(setting('contact_phone', ''));
@@ -38,6 +40,11 @@ function print_page(string $title, string $subtitle, string $body): void
   th,td{text-align:left;padding:8px 10px;border-bottom:1px solid #EEF2F5;vertical-align:top}
   th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#93A3AC;font-weight:600;background:#F7F9FA}
   td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .wide .sheet,.wide .bar{max-width:1200px}
+  .wide table{font-size:12.5px}
+  .wide th,.wide td{padding:7px 8px}
+  .wide td.nw{white-space:nowrap}
   tfoot td{font-weight:700;border-top:2px solid #E4EAEE}
   dl{display:grid;grid-template-columns:200px 1fr;gap:8px 16px;margin:0 0 18px}
   dt{color:#6B7C86}dd{margin:0;font-weight:500}
@@ -51,9 +58,9 @@ function print_page(string $title, string $subtitle, string $body): void
   footer{margin-top:28px;color:#93A3AC;font-size:11.5px;border-top:1px solid #EEF2F5;padding-top:12px}
   @media (max-width:640px){.sheet{margin:12px;padding:22px 18px}dl{grid-template-columns:1fr}header.top{flex-direction:column}.right{text-align:left}
     .table-wrap{overflow-x:auto}}
-  @media print{body{background:#fff}.bar{display:none}.sheet{border:0;margin:0;max-width:none;padding:0}}
+  @media print{body{background:#fff}.bar{display:none}.sheet,.wide .sheet{border:0;margin:0;max-width:none;padding:0}.table-wrap{overflow:visible}}
 </style></head>
-<body>
+<body{$bodyClass}>
 <div class="bar"><button class="ghost" onclick="history.length>1?history.back():window.close()">Close</button>
 <button onclick="window.print()">Print / Save as PDF</button></div>
 <div class="sheet">

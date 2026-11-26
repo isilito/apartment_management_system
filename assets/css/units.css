@@ -1,0 +1,101 @@
+/* ============================================================
+   units.css — unit cards, building tiles and the dashboard's
+   "Empty units" rows (admin console).
+   ============================================================ */
+
+/* ============================================================
+   Unit cards (admin Units page)
+   ============================================================ */
+.unit-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(272px,1fr));
+  gap:20px;
+}
+.unit-card{
+  display:flex; flex-direction:column;
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--r-lg); overflow:hidden; cursor:pointer;
+  transition:border-color .16s var(--ease), box-shadow .16s var(--ease), transform .16s var(--ease);
+}
+.unit-card:hover{ border-color:#C9D6DD; box-shadow:var(--sh-3); transform:translateY(-2px); }
+.unit-card:active{ transform:translateY(0); }
+
+.uc-info{ padding:18px 18px 18px; display:flex; flex-direction:column; gap:12px; flex:1; }
+.uc-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.uc-no{ font-size:18px; font-weight:800; letter-spacing:-.02em; }
+.uc-rent{ font-size:16px; font-weight:800; letter-spacing:-.015em; white-space:nowrap; }
+.uc-rent span{ font-size:12px; font-weight:500; color:var(--muted); letter-spacing:0; }
+.uc-type{ font-size:13px; color:var(--muted); margin-top:-8px; }
+
+/* Status pill in the card header */
+.uc-tag{
+  display:inline-flex; align-items:center; gap:6px; flex:none;
+  height:26px; padding:0 10px;
+  border-radius:var(--r-pill);
+  background:var(--surface-2); color:var(--ink);
+  font-size:12px; font-weight:700; white-space:nowrap;
+}
+.uc-tag i{ width:8px; height:8px; border-radius:50%; background:currentColor; }
+.uc-tag.s-occupied{ color:var(--green); }
+.uc-tag.s-vacant  { color:var(--teal); }
+.uc-tag.s-repair  { color:var(--amber); }
+.uc-tag span{ color:var(--ink); }
+
+.uc-who{
+  display:flex; align-items:center; gap:11px;
+  margin-top:auto; padding-top:12px;
+  border-top:1px solid var(--line-soft);
+  min-height:52px;
+}
+.uc-who b{ display:block; font-size:13.5px; font-weight:600; }
+.uc-who div > span{ display:block; font-size:12px; color:var(--muted); }
+.uc-who .owes{ margin-left:auto; text-align:right; }
+.uc-who .owes b{ color:var(--red); font-size:13.5px; }
+.uc-who .owes > span{ color:var(--red); opacity:.8; }
+.uc-who .ph{
+  width:36px; height:36px; border-radius:50%; flex:none;
+  display:grid; place-items:center;
+}
+.uc-who .ph svg{ width:16px; height:16px; }
+.uc-who .ph.vacant{ background:var(--teal-100); color:var(--teal); }
+.uc-who .ph.repair{ background:var(--amber-bg); color:var(--amber); }
+
+/* ============================================================
+   Building tiles (admin Units page)
+   ============================================================ */
+.bld-strip{ display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:20px; margin-bottom:24px; }
+.bld-tile{ display:flex; align-items:stretch; overflow:hidden; }
+.bld-tile .bt-icon{ flex:none; padding:18px 0 18px 18px; }
+.bld-tile .bt-body{ flex:1; min-width:0; padding:16px 18px; display:flex; flex-direction:column; gap:4px; }
+.bld-tile .bt-body b{ font-size:15px; font-weight:700; }
+.bld-tile .bt-body .addr{ font-size:12.5px; color:var(--muted); }
+.bld-tile .bt-count{ display:flex; gap:14px; margin-top:auto; padding-top:10px; font-size:12.5px; color:var(--ink-2); flex-wrap:wrap; }
+.bld-tile .bt-count strong{ font-weight:800; }
+
+/* ============================================================
+   Small unit rows (dashboard "Empty units")
+   ============================================================ */
+.unit-row{
+  display:flex; align-items:center; gap:13px;
+  padding:10px; margin:0 -10px;
+  border-radius:var(--r);
+  color:inherit;
+  transition:background .15s var(--ease);
+}
+.unit-row:hover{ background:var(--surface-2); }
+.unit-row .pr-ico{ flex:none; }
+.unit-row .pr-main{ flex:1; min-width:0; }
+.unit-row .pr-main b{ display:block; font-size:13.5px; font-weight:700; }
+.unit-row .pr-main span{ display:block; font-size:12px; color:var(--muted); }
+.unit-row .pr-end{ text-align:right; font-size:13.5px; font-weight:800; white-space:nowrap; }
+.unit-row .pr-end span{ display:block; font-size:11.5px; font-weight:500; color:var(--muted); }
+
+@media (prefers-reduced-motion:reduce){
+  .unit-card{ transition:none; }
+  .unit-card:hover{ transform:none; }
+}
+
+@media (max-width:680px){
+  .unit-grid{ grid-template-columns:minmax(0,1fr); gap:14px; }
+  .bld-strip{ grid-template-columns:minmax(0,1fr); gap:12px; }
+}

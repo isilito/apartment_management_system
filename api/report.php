@@ -182,9 +182,12 @@ $fmt = function ($v, $i) use ($num) {
     return h($v);
 };
 $th = implode('', array_map(fn($c, $i) => '<th' . (in_array($i, $num, true) ? ' class="num"' : '') . '>' . h($c) . '</th>', $cols, array_keys($cols)));
-$tb = implode('', array_map(fn($r) => '<tr>' . implode('', array_map(fn($v, $i) => '<td' . (in_array($i, $num, true) ? ' class="num"' : '') . '>' . $fmt($v, $i) . '</td>', $r, array_keys($r))) . '</tr>', $rows));
+/* dates and phone numbers stay on one line so rows do not stretch into tall stacks */
+$cellClass = fn($v, $i) => in_array($i, $num, true) ? ' class="num"'
+    : (preg_match('/^(\d{2} \w{3} \d{4}|\+?[\d ]{7,})$/', (string) $v) ? ' class="nw"' : '');
+$tb = implode('', array_map(fn($r) => '<tr>' . implode('', array_map(fn($v, $i) => '<td' . $cellClass($v, $i) . '>' . $fmt($v, $i) . '</td>', $r, array_keys($r))) . '</tr>', $rows));
 $tf = $totals ? '<tfoot><tr>' . implode('', array_map(fn($v, $i) => '<td' . (in_array($i, $num, true) ? ' class="num"' : '') . '>' . $fmt($v, $i) . '</td>', $totals, array_keys($totals))) . '</tr></tfoot>' : '';
 $body = '<p class="sub">' . h($bName) . ' · ' . count($rows) . ' rows</p>' .
         ($rows ? '<div class="table-wrap"><table><thead><tr>' . $th . '</tr></thead><tbody>' . $tb . '</tbody>' . $tf . '</table></div>'
                : '<p>Nothing to report for this period.</p>');
-print_page(h($titles[$type]), h($plabel), $body);
+print_page(h($titles[$type]), h($plabel), $body, true);

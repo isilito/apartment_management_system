@@ -184,6 +184,39 @@ function str_in(string $k, int $max = 255, bool $required = false, string $label
     if ($required && $v === '') fail(($label ?: ucfirst($k)) . ' is required.');
     return mb_substr($v, 0, $max);
 }
+/**
+ * Normalizes a Philippine phone number, or returns null when it is not one.
+ * Mobile numbers (0917 123 4567, 639171234567, +63 917 123 4567) come back as
+ * "+63 917 123 4567". When $mobileOnly is false, landlines with an area code
+ * (02 8123 4567, (032) 123 4567) are kept as typed. An empty value stays empty.
+ */
+function phone_clean(string $v, bool $mobileOnly = true): ?string
+{
+    $v = trim($v);
+    if ($v === '') return '';
+    if (strlen($v) > 20 || !preg_match('/^\+?[\d\s\-().]+$/', $v)) return null;
+    $digits = preg_replace('/\D/', '', $v);
+    if (preg_match('/^(?:63|0)?(9\d{9})$/', $digits, $m)) {
+        return '+63 ' . substr($m[1], 0, 3) . ' ' . substr($m[1], 3, 3) . ' ' . substr($m[1], 6);
+    }
+    if (!$mobileOnly && preg_match('/^(?:63|0)[2-8]\d{7,8}$/', $digits)) return preg_replace('/\s+/', ' ', $v);
+    return null;
+}
+
+/** Phone number from the request, validated with phone_clean(). */
+function phone_in(string $k, string $label, bool $required = false, bool $mobileOnly = true): string
+{
+    $raw = trim((string) (input()[$k] ?? ''));
+    if ($required && $raw === '') fail($label . ' is required.');
+    $v = phone_clean($raw, $mobileOnly);
+    if ($v === null) {
+        fail($mobileOnly
+            ? $label . ' must be a valid PH mobile number, e.g. 0917 123 4567 or +63 917 123 4567.'
+            : $label . ' must be a valid PH mobile or landline number, e.g. 0917 123 4567 or (02) 8123 4567.');
+    }
+    return $v;
+}
+
 function num_in(string $k, float $default = 0): float
 {
     $v = input()[$k] ?? null;

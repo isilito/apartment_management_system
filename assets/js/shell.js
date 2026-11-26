@@ -296,6 +296,17 @@
     });
   }
 
+  /* Mirrors phone_clean() in api/lib.php: PH mobile (0917 123 4567,
+     +63 917 123 4567) or, when landlines are allowed, (02) 8123 4567. */
+  function phoneOk(v, allowLandline) {
+    if (!v) return true;
+    if (v.length > 20 || !/^\+?[\d\s\-().]+$/.test(v)) return false;
+    var d = v.replace(/\D/g, '');
+    return /^(?:63|0)?9\d{9}$/.test(d) || (!!allowLandline && /^(?:63|0)[2-8]\d{7,8}$/.test(d));
+  }
+  var PHONE_MSG = 'Enter a valid PH mobile number, e.g. 0917 123 4567';
+  var EM_PHONE_MSG = 'Enter a valid emergency number, e.g. 0917 123 4567 or (02) 8123 4567';
+
   function val(box, sel) { var el = box.querySelector(sel); return el ? el.value.trim() : ''; }
 
   function isoDate(d) {
@@ -406,7 +417,7 @@
       body:
         '<div class="form-grid">' +
           '<div class="form-row"><label>Full name</label><input class="input" id="tName" placeholder="Juan Dela Cruz"/></div>' +
-          '<div class="form-row"><label>Mobile number</label><input class="input" id="tPhone" placeholder="+63 9XX XXX XXXX"/></div>' +
+          '<div class="form-row"><label>Mobile number</label><input class="input" id="tPhone" type="tel" inputmode="tel" maxlength="20" placeholder="+63 9XX XXX XXXX"/></div>' +
           '<div class="form-row"><label>Email <span class="u-muted">(used to sign in)</span></label><input class="input" id="tEmail" type="email"/></div>' +
           '<div class="form-row"><label>Occupation</label><input class="input" id="tJob" placeholder="Teacher"/></div>' +
           '<div class="form-row"><label>Unit</label><select class="select" id="tUnit">' +
@@ -424,7 +435,7 @@
           '<div class="form-row"><label>Monthly rent</label><input class="input" id="tRent" type="number" min="0"/></div>' +
           '<div class="form-row"><label>Security deposit</label><input class="input" id="tDep" type="number" min="0"/></div>' +
           '<div class="form-row"><label>Emergency contact</label><input class="input" id="tEmName" placeholder="Name"/></div>' +
-          '<div class="form-row"><label>Emergency number</label><input class="input" id="tEmPhone" placeholder="+63 9XX XXX XXXX"/></div>' +
+          '<div class="form-row"><label>Emergency number</label><input class="input" id="tEmPhone" type="tel" inputmode="tel" maxlength="20" placeholder="+63 9XX XXX XXXX"/></div>' +
           '<div class="form-row full"><label class="switch"><input type="checkbox" id="tLogin" checked/><span class="track"></span>' +
             '<span class="sw-text"><b>Create a tenant portal login</b><span>The tenant signs in with their email and a temporary password</span></span></label></div>' +
           '<div class="form-row full"><label class="switch"><input type="checkbox" id="tBill" checked/><span class="track"></span>' +
@@ -451,6 +462,8 @@
         var login = box.querySelector('#tLogin').checked;
         if (!name) { UI.toast('Enter the tenant\'s full name', 'warn'); return false; }
         if (!unit) { UI.toast('There are no vacant units to assign', 'warn'); return false; }
+        if (!phoneOk(val(box, '#tPhone'))) { UI.toast(PHONE_MSG, 'warn'); return false; }
+        if (!phoneOk(val(box, '#tEmPhone'), true)) { UI.toast(EM_PHONE_MSG, 'warn'); return false; }
         if (login && !val(box, '#tEmail')) { UI.toast('Add an email so the tenant can sign in, or turn off the portal login', 'warn'); return false; }
         return API.post('admin.php', 'add_tenant', {
           name: name, phone: val(box, '#tPhone'), email: val(box, '#tEmail'), occupation: val(box, '#tJob'),
@@ -704,7 +717,7 @@
       body:
         '<div class="form-grid">' +
           '<div class="form-row"><label>Full name</label><input class="input" id="eName" value="' + UI.esc(t.name) + '"/></div>' +
-          '<div class="form-row"><label>Mobile number</label><input class="input" id="ePhone" value="' + UI.esc(t.phone) + '"/></div>' +
+          '<div class="form-row"><label>Mobile number</label><input class="input" id="ePhone" type="tel" inputmode="tel" maxlength="20" value="' + UI.esc(t.phone) + '"/></div>' +
           '<div class="form-row"><label>Email</label><input class="input" id="eEmail" type="email" value="' + UI.esc(t.email) + '"/></div>' +
           '<div class="form-row"><label>Occupation</label><input class="input" id="eJob" value="' + UI.esc(t.occupation === '—' ? '' : t.occupation) + '"/></div>' +
           '<div class="form-row"><label>Occupants</label><input class="input" id="eOcc" type="number" min="1" value="' + t.occupants + '"/></div>' +
@@ -717,13 +730,15 @@
           '<div class="form-row"><label>Lease ends</label><input class="input" id="eEnd" type="date" value="' + (t.leaseEnd ? isoDate(t.leaseEnd) : '') + '"/></div>' +
           '<div class="form-row"><label>Emergency contact</label><input class="input" id="eEmName" value="' + UI.esc(t.emergencyName) + '"/></div>' +
           '<div class="form-row"><label>Relation</label><input class="input" id="eEmRel" value="' + UI.esc(t.emergencyRelation) + '"/></div>' +
-          '<div class="form-row"><label>Emergency number</label><input class="input" id="eEmPhone" value="' + UI.esc(t.emergencyPhone) + '"/></div>' +
+          '<div class="form-row"><label>Emergency number</label><input class="input" id="eEmPhone" type="tel" inputmode="tel" maxlength="20" value="' + UI.esc(t.emergencyPhone) + '"/></div>' +
           (!t.hasLogin ? '<div class="form-row full"><label class="switch"><input type="checkbox" id="eLogin"/><span class="track"></span>' +
             '<span class="sw-text"><b>Create a tenant portal login</b><span>Uses the email above</span></span></label></div>' : '') +
         '</div>',
       confirmText: 'Save changes',
       onConfirm: function (box) {
         if (!val(box, '#eName')) { UI.toast('The name cannot be empty', 'warn'); return false; }
+        if (!phoneOk(val(box, '#ePhone'))) { UI.toast(PHONE_MSG, 'warn'); return false; }
+        if (!phoneOk(val(box, '#eEmPhone'), true)) { UI.toast(EM_PHONE_MSG, 'warn'); return false; }
         var login = box.querySelector('#eLogin');
         return API.post('admin.php', 'update_tenant', {
           id: t.id, name: val(box, '#eName'), phone: val(box, '#ePhone'), email: val(box, '#eEmail'),

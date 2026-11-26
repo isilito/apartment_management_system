@@ -46,11 +46,10 @@
 
     return '<article class="unit-card" data-unit="' + UI.esc(u.id) + '" tabindex="0" ' +
         'aria-label="Unit ' + UI.esc(u.no) + ', ' + tag[1] + '">' +
-      '<div class="photo">' + UnitPhotos.cover(u) +
-        '<span class="photo-tag ' + tag[0] + '"><i></i><span>' + tag[1] + '</span></span></div>' +
       '<div class="uc-info">' +
         '<div class="uc-head"><div class="uc-no">Unit ' + UI.esc(u.no) + '</div>' +
-          '<div class="uc-rent">' + UI.peso(u.rent) + '<span> /month</span></div></div>' +
+          '<span class="uc-tag ' + tag[0] + '"><i></i><span>' + tag[1] + '</span></span></div>' +
+        '<div class="uc-rent">' + UI.peso(u.rent) + '<span> /month</span></div>' +
         '<div class="uc-type">' + UI.esc(u.type) + ' &middot; ' + u.size + ' sqm &middot; ' + UI.esc(b.name) + '</div>' +
         '<div class="uc-who">' + who + '</div>' +
       '</div>' +
@@ -85,7 +84,7 @@
       var us = DB.units.filter(function (u) { return u.buildingId === b.id; });
       var n = function (st) { return us.filter(function (u) { return u.status === st; }).length; };
       return '<section class="card bld-tile">' +
-        '<div class="bt-photo">' + UnitPhotos.building(b.id, b.name) + '</div>' +
+        '<div class="bt-icon"><span class="stat-icon i-teal">' + icon('building') + '</span></div>' +
         '<div class="bt-body"><b>' + UI.esc(b.name) + '</b>' +
           (b.address ? '<span class="addr">' + UI.esc(b.address) + '</span>' : '') +
           '<div class="bt-count">' +
@@ -95,7 +94,6 @@
           '</div></div>' +
       '</section>';
     }).join(''));
-    UnitPhotos.hydrateBuildings(document.getElementById('buildingStrip'));
   }
 
   function renderList() {
@@ -109,7 +107,6 @@
     UI.fill('unitList', state.mode === 'grid'
       ? '<div class="unit-grid">' + list.map(unitCard).join('') + '</div>'
       : unitTable(list));
-    if (state.mode === 'grid') UnitPhotos.hydrate(document.getElementById('unitList'));
   }
 
   function openUnit(id) {
@@ -127,8 +124,7 @@
       '</div></div>';
 
     var body =
-      UnitPhotos.gallery(u) +
-      '<div class="u-row u-mb u-mt" style="gap:8px">' + UI.statusBadge(u.status) +
+      '<div class="u-row u-mb" style="gap:8px">' + UI.statusBadge(u.status) +
         UI.badge(UI.peso(u.rent) + ' / month', 'teal') + UI.badge(u.size + ' sqm', 'outline') + '</div>' +
 
       (t ?
