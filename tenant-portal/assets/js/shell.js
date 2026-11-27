@@ -29,9 +29,16 @@
   /* ============================================================
      Chrome markup
      ============================================================ */
+  /* "Help & Contacts" lives on the My Unit page (rental.html#contacts), so
+     light it up instead of "My Unit" while that is where the tenant is. */
+  function isActive(key) {
+    var help = PAGE === 'rental' && location.hash === '#contacts';
+    return key === 'help' ? help : (key === PAGE && !(key === 'rental' && help));
+  }
+
   function navItem(it) {
     var n = typeof it.count === 'function' ? it.count() : null;
-    return '<a class="nav-item' + (it.key === PAGE ? ' active' : '') + '" href="' + it.href + '">' +
+    return '<a class="nav-item' + (isActive(it.key) ? ' active' : '') + '" data-nav="' + it.key + '" href="' + it.href + '">' +
              icon(it.icon) + '<span>' + it.label + '</span>' +
              (n ? '<span class="count">' + n + '</span>' : '') +
            '</a>';
@@ -529,6 +536,26 @@
     });
   }
 
+  /* Links like rental.html#contacts. The browser jumps to the anchor as soon
+     as the HTML arrives, but the page's data loads after that and pushes the
+     section down, so the tenant lands far above it (or, on a phone, nowhere
+     near it). Jump again once the page is filled in, and flash the section
+     so it is obvious where to look. */
+  function jumpToHash() {
+    var id = location.hash.slice(1);
+    var el = id && document.getElementById(id);
+    document.querySelectorAll('.nav-item[data-nav]').forEach(function (a) {
+      a.classList.toggle('active', isActive(a.dataset.nav));
+    });
+    if (!el) return;
+    requestAnimationFrame(function () {
+      el.scrollIntoView({ block: 'start' });
+      el.classList.remove('flash');
+      void el.offsetWidth;            // restart the animation on a repeat visit
+      el.classList.add('flash');
+    });
+  }
+
   function setNav(open) {
     document.body.classList.toggle('nav-open', open);
     var b = document.getElementById('menuBtn');
@@ -547,6 +574,8 @@
       document.body.classList.remove('booting');
       if (global.Page && typeof Page.init === 'function') Page.init();
       UI.animateMeters(document);
+      jumpToHash();
+      global.addEventListener('hashchange', jumpToHash);
     }).catch(function (err) {
       document.body.classList.remove('booting');
       if (!document.getElementById('modalRoot')) document.body.insertAdjacentHTML('beforeend', overlaysHtml());

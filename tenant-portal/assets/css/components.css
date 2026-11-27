@@ -425,6 +425,10 @@ table.tbl .nowrap{ white-space:nowrap; }
   padding:16px 24px; border-top:1px solid var(--line-soft); background:var(--surface-2);
   border-radius:0 0 var(--r-lg) var(--r-lg);
 }
+/* A section reached through a #link: clear the sticky topbar, then flash */
+.content [id]{ scroll-margin-top:calc(var(--topbar-h) + 16px); }
+.flash{ animation:flash 1.6s var(--ease); }
+@keyframes flash{ 0%,35%{ box-shadow:0 0 0 3px var(--teal); } 100%{ box-shadow:0 0 0 3px transparent; } }
 @keyframes fade{ from{opacity:0} }
 @keyframes pop{ from{opacity:0; transform:translateY(10px) scale(.985)} }
 
