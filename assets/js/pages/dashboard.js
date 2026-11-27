@@ -55,7 +55,7 @@
       /* this month's own shortfall; everything owed across all months is the "Unpaid rent" card */
       outstandingLabel: s.expectedThisMonth > s.incomeThisMonth
                           ? UI.peso(s.expectedThisMonth - s.incomeThisMonth) + ' still to collect'
-                          : 'Fully collected',
+                          : (s.expectedThisMonth > 0 ? 'Fully collected' : 'No rent billed yet'),
       emptySub:         s.vacant
                           ? plural(s.vacant, 'unit') + ' ready for a new tenant' + (s.repair ? ', ' + s.repair + ' being repaired' : '')
                           : (s.repair ? s.repair + ' being repaired' : 'Every unit has a tenant'),

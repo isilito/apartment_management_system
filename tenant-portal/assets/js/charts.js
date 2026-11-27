@@ -21,6 +21,9 @@
      (1, 2, 2.5 or 5 x 10^n) and a whole number of gridlines. */
   function niceAxis(rawMax, targetTicks) {
     targetTicks = targetTicks || 4;
+    /* Nothing recorded yet (a new account): every value is 0, and log10(0)
+       would turn the whole axis into NaN. Draw an empty 0-4k scale instead. */
+    if (!(rawMax > 0)) return { max: targetTicks * 1000, ticks: targetTicks };
     var rough = rawMax / targetTicks;
     var mag = Math.pow(10, Math.floor(Math.log10(rough)));
     var step = [1, 2, 2.5, 5, 10].map(function (m) { return m * mag; })

@@ -77,7 +77,7 @@
     var s = DB.stats;
     var avgTenure = Math.round(DB.tenants.reduce(function (a, t) {
       return a + UI.daysBetween(t.moveIn, DB.today) / 30.4;
-    }, 0) / DB.tenants.length);
+    }, 0) / (DB.tenants.length || 1));
 
     var tr = trend();
     var change = tr.length > 1 ? Math.round((tr[tr.length - 1].pct - tr[0].pct) * 10) / 10 : 0;
@@ -88,8 +88,8 @@
       occupancy:      s.occupancyPct + '%',
       occupancyNote:  !tr.length ? '' : (change === 0 ? 'No change since ' + tr[0].month
                         : (change > 0 ? 'Up ' : 'Down ') + Math.abs(change) + ' points since ' + tr[0].month),
-      tenancy:        avgTenure + ' months',
-      tenancyNote:    'Across all ' + DB.tenants.length + ' active renters',
+      tenancy:        DB.tenants.length ? avgTenure + ' months' : '—',
+      tenancyNote:    DB.tenants.length ? 'Across all ' + DB.tenants.length + ' active renters' : 'No renters yet',
       vacancyLoss:    UI.peso(DB.units.filter(function (u) { return u.status !== 'occupied'; })
                         .reduce(function (a, u) { return a + u.rent; }, 0)),
       repairsPerUnit: (DB.tickets.length / DB.units.length).toFixed(2)

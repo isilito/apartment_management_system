@@ -9,10 +9,11 @@ There are two ways to run it. Pick the one you need:
 | Put it online with Vercel | [Part B: Cloud database for Vercel](#part-b--cloud-database-for-vercel) (about 15 minutes) |
 
 Both parts use the same file: **`database/saraza_apartment.sql`**. It creates the database,
-all 20 tables, and the demo data (20 units, 17 tenants, payments, and so on).
+all 20 tables, the property (2 buildings, 20 units) and the admin login. There are no tenants
+or records yet: it is a clean start.
 
-> ⚠️ Importing the file **deletes and recreates** the `saraza_apartment` database. Run it again
-> any time you want to reset to the demo data, but never on a database with real records you
+> ⚠️ Importing the file **deletes and recreates** the `saraza_apartment` database. Running it again
+> wipes every tenant, payment and repair, so never do it on a database with real records you
 > want to keep. See [Back up first](#back-up-before-re-importing).
 
 ---
@@ -65,7 +66,7 @@ Open <http://localhost/saraza/api/health.php> (change `saraza` to your folder na
 {"ok":true,"database":"connected","tables":20,"session_store":"files","upload_store":"disk"}
 ```
 
-Then open <http://localhost/saraza/> and sign in as `michael.saraza@gmail.com` / `admin123`.
+Then open <http://localhost/saraza/> and sign in as `josephine.saraza@gmail.com` / `admin123`.
 If something is wrong, the health check tells you what. See [Troubleshooting](#troubleshooting).
 
 ---
@@ -232,8 +233,8 @@ Open `https://YOUR-PROJECT.vercel.app/api/health.php`. You should see:
 `"session_store":"db"` and `"upload_store":"db"` confirm that the app detected Vercel and is
 keeping sign-ins and uploaded files in the database (Vercel's disk is read-only).
 
-Then open the site, sign in as `michael.saraza@gmail.com` / `admin123`, and **change every
-demo password right away** (Settings → Security). The demo passwords are public in this repo.
+Then open the site, sign in as `josephine.saraza@gmail.com` / `admin123`, and **change the
+password right away** (Settings → Security). The starting password is public in this repo.
 
 ---
 

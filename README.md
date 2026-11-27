@@ -15,7 +15,8 @@ No build step, no Composer, no npm.
 2. Open the **XAMPP Control Panel** and start **Apache** and **MySQL**.
 3. **Import the database.** Open <http://localhost/phpmyadmin> → **Import** → choose
    `database/saraza_apartment.sql` → **Go**. It creates the `saraza_apartment` database with
-   all tables and demo data. (Re-importing resets everything back to the demo data.)
+   all tables, the property (2 buildings, 20 units) and the admin login, with no tenants or
+   records yet. (Re-importing wipes everything back to that clean start.)
 4. Open <http://localhost/saraza/api/health.php>. It should say `"ok":true`.
 5. Open <http://localhost/saraza/> and sign in.
 
@@ -60,7 +61,7 @@ function through the community [`vercel-php`](https://github.com/vercel-communit
 
    `.env.example` lists the same variables.
 5. **Deploy**, then open `https://<your-project>.vercel.app/api/health.php`. It should say
-   `"ok":true`; if not, it says what to fix. Then sign in and **change every demo password**
+   `"ok":true`; if not, it says what to fix. Then sign in and **change the admin password**
    (Settings → Security).
 
 If the build fails with a Node.js version error, set Project → Settings → General →
@@ -113,26 +114,27 @@ prompts to improve its products.
 
 | Who | Sign in with | Password |
 |---|---|---|
-| Admin — **Micheal Saraza** | `michael.saraza@gmail.com` | `admin123` |
-| Tenant — Jose Ramirez, Unit 201 | `jose.ramirez@gmail.com` | `tenant123` |
-| Any other demo tenant | their email (see Renter Information) | `tenant123` |
+| Admin — **Josephine Saraza** | `josephine.saraza@gmail.com` | `admin123` (change it on first sign-in) |
+| Tenants | their email | the temporary password shown when the admin creates their login |
 
 There is no self sign-up and no Google login: **only the admin creates tenant accounts** (Add tenant,
 or Edit → "Create a tenant portal login", or CSV import). Each new tenant gets a one-time temporary
 password shown on screen. Change the admin password under **Settings → Security** before real use.
 
-## Demo data
+## Starting data
 
-- **20 units** at two properties:
+The database starts clean: no tenants, payments, repairs, expenses or notices. It holds only:
+
+- **20 units** at two properties, all available to rent:
   - **Jose St. Building** — 4109 Jose St., GTDL, Valenzuela City — 10 units (101–105, 201–205)
   - **Jacinto St. Building** — 311 Jacinto St., Canumay, Valenzuela City — 10 units (J101–J105, J201–J205)
+- The admin login above, default settings, house rules and repair categories.
+- Payment methods: **Cash** is on. GCash, Maya and bank transfer are off until their account
+  details are entered under **Settings → Payment methods**.
 
-  17 occupied, 2 vacant (J203, J205), 1 under repair (J104).
-- **17 tenants** with leases, deposits, and emergency contacts; 7 have balances.
-- 7 months of rent and utility charges, ~200 payments (2 waiting for confirmation),
-  21 maintenance requests, operating expenses, notifications.
-- Data is dated around **8 October 2026**. The app creates each month's rent charges
-  automatically as time passes, so the books stay current whenever you open it.
+First steps for the owner: change the password, add the office phone number and payment details
+in Settings, check each unit's rent, then add tenants. The app creates each month's rent charges
+automatically from each tenant's move-in date.
 
 ## What works
 
@@ -193,7 +195,7 @@ api/                       PHP backend (JSON)
   config.local.example.php Template for local secrets such as the Gemini key (copy to config.local.php)
   uploads/                 Proofs of payment and request photos (direct access blocked)
 
-database/saraza_apartment.sql   Schema + demo data
+database/saraza_apartment.sql   Schema + starting data (clean, no tenants)
 database/cloud-tables.sql       Adds the Vercel tables to an older database
 
 vercel.json                Vercel functions (PHP runtime), region, headers
@@ -227,7 +229,7 @@ The tenant portal keeps its own copies of `base.css`, `components.css`, `ui.js`,
 - Write requests require a custom header, which blocks cross-site form posts.
 - Five wrong passwords in a row pause sign-in for a minute.
 - `.htaccess` files block direct access to `api/uploads/`, `database/`, and the PHP includes.
-  If you deploy beyond your own PC, also use HTTPS and change every demo password.
+  If you deploy beyond your own PC, also use HTTPS and change the admin password.
 - On Vercel, `.vercelignore` does that job: the SQL dump is never uploaded, and `config.php`,
   `lib.php`, and `print.php` answer 404 when requested directly.
 
