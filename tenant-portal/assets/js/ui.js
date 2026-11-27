@@ -345,12 +345,20 @@
     var raf = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : null;
 
     (scope || document).querySelectorAll('.meter > i').forEach(function (bar) {
-      var target = bar.style.width;
+      /* Called twice before the first run lands (page refresh + shell boot),
+         the width reads as our own '0%'; keep the real target from the first call. */
+      var pending = bar.dataset.meterTarget;
+      var target = pending && bar.style.width === '0%' ? pending : bar.style.width;
       if (!target) return;
       if (!raf) { bar.style.width = target; return; }
 
+      bar.dataset.meterTarget = target;
       bar.style.width = '0%';
-      raf(function () { raf(function () { bar.style.width = target; }); });
+      raf(function () { raf(function () {
+        if (bar.dataset.meterTarget === undefined) return;
+        bar.style.width = bar.dataset.meterTarget;
+        delete bar.dataset.meterTarget;
+      }); });
     });
   }
 
