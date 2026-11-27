@@ -143,7 +143,9 @@
       balanceLabel: s.overdueCount ? 'Overdue balance' : 'Total coming up',
       balanceAmount: UI.peso(s.totalDue),
       balanceNote:  s.overdueCount
-                      ? s.overdueCount + ' charge' + (s.overdueCount > 1 ? 's are' : ' is') + ' past due'
+                      ? s.overdueCount + ' charge' + (s.overdueCount > 1 ? 's are' : ' is') + ' past due' +
+                        (s.pendingCount ? ' · ' + s.pendingCount + ' payment' + (s.pendingCount > 1 ? 's' : '') +
+                          ' waiting for confirmation' : '')
                       : (s.nextCharge
                           ? 'Next payment due in ' + s.nextDueInDays + ' days'
                           : 'You are fully paid up'),

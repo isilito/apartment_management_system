@@ -362,8 +362,15 @@ function act_confirm_payment(array $me): array
     q("UPDATE payments SET status='cleared', cleared_at=?, recorded_by=? WHERE id=?", [now(), $me['name'], $p['id']]);
     apply_payment($p['id']);
     if (setting('notify_tenant_on_clear', '1') === '1') {
+        /* only say "paid" when the payment really covered the charge it was sent for */
+        $c = $p['charge_id'] ? one('SELECT label, status, amount, amount_paid FROM charges WHERE id=?', [$p['charge_id']]) : null;
+        $body = !$c ? 'Thank you. Receipt ' . $p['id'] . ' is in your Payment History.'
+              : ($c['status'] === 'paid'
+                  ? $c['label'] . ' is now marked paid. Receipt ' . $p['id'] . '.'
+                  : peso($p['amount']) . ' went toward ' . $c['label'] . '; ' .
+                    peso((float) $c['amount'] - (float) $c['amount_paid']) . ' is still due. Receipt ' . $p['id'] . '.');
         notify_tenant($p['tenant_id'], 'green', 'check', 'Payment confirmed — ' . peso($p['amount']),
-            $p['covers'] . ' is now marked paid. Receipt ' . $p['id'] . '.', 'payments.html?receipt=' . $p['id']);
+            $body, 'payments.html?receipt=' . $p['id']);
     }
     log_activity($me, 'Confirmed payment', $p['id'] . ' · ' . peso($p['amount']));
     return ['id' => $p['id']];

@@ -52,23 +52,29 @@
         pay: 'Pay ' + UI.peso(sum(b.now))
       };
     }
+    /* A payment the office has not confirmed yet does not settle the bill:
+       show the amount still open (the admin sees the same balance). */
+    if (b.checking.length) {
+      var nx = b.later[0];
+      return {
+        label: 'Waiting for the office to confirm',
+        amount: UI.peso(sum(b.checking)),
+        note: 'You sent a payment for ' + andList(b.checking.map(function (c) {
+                return UI.esc(c.label) + (DB.daysFrom(c.due) < 0 ? ' (' + lateWords(DB.daysFrom(c.due)) + ')' : '');
+              })) + '. It stays open until the office confirms it, and you will get a notification when it clears.' +
+              (nx ? ' Your next bill is ' + UI.esc(nx.label) + ' for ' + UI.peso(nx.amount) + ', due on ' +
+                    UI.fmtDate(nx.due) + '.' : ''),
+        pay: nx ? 'Pay early' : 'Pay a bill'
+      };
+    }
     if (b.later.length) {
       var n = b.later[0];
       return {
         label: 'Nothing to pay right now',
         amount: UI.peso(0),
         note: 'Your next bill is ' + UI.esc(n.label) + ' for ' + UI.peso(n.amount) + ', due on ' +
-              UI.fmtDate(n.due) + ' (in ' + DB.daysFrom(n.due) + ' days).' +
-              (b.checking.length ? ' We are checking the payment you sent.' : ''),
+              UI.fmtDate(n.due) + ' (in ' + DB.daysFrom(n.due) + ' days).',
         pay: 'Pay early'
-      };
-    }
-    if (b.checking.length) {
-      return {
-        label: 'Payment being checked',
-        amount: UI.peso(sum(b.checking)),
-        note: 'The office is confirming the payment you sent. You will get a notification when it is done.',
-        pay: 'Pay a bill'
       };
     }
     return { label: 'You are all paid up', amount: UI.peso(0), note: 'Thank you. There is nothing to pay right now.', pay: 'Pay a bill' };
@@ -133,11 +139,14 @@
     var out = [];
     for (var back = 5; back >= 0; back--) {
       var m = new Date(DB.today.getFullYear(), DB.today.getMonth() - back, 1);
-      var paid = DB.payments.some(function (p) {
-        return p.status === 'cleared' &&
-               p.covers.toLowerCase().indexOf('rent') > -1 &&
-               p.date.getFullYear() === m.getFullYear() &&
-               p.date.getMonth() === m.getMonth();
+      var inMonth = function (d) { return d.getFullYear() === m.getFullYear() && d.getMonth() === m.getMonth(); };
+      /* the month's rent charge decides it; older months (no longer sent with the
+         charges) fall back to a cleared rent payment, ignoring late fees */
+      var charge = DB.charges.filter(function (c) { return c.kind === 'rent' && inMonth(c.due); })[0];
+      var paid = charge ? charge.status === 'paid' : DB.payments.some(function (p) {
+        var covers = p.covers.toLowerCase();
+        return p.status === 'cleared' && covers.indexOf('rent') > -1 &&
+               covers.indexOf('late fee') === -1 && inMonth(p.date);
       });
       out.push('<div class="bc-dot' + (paid ? ' paid' : '') + '" title="' + UI.MONTHS[m.getMonth()] +
         (paid ? ': paid' : ': not paid yet') + '">' +
@@ -182,6 +191,8 @@
       greeting:     greeting(),
       lead:         b.now.length
                       ? 'You have ' + b.now.length + ' bill' + (b.now.length > 1 ? 's' : '') + ' to pay. Everything else is below.'
+                      : b.checking.length
+                      ? 'The office is checking the payment you sent. Everything about your unit is below.'
                       : 'You are up to date. Here is everything about your unit.',
       today:        UI.fmtDateLong(DB.today),
       tenure:       'Living here for ' + s.monthsStayed + ' month' + (s.monthsStayed === 1 ? '' : 's'),

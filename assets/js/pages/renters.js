@@ -17,7 +17,14 @@
     });
   }
 
+  /* money the tenant sent from the portal that still needs confirming */
+  function pendingFrom(t) {
+    return DB.payments.filter(function (p) { return p.tenantId === t.id && p.status === 'pending'; })
+                      .reduce(function (s, p) { return s + p.amount; }, 0);
+  }
+
   function renterCard(t) {
+    var pend = pendingFrom(t);
     var sel = state.selected === t.id ? ' style="border-color:var(--teal);box-shadow:var(--sh-2)"' : '';
     return '<article class="card renter-card" data-tenant="' + t.id + '" tabindex="0"' + sel + '>' +
       UI.avatar(t.initials, 'avatar-lg') +
@@ -32,6 +39,8 @@
       '<div style="text-align:right;flex:none">' + UI.statusBadge(t.status) +
         (t.balance ? '<div class="u-sm u-b u-red" style="margin-top:8px">' + UI.peso(t.balance) + '</div>'
                    : '<div class="u-xs u-muted" style="margin-top:8px">' + UI.peso(t.rent) + '/mo</div>') +
+        (pend ? '<div class="u-xs u-teal" style="margin-top:4px" title="Sent from the tenant portal, waiting for you to confirm">' +
+                  UI.peso(pend) + ' to confirm</div>' : '') +
       '</div>' +
     '</article>';
   }
@@ -83,6 +92,8 @@
           '<dt>Contract</dt><dd>' + UI.esc(t.contractNo || '—') + '</dd>' +
           '<dt>Balance</dt><dd class="' + (t.balance ? 'u-red' : 'u-green') + '">' +
             (t.balance ? UI.peso(t.balance) + ' (' + t.overdueDays + 'd late)' : 'Fully paid') + '</dd>' +
+          (pendingFrom(t) ? '<dt>Waiting to confirm</dt><dd class="u-teal">' + UI.peso(pendingFrom(t)) +
+            ' sent by the tenant</dd>' : '') +
         '</dl>' +
 
         (open.length ? '<div class="u-rule"></div>' +
