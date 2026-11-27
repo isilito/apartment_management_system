@@ -105,7 +105,7 @@ svg{ display:block; }
    width of whatever monitor it is opened on. */
 .content{
   flex:1;
-  padding:28px 32px 40px;
+  padding:28px 32px 96px;
   width:100%;
   min-width:0;
 }
@@ -233,7 +233,7 @@ svg{ display:block; }
 /* ============================================================
    Responsive
    ============================================================ */
-@media (max-width:1240px){ .content{ padding:24px; } }
+@media (max-width:1240px){ .content{ padding:24px 24px 96px; } }
 
 @media (max-width:1024px){
   .sidebar{ transform:translateX(-100%); }
@@ -245,7 +245,7 @@ svg{ display:block; }
 }
 
 @media (max-width:680px){
-  .content{ padding:18px 16px 32px; }
+  .content{ padding:18px 16px 96px; }
   .topbar{ padding:0 14px; gap:10px; }
   .search{ flex:1; }
   #logoutBtn{ display:none; }

@@ -9,8 +9,10 @@
   function list() {
     var q = state.q.trim().toLowerCase();
     return DB.tenants.filter(function (t) {
-      if (state.tab === 'overdue' && t.status !== 'overdue') return false;
-      if (state.tab === 'current' && t.status !== 'current') return false;
+      /* by money owed, so the count matches the dashboard and Payments
+         (a tenant on notice who still owes is "With balance" too) */
+      if (state.tab === 'overdue' && !(t.balance > 0)) return false;
+      if (state.tab === 'current' && t.balance > 0) return false;
       if (state.tab === 'notice'  && t.status !== 'notice')  return false;
       if (!q) return true;
       return (t.name + ' ' + t.unitNo + ' ' + t.phone + ' ' + t.email).toLowerCase().indexOf(q) > -1;
@@ -141,7 +143,7 @@
 
   function refresh() {
     var all = DB.tenants;
-    var overdue = all.filter(function (t) { return t.status === 'overdue'; }).length;
+    var overdue = all.filter(function (t) { return t.balance > 0; }).length;
     var notice  = all.filter(function (t) { return t.status === 'notice'; }).length;
 
     UI.bind({
@@ -149,7 +151,7 @@
       withBalance:  overdue + ' with a balance',
       onNotice:     notice + ' on notice',
       countAll:     all.length,
-      countCurrent: all.filter(function (t) { return t.status === 'current'; }).length,
+      countCurrent: all.length - overdue,
       countOverdue: overdue,
       countNotice:  notice
     });

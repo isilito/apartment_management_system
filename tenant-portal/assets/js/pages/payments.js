@@ -34,7 +34,8 @@
         : (pending ? 'Payment sent — waiting for confirmation'
         : (days < 0 ? Math.abs(days) + ' days overdue'
                     : (days === 0 ? 'Due today' : 'Due in ' + days + ' days')) +
-          (c.partial ? ' · ' + UI.peso(c.total - c.amount) + ' already paid' : ''));
+          (c.partial ? ' · ' + UI.peso(c.total - c.amount) + ' already paid' : '') +
+          (c.checking > 0 ? ' · ' + UI.peso(c.checking) + ' being checked' : ''));
 
       return '<div class="charge-row">' +
         '<span class="ch-ico stat-icon ' + tone + '">' +

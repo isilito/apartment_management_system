@@ -30,7 +30,8 @@
                           : '',
       incomeBar:        pct(s.incomeThisMonth, s.incomeTarget),
       incomeNote:       pct(s.incomeThisMonth, s.incomeTarget) +
-                        '% of the ' + UI.peso(s.incomeTarget) + ' you expect each month' +
+                        (DB.money.target ? '% of your ' + UI.peso(s.incomeTarget) + ' monthly target'
+                                         : '% of the ' + UI.peso(s.incomeTarget) + ' billed this month') +
                         (s.earlierDated ? ' · ' + UI.peso(s.earlierDated) +
                           ' confirmed this month counts under its earlier date paid' : ''),
 
@@ -38,7 +39,7 @@
       outstandingCount: plural(s.overdueTenants.length, 'tenant'),
       outstandingBar:   pct(s.outstanding, s.expectedThisMonth),
       outstandingNote:  s.overdueTenants.length
-                          ? 'The latest payer is ' + s.overdueTenants[0].overdueDays + ' days late'
+                          ? 'The furthest behind is ' + s.overdueTenants[0].overdueDays + ' days late'
                           : 'Everyone is paid up',
 
       repairs:          String(s.openRepairs),
@@ -48,10 +49,13 @@
 
       monthYear:        UI.fmtMonthYear(DB.today),
       collected:        UI.peso(s.incomeThisMonth),
-      collectedOf:      'of ' + UI.peso(s.expectedThisMonth),
+      collectedOf:      'of ' + UI.peso(s.expectedThisMonth) + ' billed',
       collectedBar:     pct(s.incomeThisMonth, s.expectedThisMonth),
       collectedPct:     pct(s.incomeThisMonth, s.expectedThisMonth) + '% received',
-      outstandingLabel: UI.peso(s.outstanding) + ' still unpaid',
+      /* this month's own shortfall; everything owed across all months is the "Unpaid rent" card */
+      outstandingLabel: s.expectedThisMonth > s.incomeThisMonth
+                          ? UI.peso(s.expectedThisMonth - s.incomeThisMonth) + ' still to collect'
+                          : 'Fully collected',
       emptySub:         s.vacant
                           ? plural(s.vacant, 'unit') + ' ready for a new tenant' + (s.repair ? ', ' + s.repair + ' being repaired' : '')
                           : (s.repair ? s.repair + ' being repaired' : 'Every unit has a tenant'),
@@ -80,10 +84,15 @@
   function todoItems() {
     var s = DB.stats, out = [];
 
+    /* how long the oldest unconfirmed payment has been sitting there */
+    var waited = DB.payments.filter(function (p) { return p.status === 'pending'; })
+      .reduce(function (max, p) { return Math.max(max, UI.daysBetween(p.createdAt || p.date, DB.today)); }, 0);
+
     if (s.pendingCount) out.push({
       tone: 'teal', ico: 'receipt',
       text: '<b>' + plural(s.pendingCount, 'payment') + ' from tenants ' + (s.pendingCount === 1 ? 'is' : 'are') +
-            ' waiting for you to check</b> (' + UI.peso(s.pendingAmount) + '). Confirm them once the money is in your account.',
+            ' waiting for you to check</b> (' + UI.peso(s.pendingAmount) + '). Confirm them once the money is in your account.' +
+            (waited > 3 ? ' The oldest has waited ' + waited + ' days.' : ''),
       btn: 'Check payments', href: 'payments.html?status=pending'
     });
 

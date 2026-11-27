@@ -38,18 +38,22 @@
   }
 
   function sum(list) { return list.reduce(function (s, c) { return s + c.amount; }, 0); }
+  /* what is still to send, leaving out money already being checked */
+  function sumToPay(list) { return list.reduce(function (s, c) { return s + c.toPay; }, 0); }
+  function partlyChecked(c) { return c.checking > 0 && c.status !== 'pending'; }
 
   function balanceText(b) {
     if (b.now.length) {
       return {
         label: 'You need to pay now',
-        amount: UI.peso(sum(b.now)),
+        amount: UI.peso(sumToPay(b.now)),
         note: andList(b.now.map(function (c) {
-          return UI.esc(c.label) + ' (' + lateWords(DB.daysFrom(c.due)) + ')';
+          return UI.esc(c.label) + ' (' + lateWords(DB.daysFrom(c.due)) +
+                 (partlyChecked(c) ? ', ' + UI.peso(c.checking) + ' of it being checked' : '') + ')';
         })) + '.' +
           (b.checking.length ? ' We are also checking ' + b.checking.length + ' payment' +
             (b.checking.length > 1 ? 's' : '') + ' you sent.' : ''),
-        pay: 'Pay ' + UI.peso(sum(b.now))
+        pay: 'Pay ' + UI.peso(sumToPay(b.now))
       };
     }
     /* A payment the office has not confirmed yet does not settle the bill:
@@ -62,7 +66,7 @@
         note: 'You sent a payment for ' + andList(b.checking.map(function (c) {
                 return UI.esc(c.label) + (DB.daysFrom(c.due) < 0 ? ' (' + lateWords(DB.daysFrom(c.due)) + ')' : '');
               })) + '. It stays open until the office confirms it, and you will get a notification when it clears.' +
-              (nx ? ' Your next bill is ' + UI.esc(nx.label) + ' for ' + UI.peso(nx.amount) + ', due on ' +
+              (nx ? ' Your next bill is ' + UI.esc(nx.label) + ' for ' + UI.peso(nx.toPay) + ', due on ' +
                     UI.fmtDate(nx.due) + '.' : ''),
         pay: nx ? 'Pay early' : 'Pay a bill'
       };
@@ -72,8 +76,9 @@
       return {
         label: 'Nothing to pay right now',
         amount: UI.peso(0),
-        note: 'Your next bill is ' + UI.esc(n.label) + ' for ' + UI.peso(n.amount) + ', due on ' +
-              UI.fmtDate(n.due) + ' (in ' + DB.daysFrom(n.due) + ' days).',
+        note: 'Your next bill is ' + UI.esc(n.label) + ' for ' + UI.peso(n.toPay) + ', due on ' +
+              UI.fmtDate(n.due) + ' (in ' + DB.daysFrom(n.due) + ' days).' +
+              (partlyChecked(n) ? ' ' + UI.peso(n.checking) + ' you sent for it is being checked.' : ''),
         pay: 'Pay early'
       };
     }
@@ -96,7 +101,8 @@
                : (days < 0 ? Math.abs(days) + ' days late' : (days === 0 ? 'Due today' : 'Due in ' + days + ' days'));
       return '<div class="row">' +
         '<div class="row-main"><b>' + UI.esc(c.label) + '</b>' +
-          '<span>Due ' + UI.fmtDate(c.due) + ' &middot; ' + UI.esc(c.detail) + '</span></div>' +
+          '<span>Due ' + UI.fmtDate(c.due) + ' &middot; ' + UI.esc(c.detail) +
+            (partlyChecked(c) ? ' &middot; ' + UI.peso(c.checking) + ' being checked' : '') + '</span></div>' +
         '<div class="row-end"><b>' + UI.peso(c.amount) + '</b>' +
           UI.badge(when, tone) + '</div></div>';
     }).join(''));
@@ -139,14 +145,16 @@
     var out = [];
     for (var back = 5; back >= 0; back--) {
       var m = new Date(DB.today.getFullYear(), DB.today.getMonth() - back, 1);
-      var inMonth = function (d) { return d.getFullYear() === m.getFullYear() && d.getMonth() === m.getMonth(); };
-      /* the month's rent charge decides it; older months (no longer sent with the
-         charges) fall back to a cleared rent payment, ignoring late fees */
-      var charge = DB.charges.filter(function (c) { return c.kind === 'rent' && inMonth(c.due); })[0];
-      var paid = charge ? charge.status === 'paid' : DB.payments.some(function (p) {
-        var covers = p.covers.toLowerCase();
-        return p.status === 'cleared' && covers.indexOf('rent') > -1 &&
-               covers.indexOf('late fee') === -1 && inMonth(p.date);
+      /* The month's own rent bill decides it. A month with no bill on file
+         (waived, or before the records start) only counts as paid if a confirmed
+         payment names that month's rent, whenever it was made. */
+      var ym = m.getFullYear() + '-' + String(m.getMonth() + 1).padStart(2, '0');
+      var billed = (DB.rentMonths || {})[ym];
+      var wanted = m.toLocaleString('en-US', { month: 'long' }).toLowerCase() + ' rent';
+      var paid = billed ? billed === 'paid' : DB.payments.some(function (p) {
+        return p.status === 'cleared' && p.covers.toLowerCase().split('+').some(function (part) {
+          return part.trim() === wanted;
+        });
       });
       out.push('<div class="bc-dot' + (paid ? ' paid' : '') + '" title="' + UI.MONTHS[m.getMonth()] +
         (paid ? ': paid' : ': not paid yet') + '">' +
@@ -201,7 +209,7 @@
       balanceAmount: bal.amount,
       balanceNote:  bal.note,
       payLabel:     bal.pay,
-      nextDueDate:  next ? UI.peso(next.amount) + ' on ' + UI.fmtDate(next.due) : 'None yet',
+      nextDueDate:  next ? UI.peso(next.toPay) + ' on ' + UI.fmtDate(next.due) : 'None yet',
       nextDueLabel: next ? 'Next bill: ' + UI.esc(next.label) : 'Next bill',
       paidThisYear: UI.peso(s.paidThisYear),
 

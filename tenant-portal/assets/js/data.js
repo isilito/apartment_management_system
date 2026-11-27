@@ -41,6 +41,11 @@
     ['moveIn', 'leaseStart', 'leaseEnd'].forEach(function (k) { d.rental[k] = parse(d.rental[k]); });
     dates(d.rental.documents, ['date']);
     dates(d.charges, ['due', 'paidOn']);
+    /* toPay: what is left on the bill after the payments still being checked */
+    d.charges.forEach(function (c) {
+      c.checking = c.checking || 0;
+      c.toPay = c.status === 'paid' ? 0 : Math.max(0, Math.round((c.amount - c.checking) * 100) / 100);
+    });
     dates(d.payments, ['date']);
     dates(d.requests, ['submitted', 'scheduledFor', 'resolved']);
     d.requests.forEach(function (r) { dates(r.timeline, ['when']); });

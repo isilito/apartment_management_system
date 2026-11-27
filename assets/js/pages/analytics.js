@@ -3,6 +3,10 @@
    ============================================================ */
 (function (global) {
 
+  var state = { range: 6 };
+
+  function trend() { return (DB.occupancyTrend || []).slice(-state.range); }
+
   function tenureBuckets() {
     var b = [
       { label: 'Under 6 months', min: 0,  max: 6,   n: 0 },
@@ -75,10 +79,15 @@
       return a + UI.daysBetween(t.moveIn, DB.today) / 30.4;
     }, 0) / DB.tenants.length);
 
+    var tr = trend();
+    var change = tr.length > 1 ? Math.round((tr[tr.length - 1].pct - tr[0].pct) * 10) / 10 : 0;
+
     UI.bind({
       unitCount:      s.totalUnits + ' units',
       buildingCount:  s.buildingsCount + ' buildings',
       occupancy:      s.occupancyPct + '%',
+      occupancyNote:  !tr.length ? '' : (change === 0 ? 'No change since ' + tr[0].month
+                        : (change > 0 ? 'Up ' : 'Down ') + Math.abs(change) + ' points since ' + tr[0].month),
       tenancy:        avgTenure + ' months',
       tenancyNote:    'Across all ' + DB.tenants.length + ' active renters',
       vacancyLoss:    UI.peso(DB.units.filter(function (u) { return u.status !== 'occupied'; })
@@ -87,10 +96,10 @@
     });
 
     UI.fill('occupancySpark', Charts.sparkline(
-      DB.occupancyTrend.map(function (o) { return o.pct; }), '#0B6E8C'));
+      tr.map(function (o) { return o.pct; }), '#0B6E8C'));
 
     UI.fill('occupancyChart', Charts.areaLine(
-      DB.occupancyTrend.map(function (o) { return { label: o.month, value: o.pct }; }),
+      tr.map(function (o) { return { label: o.month, value: o.pct }; }),
       { color: Charts.colors.teal, height: 260, width: Charts.widthOf('occupancyChart'),
         fmt: function (v) { return v.toFixed(0) + '%'; } }));
 
@@ -117,12 +126,28 @@
     UI.animateMeters(document);
   }
 
+  /* the figures on this page, as a spreadsheet */
+  function exportCsv() {
+    var rows = [['Occupancy by month'], ['Month', 'Occupied %']];
+    trend().forEach(function (o) { rows.push([o.month, o.pct]); });
+    rows.push([], ['Buildings'], ['Building', 'Units', 'Occupied', 'Monthly potential', 'Open repairs']);
+    DB.buildings.forEach(function (b) {
+      var us = DB.units.filter(function (u) { return u.buildingId === b.id; });
+      rows.push([b.name, us.length, us.filter(function (u) { return u.status === 'occupied'; }).length,
+        us.reduce(function (a, u) { return a + u.rent; }, 0),
+        DB.tickets.filter(function (t) { return t.buildingId === b.id && t.status !== 'done'; }).length]);
+    });
+    API.downloadCsv('analytics-' + Shell.isoDate() + '.csv', rows);
+    UI.toast('Analytics exported');
+  }
+
   function init() {
     refresh();
     UI.onResize(refresh);
 
     UI.wireSegment(document, function (v) {
-      UI.toast('Showing the last ' + v + ' months', 'info');
+      state.range = Number(v) || 6;
+      refresh();
     });
 
     document.querySelector('.content').addEventListener('click', function (e) {
@@ -131,8 +156,7 @@
 
       var a = e.target.closest('[data-act]');
       if (!a) return;
-      if (a.dataset.act === 'export')   UI.toast('Analytics data exported to CSV');
-      if (a.dataset.act === 'renewals') UI.toast('Renewal notices drafted for review', 'info');
+      if (a.dataset.act === 'export') exportCsv();
     });
   }
 

@@ -351,6 +351,31 @@ function notify_admins(string $pref, string $tone, string $icon, string $title, 
     }
 }
 
+/**
+ * Same as calling notify_admins() for each alert, but checks which ones were
+ * already sent with a single query. Each alert: [pref, tone, icon, title, body, link, dedupe].
+ */
+function notify_admins_once(array $alerts): void
+{
+    $alerts = array_values(array_filter($alerts, fn($a) => $a[0] === '' || setting($a[0], '1') === '1'));
+    if (!$alerts) return;
+    $admins = array_column(all("SELECT id FROM users WHERE role='admin' AND is_active=1"), 'id');
+    if (!$admins) return;
+
+    $keys = [];
+    foreach ($alerts as $a) foreach ($admins as $id) $keys[] = $a[6] . ':' . $id;
+    $sent = array_flip(array_column(
+        all('SELECT dedupe_key FROM notifications WHERE dedupe_key IN (' . implode(',', array_fill(0, count($keys), '?')) . ')', $keys),
+        'dedupe_key'));
+
+    foreach ($alerts as $a) {
+        foreach ($admins as $id) {
+            $key = $a[6] . ':' . $id;
+            if (!isset($sent[$key])) notify((int) $id, $a[1], $a[2], $a[3], $a[4], $a[5], $key);
+        }
+    }
+}
+
 function notify_tenant(string $tenantId, string $tone, string $icon, string $title, string $body = '',
                        string $link = '', ?string $dedupe = null): void
 {
@@ -386,8 +411,11 @@ function ensure_charges(): void
     $tenants = all("SELECT t.id, t.rent, t.move_in, t.lease_end, t.unit_id
                     FROM tenants t WHERE t.status IN ('current','notice') AND t.unit_id IS NOT NULL");
 
+    $lastRent = array_column(all("SELECT tenant_id, MAX(period) AS last FROM charges WHERE kind='rent' GROUP BY tenant_id"),
+                             'last', 'tenant_id');
+
     foreach ($tenants as $t) {
-        $last = val("SELECT MAX(period) FROM charges WHERE tenant_id=? AND kind='rent'", [$t['id']]);
+        $last = $lastRent[$t['id']] ?? null;
         $period = $last
             ? date('Y-m-01', strtotime($last . ' +1 month'))
             : date('Y-m-01', strtotime($t['move_in']));
@@ -413,7 +441,8 @@ function ensure_charges(): void
     $cutoff = date('Y-m-d', strtotime(today() . " -$grace days"));
     $late = all("SELECT c.tenant_id, c.period, c.amount, t.rent FROM charges c JOIN tenants t ON t.id = c.tenant_id
                  WHERE c.kind='rent' AND c.status <> 'paid' AND c.due_date < ? AND t.status IN ('current','notice')
-                 AND NOT EXISTS (SELECT 1 FROM payments p WHERE p.charge_id=c.id AND p.status='pending')
+                 AND (SELECT COALESCE(SUM(p.amount),0) FROM payments p WHERE p.charge_id=c.id AND p.status='pending')
+                     < (c.amount - c.amount_paid)
                  AND NOT EXISTS (SELECT 1 FROM charges f WHERE f.tenant_id=c.tenant_id AND f.kind='late_fee' AND f.period=c.period)",
                 [$cutoff]);
     foreach ($late as $c) {
@@ -507,6 +536,19 @@ function tenant_balance(string $tenantId): array
               FROM charges WHERE tenant_id=? AND status <> 'paid' AND kind <> 'utility' AND due_date <= ?", [$tenantId, today()]);
     $bal = round((float) $r['bal'], 2);
     return ['balance' => $bal, 'overdueDays' => $bal > 0 && $r['oldest'] ? max(0, days_between($r['oldest'], today())) : 0];
+}
+
+/** tenant_balance() for every tenant at once: [tenant_id => ['balance' => .., 'overdueDays' => ..]]. */
+function tenant_balances(): array
+{
+    $out = [];
+    foreach (all("SELECT tenant_id, COALESCE(SUM(amount - amount_paid),0) AS bal, MIN(due_date) AS oldest
+                  FROM charges WHERE status <> 'paid' AND kind <> 'utility' AND due_date <= ? GROUP BY tenant_id", [today()]) as $r) {
+        $bal = round((float) $r['bal'], 2);
+        $out[$r['tenant_id']] = ['balance' => $bal,
+            'overdueDays' => $bal > 0 && $r['oldest'] ? max(0, days_between($r['oldest'], today())) : 0];
+    }
+    return $out;
 }
 
 /* ---------------- Uploads ---------------- */

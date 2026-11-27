@@ -47,7 +47,7 @@
             <span class="stat-icon i-teal" data-icon="chart"></span></div>
           <div class="stat-value"><b data-bind="occupancy"></b>
             <span class="u-end" id="occupancySpark"></span></div>
-          <p class="stat-note" style="margin-top:0">Up 6.2 points since April</p>
+          <p class="stat-note" style="margin-top:0" data-bind="occupancyNote"></p>
         </div></section>
 
         <section class="card"><div class="stat">
@@ -68,7 +68,7 @@
           <div class="stat-top"><span class="stat-label">Repairs per unit</span>
             <span class="stat-icon i-red" data-icon="wrench"></span></div>
           <div class="stat-value"><b data-bind="repairsPerUnit"></b></div>
-          <p class="stat-note" style="margin-top:0">Requests logged in the last 6 months</p>
+          <p class="stat-note" style="margin-top:0">Repair requests on record, per unit</p>
         </div></section>
       </div>
 
@@ -99,7 +99,7 @@
               <p class="sub">Occupancy and monthly rent potential per building</p></div>
           </header>
           <div class="table-wrap">
-            <table class="tbl" style="min-width:820px">
+            <table class="tbl" style="min-width:640px">
               <thead>
                 <tr>
                   <th>Building</th><th class="num">Units</th><th class="num">Occupied</th>
@@ -124,14 +124,10 @@
         <section class="card span-2">
           <header class="card-head">
             <div><h3>Leases ending soon</h3>
-              <p class="sub">The next four months of renewals and turnovers</p></div>
-            <div class="card-head-actions">
-              <button class="btn btn-outline btn-sm" data-act="renewals">
-                <span data-icon="mail"></span>Send renewal notices</button>
-            </div>
+              <p class="sub">The next four months of renewals and turnovers. Click a row to open the tenant.</p></div>
           </header>
           <div class="table-wrap">
-            <table class="tbl" style="min-width:860px">
+            <table class="tbl" style="min-width:680px">
               <thead>
                 <tr>
                   <th>Tenant</th><th>Unit</th><th>Lease ends</th>
@@ -156,6 +152,7 @@
 </div>
 
 <script src="assets/js/icons.js"></script>
+<script src="assets/js/api.js"></script>
 <script src="assets/js/data.js"></script>
 <script src="assets/js/ui.js"></script>
 <script src="assets/js/charts.js"></script>

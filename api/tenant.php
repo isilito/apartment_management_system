@@ -40,20 +40,25 @@ function tenant_bootstrap(array $me, array $t): array
                               FROM units u JOIN unit_types ut ON ut.tkey=u.type_key JOIN buildings b ON b.id=u.building_id
                               WHERE u.id=?', [$t['unit_id']]) : null;
 
+    /* money sent for each charge that the office has not confirmed yet */
     $pendingFor = [];
-    foreach (all("SELECT charge_id FROM payments WHERE tenant_id=? AND status='pending' AND charge_id IS NOT NULL", [$t['id']]) as $p) {
-        $pendingFor[(int) $p['charge_id']] = true;
+    foreach (all("SELECT charge_id, SUM(amount) AS amt FROM payments WHERE tenant_id=? AND status='pending'
+                  AND charge_id IS NOT NULL GROUP BY charge_id", [$t['id']]) as $p) {
+        $pendingFor[(int) $p['charge_id']] = (float) $p['amt'];
     }
 
     /* utilities run on each tenant's own meters, so they are never billed here */
     $charges = array_map(function ($c) use ($today, $pendingFor) {
         $remaining = round((float) $c['amount'] - (float) $c['amount_paid'], 2);
+        /* "pending" only when the payments being checked cover what is left;
+           a smaller payment leaves the rest of the bill open and payable */
+        $checking = $c['status'] === 'paid' ? 0.0 : round(min($remaining, $pendingFor[(int) $c['id']] ?? 0), 2);
         $status = $c['status'] === 'paid' ? 'paid'
-                : (isset($pendingFor[(int) $c['id']]) ? 'pending' : ($c['due_date'] < $today ? 'overdue' : 'upcoming'));
+                : ($checking > 0 && $checking + 0.001 >= $remaining ? 'pending' : ($c['due_date'] < $today ? 'overdue' : 'upcoming'));
         return [
             'id' => 'CHG-' . $c['id'], 'chargeId' => (int) $c['id'], 'label' => $c['label'], 'detail' => $c['detail'],
             'amount' => $c['status'] === 'paid' ? (float) $c['amount'] : $remaining, 'total' => (float) $c['amount'],
-            'partial' => $c['status'] === 'partial', 'due' => $c['due_date'], 'status' => $status,
+            'partial' => $c['status'] === 'partial', 'due' => $c['due_date'], 'status' => $status, 'checking' => $checking,
             'kind' => $c['kind'], 'paidOn' => $c['paid_on'],
         ];
     }, all("SELECT * FROM charges WHERE tenant_id=? AND kind <> 'utility' AND (status <> 'paid' OR paid_on >= ?) ORDER BY due_date DESC, id DESC",
@@ -141,6 +146,11 @@ function tenant_bootstrap(array $me, array $t): array
         'requests' => $requests,
         'notices' => notifications_for((int) $me['id']),
         'onTimeStreak' => $streak,
+        /* status of each month's rent bill for the "last 6 months" record: ['2026-11' => 'paid', ...] */
+        'rentMonths' => (object) array_column(
+            all("SELECT DATE_FORMAT(period, '%Y-%m') AS ym, status FROM charges WHERE tenant_id=? AND kind='rent' AND period >= ?",
+                [$t['id'], date('Y-m-01', strtotime(date('Y-m-01') . ' -5 months'))]),
+            'status', 'ym'),
     ];
 }
 
@@ -162,8 +172,12 @@ function act_submit_payment(array $me, array $t): array
     if ($chargeId && !$charge) fail('That charge could not be found.');
     if ($charge && $charge['kind'] === 'utility') fail('Utilities are paid directly to the provider, not through the portal.');
     if ($charge && $charge['status'] === 'paid') fail('That charge is already paid.');
-    if ($charge && val("SELECT 1 FROM payments WHERE charge_id=? AND status='pending'", [$charge['id']])) {
-        fail('You already sent a payment for this charge. It is waiting for confirmation.');
+    if ($charge) {
+        /* block a second payment only once the ones being checked cover the whole bill */
+        $sent = (float) val("SELECT COALESCE(SUM(amount),0) FROM payments WHERE charge_id=? AND status='pending'", [$charge['id']]);
+        if ($sent > 0 && $sent + 0.001 >= (float) $charge['amount'] - (float) $charge['amount_paid']) {
+            fail('You already sent a payment for this charge. It is waiting for confirmation.');
+        }
     }
 
     $proof = null;

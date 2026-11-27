@@ -84,11 +84,14 @@ function bootstrap(array $me): array
 
     $tenantRows = all("SELECT * FROM tenants WHERE status <> 'moved_out' ORDER BY id");
     $logins = array_flip(array_column(all("SELECT tenant_id FROM users WHERE role='tenant' AND is_active=1"), 'tenant_id'));
+    $unitRows = all('SELECT * FROM units ORDER BY building_id, floor, id');
+    $unitBuilding = array_column($unitRows, 'building_id', 'id');
+    $balances = tenant_balances();
     $unitTenant = [];
     $tenants = [];
     foreach ($tenantRows as $t) {
-        $bal = tenant_balance($t['id']);
-        $unit = $t['unit_id'] ? one('SELECT building_id FROM units WHERE id=?', [$t['unit_id']]) : null;
+        $bal = $balances[$t['id']] ?? ['balance' => 0.0, 'overdueDays' => 0];
+        $unit = $t['unit_id'] && isset($unitBuilding[$t['unit_id']]) ? ['building_id' => $unitBuilding[$t['unit_id']]] : null;
         $unitTenant[$t['unit_id']] = $t['id'];
         $status = $t['status'] === 'notice' ? 'notice' : ($bal['balance'] > 0 ? 'overdue' : 'current');
         $tenants[] = [
@@ -115,7 +118,7 @@ function bootstrap(array $me): array
             'status' => $u['status'], 'notes' => $u['notes'], 'vacantSince' => $u['vacant_since'],
             'tenantId' => $unitTenant[$u['id']] ?? null,
         ];
-    }, all('SELECT * FROM units ORDER BY building_id, floor, id'));
+    }, $unitRows);
 
     $names = array_column(all('SELECT id, name FROM tenants'), 'name', 'id');
     $payments = array_map(fn($p) => [
@@ -162,22 +165,42 @@ function bootstrap(array $me): array
 
     /* twelve-month money series (the console shows the last 6 by default) */
     $monthly = []; $expenseTrend = [];
+    $from = date('Y-m-01', strtotime(date('Y-m-01') . ' -11 months'));
+    $to = date('Y-m-t');
+    /* one grouped query per figure, keyed by 'YYYY-MM', instead of four queries per month */
+    $byMonth = fn(string $sql) => array_column(all($sql, [$from, $to]), 'total', 'ym');
+    $expected = $byMonth("SELECT DATE_FORMAT(due_date, '%Y-%m') AS ym, SUM(amount) AS total FROM charges
+                          WHERE due_date BETWEEN ? AND ? AND kind IN ('rent','utility','late_fee','other')
+                          AND NOT (kind='utility' AND status<>'paid') GROUP BY ym");
+    $collected = $byMonth("SELECT DATE_FORMAT(paid_on, '%Y-%m') AS ym, SUM(amount) AS total FROM payments
+                           WHERE status='cleared' AND paid_on BETWEEN ? AND ? GROUP BY ym");
+    $spent = $byMonth("SELECT DATE_FORMAT(expense_date, '%Y-%m') AS ym, SUM(amount) AS total FROM expenses
+                       WHERE expense_date BETWEEN ? AND ? GROUP BY ym");
+    $repairs = $byMonth("SELECT DATE_FORMAT(resolved_at, '%Y-%m') AS ym, SUM(cost) AS total FROM maintenance_requests
+                         WHERE status='done' AND DATE(resolved_at) BETWEEN ? AND ? GROUP BY ym");
     for ($i = 11; $i >= 0; $i--) {
         $start = date('Y-m-01', strtotime(date('Y-m-01') . " -$i months"));
-        $end = date('Y-m-t', strtotime($start));
+        $ym = substr($start, 0, 7);
         $monthly[] = [
             'month' => date('M', strtotime($start)), 'start' => $start,
-            'expected' => (float) val("SELECT COALESCE(SUM(amount),0) FROM charges WHERE due_date BETWEEN ? AND ?
-                                       AND kind IN ('rent','utility','late_fee','other') AND NOT (kind='utility' AND status<>'paid')", [$start, $end]),
-            'collected' => (float) val("SELECT COALESCE(SUM(amount),0) FROM payments WHERE status='cleared' AND paid_on BETWEEN ? AND ?",
-                                       [$start, $end]),
+            'expected' => (float) ($expected[$ym] ?? 0),
+            'collected' => (float) ($collected[$ym] ?? 0),
         ];
         $expenseTrend[] = [
             'month' => date('M', strtotime($start)),
-            'amount' => (float) val('SELECT COALESCE(SUM(amount),0) FROM expenses WHERE expense_date BETWEEN ? AND ?', [$start, $end])
-                      + (float) val("SELECT COALESCE(SUM(cost),0) FROM maintenance_requests WHERE status='done'
-                                     AND DATE(resolved_at) BETWEEN ? AND ?", [$start, $end]),
+            'amount' => (float) ($spent[$ym] ?? 0) + (float) ($repairs[$ym] ?? 0),
         ];
+    }
+
+    /* share of units with a tenant at the end of each month (today, for the current one) */
+    $stays = all('SELECT move_in, moved_out FROM tenants');
+    $unitCount = max(1, count($unitRows));
+    $occupancyTrend = [];
+    for ($i = 11; $i >= 0; $i--) {
+        $start = date('Y-m-01', strtotime(date('Y-m-01') . " -$i months"));
+        $asOf = min(date('Y-m-t', strtotime($start)), $today);
+        $n = count(array_filter($stays, fn($s) => $s['move_in'] <= $asOf && (!$s['moved_out'] || $s['moved_out'] > $asOf)));
+        $occupancyTrend[] = ['month' => date('M', strtotime($start)), 'pct' => round(min(100, $n / $unitCount * 100), 1)];
     }
 
     $staff = array_map(fn($s) => ['id' => (int) $s['id'], 'name' => $s['name'], 'role' => $s['role'], 'email' => $s['email'],
@@ -209,6 +232,7 @@ function bootstrap(array $me): array
         'methodList' => $allMethods,
         'monthly' => $monthly,
         'expenseTrend' => $expenseTrend,
+        'occupancyTrend' => $occupancyTrend,
         'expenses' => array_map(fn($e) => ['id' => (int) $e['id'], 'date' => $e['expense_date'], 'category' => $e['category'],
             'description' => $e['description'], 'amount' => (float) $e['amount']],
             all('SELECT * FROM expenses ORDER BY expense_date DESC, id DESC LIMIT 60')),
@@ -238,28 +262,32 @@ function bootstrap(array $me): array
 function admin_alerts(): void
 {
     $grace = (int) setting('grace_days', 3);
+    $alerts = [];
+    $balances = tenant_balances();
+    $oldestOpen = array_column(all("SELECT tenant_id, MIN(due_date) AS d FROM charges WHERE status<>'paid' GROUP BY tenant_id"),
+                               'd', 'tenant_id');
     foreach (all("SELECT id, name, unit_id FROM tenants WHERE status IN ('current','notice')") as $t) {
-        $b = tenant_balance($t['id']);
+        $b = $balances[$t['id']] ?? ['balance' => 0.0, 'overdueDays' => 0];
         if ($b['balance'] > 0 && $b['overdueDays'] > $grace) {
-            $oldest = val("SELECT MIN(due_date) FROM charges WHERE tenant_id=? AND status<>'paid'", [$t['id']]);
-            notify_admins('notif_overdue', 'amber', 'clock', $t['name'] . ' is ' . $b['overdueDays'] . ' days late',
+            $alerts[] = ['notif_overdue', 'amber', 'clock', $t['name'] . ' is ' . $b['overdueDays'] . ' days late',
                 peso($b['balance']) . ' outstanding for Unit ' . $t['unit_id'] . '.', 'renters.html?tenant=' . $t['id'],
-                'overdue:' . $t['id'] . ':' . $oldest);
+                'overdue:' . $t['id'] . ':' . ($oldestOpen[$t['id']] ?? '')];
         }
     }
     foreach (all("SELECT id, title, unit_id, created_at FROM maintenance_requests
                   WHERE priority='urgent' AND status='new' AND (assignee IS NULL OR assignee='') AND created_at < ?",
                  [date('Y-m-d H:i:s', time() - 86400)]) as $r) {
-        notify_admins('notif_urgent', 'red', 'alert', 'Urgent repair unassigned — Unit ' . $r['unit_id'],
+        $alerts[] = ['notif_urgent', 'red', 'alert', 'Urgent repair unassigned — Unit ' . $r['unit_id'],
             $r['title'] . ' has waited ' . days_between($r['created_at'], today()) . ' days.',
-            'maintenance.html?ticket=' . $r['id'], 'urgent:' . $r['id']);
+            'maintenance.html?ticket=' . $r['id'], 'urgent:' . $r['id']];
     }
     foreach (all("SELECT id, name, unit_id, lease_end FROM tenants WHERE status IN ('current','notice')
                   AND lease_end BETWEEN ? AND ?", [today(), date('Y-m-d', strtotime('+60 days'))]) as $t) {
-        notify_admins('notif_lease', 'teal', 'idCard', 'Lease ends in ' . days_between(today(), $t['lease_end']) . ' days',
+        $alerts[] = ['notif_lease', 'teal', 'idCard', 'Lease ends in ' . days_between(today(), $t['lease_end']) . ' days',
             $t['name'] . ' (Unit ' . $t['unit_id'] . ') — lease ends ' . date('d M Y', strtotime($t['lease_end'])) . '.',
-            'renters.html?tenant=' . $t['id'], 'lease:' . $t['id'] . ':' . $t['lease_end']);
+            'renters.html?tenant=' . $t['id'], 'lease:' . $t['id'] . ':' . $t['lease_end']];
     }
+    notify_admins_once($alerts);
 }
 
 /* ============================================================

@@ -60,7 +60,7 @@
             '<span class="strong">' + UI.esc(r.name) + '</span></span>',
           '<span class="muted">' + UI.esc(r.by) + '</span>',
           '<span class="nowrap muted">' + UI.esc(DB.ago(r.at)) + '</span>',
-          '<span class="muted">' + r.rows + ' rows</span>',
+          '<span class="muted">' + r.rows + (r.rows === 1 ? ' row' : ' rows') + '</span>',
           UI.badge(r.format === 'HTML' ? 'Printable' : r.format, 'outline'),
           url ? '<div class="row-actions">' +
             '<a class="icon-btn sm bare" title="Open printable" target="_blank" rel="noopener" href="' +

@@ -213,7 +213,7 @@
           '<div class="form-row full"><label>Which charge are you paying?</label>' +
             '<select class="select" id="payCharge">' + unpaid.map(function (c) {
               return '<option value="' + c.id + '"' + (picked && c.id === picked.id ? ' selected' : '') + '>' +
-                     UI.esc(c.label) + ' — ' + UI.peso(c.amount) + ' (due ' + UI.fmtDate(c.due) + ')</option>';
+                     UI.esc(c.label) + ' — ' + UI.peso(c.toPay) + ' (due ' + UI.fmtDate(c.due) + ')</option>';
             }).join('') + '</select></div>' +
           '<div class="form-row"><label>Amount</label>' +
             '<input class="input" id="payAmount" type="number" min="0" step="0.01" /></div>' +
@@ -238,7 +238,7 @@
 
         function syncAmount() {
           var c = DB.charge(sel.value);
-          if (c) amt.value = c.amount;
+          if (c) amt.value = c.toPay;
         }
         function syncMethod() {
           var m = DB.methods.filter(function (x) { return x.key === mth.value; })[0];
