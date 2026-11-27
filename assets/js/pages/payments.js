@@ -6,11 +6,12 @@
 
   var state = { q: '', method: 'all', status: 'all', limit: 12 };
 
-  var METHOD_META = {
-    'GCash':         { icon: 'smartphone', color: '#0B6E8C' },
-    'Bank transfer': { icon: 'bank',       color: '#2E90AE' },
-    'Cash':          { icon: 'cash',       color: '#0E7A55' },
-    'Maya':          { icon: 'wallet',     color: '#A15C07' }
+  /* chart colours per method; the logos come from methodMark() in icons.js */
+  var METHOD_COLOR = {
+    'GCash':         '#0B6E8C',
+    'Bank transfer': '#2E90AE',
+    'Cash':          '#0E7A55',
+    'Maya':          '#A15C07'
   };
 
   function ledger() {
@@ -37,14 +38,13 @@
     }
 
     UI.fill('ledgerRows', UI.tbody(page.map(function (p) {
-      var m = METHOD_META[p.method] || { icon: 'card' };
       return {
         attrs: 'class="linked' + (p.status === 'pending' ? ' row-pending' : '') + '" data-payment="' + p.id + '"',
         cells: [
           '<span class="muted nowrap">' + UI.esc(p.id) + '</span>',
           UI.personCell(p.initials, p.fullName, 'Unit ' + p.unitNo),
           '<span class="nowrap">' + UI.fmtDate(p.date) + '</span>',
-          '<span class="u-row" style="gap:7px">' + icon(m.icon) + UI.esc(p.method) + '</span>',
+          '<span class="pm-cell">' + methodMark(p.method) + UI.esc(p.method) + '</span>',
           '<span class="muted">' + UI.esc(p.covers) + '</span>',
           '<span class="strong">' + UI.peso(p.amount) + '</span>',
           UI.statusBadge(p.status)
@@ -96,14 +96,14 @@
     });
 
     var parts = DB.methods.map(function (m) {
-      return { label: m, value: byMethod[m].amount, color: (METHOD_META[m] || { color: '#52646E' }).color };
+      return { label: m, value: byMethod[m].amount, color: METHOD_COLOR[m] || '#52646E' };
     });
     var total = parts.reduce(function (a, p) { return a + p.value; }, 0) || 1;
 
     UI.fill('methodBar', Charts.stackedBar(parts));
     UI.fill('methodLegend', parts.map(function (p) {
       return '<div class="legend-item"><i class="dot-mark" style="background:' + p.color + '"></i>' +
-        '<span class="lg-name">' + p.label + '</span>' +
+        methodMark(p.label) + '<span class="lg-name">' + UI.esc(p.label) + '</span>' +
         '<span class="lg-val">' + UI.peso(p.value) + '</span>' +
         '<span class="lg-pct">' + Math.round(p.value / total * 100) + '%</span></div>';
     }).join(''));

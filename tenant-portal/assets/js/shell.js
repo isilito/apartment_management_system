@@ -243,7 +243,7 @@
         function syncMethod() {
           var m = DB.methods.filter(function (x) { return x.key === mth.value; })[0];
           det.innerHTML = m
-            ? '<span class="pd-ico">' + icon(m.icon) + '</span>' +
+            ? methodMark(m.label, m.icon) +
               '<div><b>' + UI.esc(m.label) + '</b><span>' + UI.esc(m.detail) + '</span></div>'
             : '';
         }

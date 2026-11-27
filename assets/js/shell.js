@@ -639,7 +639,7 @@
         '<dl class="kv">' +
           '<dt>Amount</dt><dd style="font-size:17px">' + UI.peso(p.amount) + '</dd>' +
           '<dt>Covers</dt><dd>' + UI.esc(p.covers) + '</dd>' +
-          '<dt>Method</dt><dd>' + UI.esc(p.method) + '</dd>' +
+          '<dt>Method</dt><dd><span class="pm-cell">' + methodMark(p.method) + UI.esc(p.method) + '</span></dd>' +
           '<dt>Reference</dt><dd>' + UI.esc(p.reference) + '</dd>' +
           '<dt>Date paid</dt><dd>' + UI.fmtDate(p.date) + '</dd>' +
           '<dt>' + (pending ? 'Submitted by' : 'Recorded by') + '</dt><dd>' + UI.esc(p.recordedBy) + '</dd>' +

@@ -91,6 +91,22 @@
            (cls ? ' class="' + cls + '"' : '') + '>' + d + '</svg>';
   }
 
+  /* Payment method mark: the real GCash / Maya logo, or a small icon for
+     bank transfer, cash and anything the office adds later.
+     methodMark('GCash')  -> <span class="pm-mark pm-gcash"><img ...></span> */
+  var LOGOS = { gcash: 'GCash', maya: 'Maya' };
+  function methodMark(name, fallbackIcon) {
+    var k = String(name || '').toLowerCase();
+    var brand = k.indexOf('gcash') > -1 ? 'gcash' : (k.indexOf('maya') > -1 ? 'maya' : '');
+    if (brand) {
+      return '<span class="pm-mark pm-' + brand + '" title="' + LOGOS[brand] + '">' +
+        '<img src="assets/img/payments/' + brand + '.svg" alt="' + LOGOS[brand] + '" width="40" height="12"/></span>';
+    }
+    var ico = fallbackIcon || (k.indexOf('bank') > -1 ? 'bank' : (k.indexOf('cash') > -1 ? 'cash' : 'card'));
+    return '<span class="pm-mark pm-icon">' + icon(ico) + '</span>';
+  }
+
   global.icon = icon;
+  global.methodMark = methodMark;
   global.ICONS = P;
 })(window);

@@ -130,7 +130,7 @@
   function renderMethods() {
     UI.fill('methodRows', DB.methodList.map(function (m) {
       return '<div class="set-row" data-method="' + m.key + '">' +
-        '<div class="sr-label"><b>' + UI.esc(m.label) + '</b>' +
+        '<div class="sr-label"><b class="pm-cell">' + methodMark(m.label, m.icon) + UI.esc(m.label) + '</b>' +
           '<input class="input u-mt" data-detail style="width:100%;max-width:420px" value="' + UI.esc(m.detail) + '" placeholder="Account name and number"/></div>' +
         '<div class="sr-control"><label class="switch"><input type="checkbox" data-active' + (m.active ? ' checked' : '') + '/>' +
           '<span class="track"></span></label></div></div>';

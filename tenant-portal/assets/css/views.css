@@ -307,26 +307,35 @@
   padding:15px 16px; border:1px solid var(--line);
   border-radius:var(--r); background:var(--surface);
 }
-.method-card .m-ico{
-  width:40px; height:40px; flex:none; border-radius:11px;
-  background:var(--teal-100); color:var(--teal); display:grid; place-items:center;
-}
-.method-card .m-ico svg{ width:19px; height:19px; }
 .method-card b{ display:block; font-size:13.5px; font-weight:600; }
-.method-card span{ display:block; font-size:12px; color:var(--muted); margin-top:2px; }
+.method-card div > span{ display:block; font-size:12px; color:var(--muted); margin-top:2px; }
 
 .pay-detail{
   display:flex; align-items:center; gap:12px;
   padding:13px 15px; border-radius:var(--r-sm);
   background:var(--teal-050); border:1px solid var(--teal-100);
 }
-.pay-detail .pd-ico{
-  width:34px; height:34px; flex:none; border-radius:9px;
-  background:var(--surface); color:var(--teal); display:grid; place-items:center;
-}
-.pay-detail .pd-ico svg{ width:16px; height:16px; }
 .pay-detail b{ display:block; font-size:13px; font-weight:600; }
-.pay-detail span{ display:block; font-size:12px; color:var(--muted); margin-top:1px; }
+.pay-detail div > span{ display:block; font-size:12px; color:var(--muted); margin-top:1px; }
+
+/* ============================================================
+   HOME — "Your bills" sets the row height; "Recent payments"
+   fills that height and scrolls its list instead of growing.
+   ============================================================ */
+.home-money{ align-items:stretch; }
+.recent-card{ display:flex; flex-direction:column; }
+.recent-card .card-body{ flex:1; min-height:0; display:flex; flex-direction:column; }
+.recent-card .card-body > .btn{ flex:none; }
+.recent-card #recentPayments{
+  flex:1; min-height:0; max-height:340px; overflow-y:auto;
+  margin-right:-10px; padding-right:10px;
+  scrollbar-width:thin; scrollbar-color:var(--line) transparent;
+}
+@media (min-width:1241px){
+  /* side by side with the bills card: don't let this card stretch the row */
+  .recent-card{ contain:size; min-height:300px; }
+  .recent-card #recentPayments{ max-height:none; }
+}
 
 /* ============================================================
    DROPZONE — photo / video upload

@@ -149,7 +149,7 @@
 
   function renderRecentPayments() {
     if (!DB.payments.length) { UI.fill('recentPayments', '<p class="u-sm u-muted">No payments yet.</p>'); return; }
-    UI.fill('recentPayments', DB.payments.slice(0, 4).map(function (p) {
+    UI.fill('recentPayments', DB.payments.slice(0, 12).map(function (p) {
       return '<div class="row" data-receipt="' + p.id + '" style="cursor:pointer" tabindex="0"><div class="row-main"><b>' + UI.peso(p.amount) + '</b>' +
         '<span>' + UI.esc(p.covers) + ' &middot; ' + UI.esc(p.method) + '</span></div>' +
         '<div class="row-end"><span class="u-xs u-muted">' + UI.fmtDate(p.date) + '</span>' +

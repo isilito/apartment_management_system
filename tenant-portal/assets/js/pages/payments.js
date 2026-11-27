@@ -10,7 +10,7 @@
   function renderMethods() {
     UI.fill('methodList', DB.methods.map(function (m) {
       return '<div class="method-card">' +
-        '<span class="m-ico">' + icon(m.icon) + '</span>' +
+        methodMark(m.label, m.icon) +
         '<div style="flex:1;min-width:0"><b>' + UI.esc(m.label) + '</b>' +
           '<span>' + UI.esc(m.detail) + '</span></div>' +
         '<button class="icon-btn sm bare" data-copy="' + UI.esc(m.detail) + '" title="Copy details" aria-label="Copy details">' +
@@ -84,7 +84,7 @@
           '<span class="strong nowrap">' + UI.esc(p.id) + '</span>',
           '<span class="nowrap">' + UI.fmtDate(p.date) + '</span>',
           UI.esc(p.covers),
-          '<span class="u-row" style="gap:7px">' + icon(m ? m.icon : 'card') + UI.esc(p.method) + '</span>',
+          '<span class="pm-cell">' + methodMark(p.method, m && m.icon) + UI.esc(p.method) + '</span>',
           '<span class="muted">' + UI.esc(p.ref) + '</span>',
           '<span class="strong">' + UI.peso(p.amount) + '</span>',
           UI.statusBadge(p.status)
@@ -112,7 +112,7 @@
           '<dt>Paid by</dt><dd>' + UI.esc(DB.tenant.name) + '</dd>' +
           '<dt>Unit</dt><dd>' + UI.esc(DB.rental.unitNo) + ' · ' + UI.esc(DB.rental.building) + '</dd>' +
           '<dt>Date paid</dt><dd>' + UI.fmtDate(p.date) + '</dd>' +
-          '<dt>Method</dt><dd>' + UI.esc(p.method) + '</dd>' +
+          '<dt>Method</dt><dd><span class="pm-cell">' + methodMark(p.method) + UI.esc(p.method) + '</span></dd>' +
           '<dt>Reference</dt><dd>' + UI.esc(p.ref) + '</dd>' +
           '<dt>Received by</dt><dd>' + UI.esc(p.receivedBy) + '</dd>' +
           (p.proof ? '<dt>Your proof</dt><dd><a href="' + p.proof + '" target="_blank" rel="noopener">View attachment</a></dd>' : '') +
